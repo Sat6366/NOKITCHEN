@@ -1,0 +1,89 @@
+{% extends 'pages/main.html' %}
+
+{% load static %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div>
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="flex-wrap" style='min-height: 80vh;'>
+    <div class="row">
+        <!-- Form Section -->
+        <div class="col-lg-6 wrapper p-5 mt-5">
+            <div class="title">
+                Registration 
+            </div>
+            <hr>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        {{ form.username }}
+                        {{ form.username.errors }}
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        {{ form.password1 }}
+                        {{ form.password1.errors }}
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        {{ form.password2 }}
+                        {{ form.password2.errors }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        {{ form.mobile_number }}
+                        {{ form.mobile_number.errors }}
+                    </div>
+
+                    <div class="col-md-6 form-group mb-3">
+                        {{ form.address }}
+                        {{ form.address.errors }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group mb-3">
+                        {{ form.pincode }}
+                        {{ form.pincode.errors }}
+                    </div>
+                </div>
+
+                <button type="submit" class="px-5 btn btn-outline-warning w-100">Register</button>
+            </form>
+        </div>
+
+        <!-- Floating Image Section -->
+        <div class="">
+            <div class="floatimg2">
+                <img src="{% static 'images/flotingimg.png' %}" alt="floating-burger" style="max-width: 100%;">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

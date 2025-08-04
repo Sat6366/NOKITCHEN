@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pay Now - No Kitchen Meals</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #fff7f0, #ffe0c3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .payment-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 24px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .payment-card h2 {
+      font-size: 22px;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .payment-card p {
+      font-size: 16px;
+      color: #777;
+      margin-bottom: 28px;
+    }
+
+    .swiggy-pay-button {
+      background: linear-gradient(to right, #ff6d00, #ff9e00);
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 14px 30px;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 111, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .swiggy-pay-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 30px rgba(255, 111, 0, 0.4);
+    }
+
+    .swiggy-pay-button:active {
+      transform: scale(0.98);
+    }
+
+    @media (max-width: 480px) {
+      .payment-card {
+        padding: 25px;
+      }
+
+      .payment-card h2 {
+        font-size: 20px;
+      }
+
+      .payment-card p {
+        font-size: 14px;
+      }
+
+      .swiggy-pay-button {
+        padding: 12px 24px;
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="payment-card">
+  <h2>Complete Your Order</h2>
+  <p>Pay ₹{{ grand_total }} for your customized meal plan</p>
+  <button id="rzp-button" class="swiggy-pay-button">Pay Securely</button>
+</div>
+
+<script>
+  var options = {
+    "key": "{{ razorpay_key }}",
+    "amount": "{{ grand_total|floatformat:0 }}" * 100,
+    "currency": "INR",
+    "name": "No Kitchen Meals",
+    "description": "Custom Meal Payment",
+    "order_id": "{{ razorpay_order_id }}",
+    "handler": function (response) {
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = "{{ callback_url }}";
+      form.innerHTML = `
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="razorpay_payment_id" value="${response.razorpay_payment_id}">
+        <input type="hidden" name="razorpay_order_id" value="${response.razorpay_order_id}">
+      `;
+      document.body.appendChild(form);
+      form.submit();
+    }
+  };
+
+  var rzp = new Razorpay(options);
+  document.getElementById('rzp-button').onclick = function(e) {
+    rzp.open();
+    e.preventDefault();
+  }
+</script>
+
+</body>
+</html>

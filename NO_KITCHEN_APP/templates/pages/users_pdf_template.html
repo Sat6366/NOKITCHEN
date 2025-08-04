@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 20px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #000;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 16px;
+            color: #003366;
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 5px;
+            vertical-align: top;
+            font-size: 9px;
+        }
+
+        th {
+            background-color: #003366;
+            color: #fff;
+            text-align: left;
+        }
+
+        .col-username { width: 100px; }
+        .col-email { width: 130px; word-wrap: break-word; }
+        .col-mobile { width: 90px; word-wrap: break-word; }
+        .col-address { width: 180px; word-wrap: break-word; }
+        .col-pincode { width: 60px; }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 9px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Registered Users Report</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-username">Username</th>
+                <th class="col-email">Email</th>
+                <th class="col-mobile">Mobile</th>
+                <th class="col-address">Address</th>
+                <th class="col-pincode">Pincode</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in profiles %}
+            <tr>
+                <td class="col-username">{{ profile.user.username }}</td>
+                <td class="col-email">{% if profile.user.email %}{{ profile.user.email }}{% else %}-{% endif %}</td>
+                <td class="col-mobile">{% if profile.mobile_number %}{{ profile.mobile_number }}{% else %}-{% endif %}</td>
+                <td class="col-address">{% if profile.address %}{{ profile.address }}{% else %}-{% endif %}</td>
+                <td class="col-pincode">{% if profile.pincode %}{{ profile.pincode }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Generated on {{ now|date:"Y-m-d H:i" }}
+    </div>
+</body>
+</html>

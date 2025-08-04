@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - All Payments</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f7f7f7;
+        }
+        tr:nth-child(even) {
+            background-color: #f4f4f4;
+        }
+         body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #2e86de;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 10px 15px;
+            font-weight: bold;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    
+   
+    <div class="navbar">
+        <a href="{% url 'adminhome' %}">Home</a>
+       
+        <a href="{% url 'admin_cartpayments' %}">Cart Payments</a>
+       
+        <a href="{% url 'admin_contact' %}">Contacts</a>
+        <a href="{% url 'add_food' %}">Foods</a>
+        <a href="{% url 'admin_payment' %}">Payments</a>
+        
+        <a href="{% url 'all_subscriptions' %}">Subscriptions</a>
+    </div>
+
+
+
+    <h2>All Cart Payments</h2>
+    <a href="{% url 'cartpayments_report_pdf' %}" class="btn btn-primary" target="_blank">📄 Download Cart Payments PDF</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Cart ID</th>
+                <th>Total Amount</th>
+                <th>Payment Status</th>
+                <th>Order Type</th>
+                <th>Address</th>
+                <th>Mobile</th>
+                <th>Card</th>
+                <th>CVV</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.user.username }}</td>
+                <td>{{ payment.unique_cart_id }}</td>
+                <td>{{ payment.total_amount }}</td>
+                <td>{{ payment.payment_status }}</td>
+                <td>{{ payment.order_type }}</td>
+                <td>{{ payment.address }}</td>
+                <td>{{ payment.mobile_number }}</td>
+                <td>{{ payment.card_number }}</td>
+                <td>{{ payment.cvv }}</td>
+                <td>{{ payment.created_at }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10">No payments found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+{% extends 'pages/main.html' %}
+
+{% load static %}
+
+{% block title %}Your Orders{% endblock %}
+
+{% block content %}
+<style>
+  /* Container for Orders */
+  .orders-container {
+    margin: 20px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f2f2f2;
+  }
+
+  img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+
+  .alert {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+  }
+
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+  }
+</style>
+
+<!-- Orders Container -->
+<div class="col-12 text-center orders-container form-control">
+  {% if payment_data %}
+    <h2 class='text-dark'>{{ request.user.username|capfirst }}'s Orders</h2>
+    {% for payment_info in payment_data %}
+      <table class='table table-secondary table-hover'>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Payment Status</th>
+            <th>Order Type</th>
+            <th>Created At</th>
+            <th>Total Amount</th>
+            <th>Address</th>
+            <th>Mobile Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ payment_info.payment.id }}</td>
+            <td>{{ payment_info.payment.payment_status }}</td>
+            <td>{{ payment_info.payment.order_type }}</td>
+            <td>{{ payment_info.payment.created_at }}</td>
+            <td>{{ payment_info.payment.total_amount }} RS</td>
+            <td>{{ payment_info.payment.address }}</td>
+            <td>{{ payment_info.payment.mobile_number }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Cart Details -->
+      <table>
+        <thead>
+          <tr>
+            <th colspan="3">Cart Details</th>
+          </tr>
+          <tr>
+            <th>Image</th>
+            <th>Item</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if payment_info.cart_items %}
+            {% for item in payment_info.cart_items %}
+              <tr>
+                <td>
+                  {% if item.item %}
+                    <img src="{{ item.item.image.url }}" alt="{{ item.item.name }}">
+                  {% endif %}
+                </td>
+                <td>
+                  {{ item.item.name }} 
+                </td>
+                <td>{{ item.quantity }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="3">No cart details available</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+
+      <!-- Subscription Details -->
+      <table>
+        <thead>
+          <tr>
+            <th colspan="3">Subscription Details</th>
+          </tr>
+          <tr>
+            <th>Meal Type</th>
+            <th>Items</th>
+           
+          </tr>
+        </thead>
+        <tbody>
+          {% for subscription in payment_info.subscriptions %}
+            <tr>
+              <td>Breakfast</td>
+              <td colspan="2">
+                {% if subscription.breakfast_items.all %}
+                  <ul style='list-style-type:none'>
+                    {% for item in subscription.breakfast_items.all %}
+                      <li>
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                        {{ item.name }} - {{ item.price }} RS
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  No Breakfast items.
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Lunch</td>
+              <td colspan="2">
+                {% if subscription.lunch_items.all %}
+                  <ul style='list-style-type:none'>
+                    {% for item in subscription.lunch_items.all %}
+                      <li>
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                        {{ item.name }} - {{ item.price }} RS
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  No Lunch items.
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Dinner</td>
+              <td colspan="2">
+                {% if subscription.dinner_items.all %}
+                  <ul style='list-style-type:none'>
+                    {% for item in subscription.dinner_items.all %}
+                      <li>
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                        {{ item.name }} - {{ item.price }} RS
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  No Dinner items.
+                {% endif %}
+              </td>
+              
+            </tr>
+          {% empty %}
+            <tr><td colspan="3">No subscriptions found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endfor %}
+  {% else %}
+    <p>You have no payment history.</p>
+  {% endif %}
+</div>
+
+<!-- Message Display -->
+{% if messages %}
+  <div>
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% endblock %}

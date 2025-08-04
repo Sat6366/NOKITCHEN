@@ -1,0 +1,948 @@
+{% extends 'pages/main.html' %}
+{% load static %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+<style>
+ body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f6f8;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-section {
+  height: 90vh;
+  background: linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.3)),
+              url('https://img.freepik.com/free-photo/flat-lay-table-full-delicious-food-composition_23-2149141352.jpg') center/cover no-repeat;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 8%;
+}
+
+.hero-section h1 {
+  font-size: 60px;
+  font-weight: 800;
+}
+
+.hero-section p {
+  font-size: 18px;
+  margin-top: 20px;
+  max-width: 600px;
+  color: #ddd;
+}
+
+.hero-btn {
+  background-color: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 30px;
+  margin-top: 30px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.hero-btn:hover {
+  background-color: #e64a19;
+}
+
+.menu-heading h2 {
+  text-align: center;
+  margin: 50px 0 30px;
+  font-size: 42px;
+  font-weight: 700;
+  color: #333;
+}
+
+.food-card {
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.07);
+  transition: 0.3s;
+  overflow: hidden;
+  height: 370px;
+  display: flex;
+  flex-direction: column;
+}
+
+.food-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+}
+
+.food-img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+}
+
+.card-body {
+  padding: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-body h5 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #d35400;
+}
+
+.card-body p {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4em;
+  height: 2.8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.star-rating {
+  color: #ffb300;
+  font-size: 14px;
+  margin: 4px 0 6px;
+}
+
+.star-rating i {
+  margin-right: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.star-rating i::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.2s;
+}
+
+.star-rating i:hover::after {
+  opacity: 1;
+}
+
+.price-qty {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+  margin: 6px 0;
+  color: #333;
+}
+
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.qty-btn {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn.increment {
+  background: #ff9800;
+}
+
+.qty-btn.decrement {
+  background: #f44336;
+}
+
+.qty-input {
+  width: 30px;
+  height: 24px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #fefefe;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.card-actions .btn {
+  padding: 5px 14px;
+  font-weight: 600;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border: none;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-outline-warning {
+  border-color: #ffc107;
+  color: #ffc107;
+  background-color: transparent;
+}
+
+.btn-outline-warning:hover {
+  background-color: #ffc107;
+  color: #fff;
+}
+
+.modal-content {
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.3s ease;
+  background-color: #fffaf5;
+  border: 2px solid #ffa726;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.veg-symbol, .nonveg-symbol {
+  margin-right: 6px;
+}
+
+.curry-group h6 {
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #ef6c00;
+}
+
+.sticky-cart {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1050;
+}
+
+.sticky-cart span {
+  font-weight: 600;
+  color: #333;
+}
+
+.sticky-cart a {
+  background-color: #fb8c00;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
+  .modal-header h5 {
+    font-weight: 700;
+    color: #d35400;
+    font-size: 22px;
+  }
+
+  .modal-body label {
+    font-weight: 500;
+    margin-top: 10px;
+    color: #444;
+  }
+
+  .modal-body textarea,
+  .modal-body input[type="date"] {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    font-size: 14px;
+    box-shadow: none;
+  }
+
+  .modal-body .curry-group {
+    padding: 15px;
+    background: #fff9f2;
+    border-radius: 10px;
+    margin-top: 20px;
+    border-left: 4px solid #ffa726;
+  }
+
+  .curry-group h6 {
+    color: #d35400;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+
+  .modal-body .d-flex {
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-body label {
+    margin-bottom: 0;
+  }
+
+  .qty-btn {
+    background: #ffa726;
+    border: none;
+    padding: 6px 10px;
+    color: white;
+    font-size: 14px;
+    border-radius: 5px;
+  }
+
+  .qty-input {
+    width: 45px;
+    text-align: center;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    margin: 0 6px;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+  }
+
+  .modal-footer .btn-warning {
+    background-color: #e67e22;
+    border: none;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 8px;
+  }
+
+  .modal-footer .btn-warning:hover {
+    background-color: #d35400;
+  }
+
+  .modal-content {
+    background: #fffefb;
+    border-radius: 16px;
+    border: 2px solid #ffc107;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+  }
+
+
+
+
+
+
+
+   .veg-symbol, .nonveg-symbol {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid;
+    border-radius: 2px;
+    margin-right: 8px;
+    position: relative;
+  }
+
+  .veg-symbol {
+    border-color: green;
+  }
+
+  .veg-symbol::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: green;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 1px;
+  }
+
+  .nonveg-symbol {
+    border-color: red;
+  }
+
+  .nonveg-symbol::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: red;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 1px;
+  }
+
+  .curry-selector {
+    display: none;
+    margin-top: 15px;
+  }
+
+  .veg-tab, .nonveg-tab {
+    display: inline-block;
+    padding: 6px 14px;
+    margin-right: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    background: #fff;
+  }
+
+  .veg-tab.active, .nonveg-tab.active {
+    background: #f5f5f5;
+    border-color: #aaa;
+  }
+
+  .curry-box {
+    border: 1px solid #eee;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    background: #fffef8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .curry-box .price {
+    font-weight: bold;
+    color: #d35400;
+  }
+
+  .curry-box button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+</style>
+
+<section class="hero-section">
+  <h1>Delight in Every Bite 🍔</h1>
+  <p>Crave it. Click it. Enjoy it. Explore your next favorite dish from NoKitchen’s delicious collection.</p>
+  <a href="#menu" class="hero-btn">Explore Menu</a>
+</section>
+
+
+
+<!-- Sticky Cart Preview -->
+<div class="sticky-cart d-none" id="stickyCart">
+  <span id="cartItems">0 items | ₹0.00</span>
+  <a href="/cart/">View Cart</a>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<div id="menu" class="container my-5">
+  <div class="menu-heading">
+    <h2>🍽️ Discover the Best Dishes</h2>
+  </div>
+
+  {% if not items %}
+    <div class="text-center">
+      <h3>No menu items available.</h3>
+      <p>We'll be serving something great soon!</p>
+    </div>
+  {% else %}
+    <div class="row">
+      {% for item in items %}
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="food-card">
+          {% if item.image %}
+            <img src="{{ item.image.url }}" class="food-img" alt="{{ item.item_name }}">
+          {% else %}
+            <img src="https://via.placeholder.com/300x230?text=No+Image" class="food-img" alt="No Image">
+          {% endif %}
+          <div class="card-body">
+            <h5>{{ item.item_name }}</h5>
+            <div class="star-rating">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+              <i class="far fa-star"></i>
+            </div>
+            <p class="text-muted">{{ item.description|default:"Delicious and satisfying." }}</p>
+            <div class="price-qty">
+              <span>₹{{ item.price }}</span>
+              <span>{{ item.quantity }}</span>
+            </div>
+            <div class="card-actions">
+              <a href="{% url 'add_to_cart' item.id %}" class="btn btn-sm btn-success">Add</a>
+              <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#customModal{{ item.id }}">Customize</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customize Modal Template -->
+<div class="modal fade" id="customModal{{ item.id }}" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content p-4 shadow-lg rounded-4">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-semibold fs-4 text-dark-emphasis">Customize "{{ item.item_name }}"</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form method="POST" action="{% url 'customize_meal' item.id %}">
+        {% csrf_token %}
+        <input type="hidden" id="basePrice{{ item.id }}" value="{{ item.price }}">
+
+        <div class="modal-body">
+          <!-- Dates -->
+          <div class="row mb-3">
+            <div class="col">
+              <label class="form-label">Start Date:</label>
+              <input type="date" name="start_date" class="form-control rounded-3 shadow-sm" required>
+            </div>
+            <div class="col">
+              <label class="form-label">End Date:</label>
+              <input type="date" name="end_date" class="form-control rounded-3 shadow-sm" required>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <textarea class="form-control mb-3 rounded-3 shadow-sm" name="notes" rows="3" placeholder="e.g. less rice, add chicken curry"></textarea>
+
+          <!-- Veg/Non-Veg Toggle -->
+          <div class="d-flex gap-3 mb-3">
+            <button type="button" class="btn btn-outline-success veg-tab rounded-pill px-4" data-item-id="{{ item.id }}">
+              <i class="fas fa-leaf me-1"></i> Veg
+            </button>
+            <button type="button" class="btn btn-outline-danger nonveg-tab rounded-pill px-4" data-item-id="{{ item.id }}">
+              <i class="fas fa-drumstick-bite me-1"></i> Non-Veg
+            </button>
+          </div>
+
+          <!-- Horizontal Scroll Curries Section -->
+          <div class="horizontal-scroll mb-3">
+            <div class="d-flex flex-nowrap gap-3 scroll-snap-x" id="veg-curries-{{ item.id }}">
+              {% for curry in veg_curries %}
+              <div class="card curry-card text-center rounded-4">
+                {% if curry.image %}
+                  <img src="{{ curry.image.url }}" class="card-img-top curry-img rounded-top-4">
+                {% else %}
+                  <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
+                {% endif %}
+                <div class="card-body p-2">
+                  <h6 class="small fw-semibold mb-1">{{ curry.curry_name }}</h6>
+                  <p class="text-warning fw-bold small">₹{{ curry.price }}</p>
+                  <input type="checkbox" name="custom_items" value="curry_{{ curry.id }}" id="chk{{ item.id }}_curry_{{ curry.id }}" onchange="toggleQty('{{ item.id }}', 'curry_{{ curry.id }}')">
+                  <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', -1)">−</button>
+                    <input type="number" name="quantities_curry_{{ curry.id }}" value="1" min="1" disabled class="form-control" id="qty{{ item.id }}_curry_{{ curry.id }}" style="width: 36px;">
+
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', 1)">+</button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="d-flex flex-nowrap gap-3 d-none scroll-snap-x" id="nonveg-curries-{{ item.id }}">
+              {% for curry in nonveg_curries %}
+              <div class="card curry-card text-center rounded-4">
+                {% if curry.image %}
+                  <img src="{{ curry.image.url }}" class="card-img-top curry-img rounded-top-4">
+                {% else %}
+                  <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
+                {% endif %}
+                <div class="card-body p-2">
+                  <h6 class="small fw-semibold mb-1">{{ curry.curry_name }}</h6>
+                  <p class="text-warning fw-bold small">₹{{ curry.price }}</p>
+                  <input type="checkbox" name="custom_items" value="curry_{{ curry.id }}" id="chk{{ item.id }}_curry_{{ curry.id }}" onchange="toggleQty('{{ item.id }}', 'curry_{{ curry.id }}')">
+                  <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', -1)">−</button>
+                    <input type="number" name="quantities_curry_{{ curry.id }}" value="1" min="1" disabled class="form-control" id="qty{{ item.id }}_curry_{{ curry.id }}" style="width: 36px;">
+
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', 1)">+</button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Additional Items -->
+          <div class="mt-4">
+            <h6 class="text-primary fw-semibold">All Menu Items</h6>
+            <div class="scroll-section d-flex flex-wrap gap-3">
+              {% for extra in all_items %}
+              <div class="card curry-card text-center rounded-4">
+                {% if extra.image %}
+                  <img src="{{ extra.image.url }}" class="card-img-top curry-img rounded-top-4">
+                {% else %}
+                  <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
+                {% endif %}
+                <div class="card-body p-2">
+                  <h6 class="small fw-semibold mb-1">{{ extra.item_name }}</h6>
+                  <p class="text-warning fw-bold small">₹{{ extra.price }}</p>
+                  <input type="checkbox" name="custom_items" value="{{ extra.id }}" id="chk{{ item.id }}_{{ extra.id }}" onchange="toggleQty('{{ item.id }}', '{{ extra.id }}')">
+                  <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ extra.id }}', -1)">−</button>
+                    <input type="number" name="quantities_{{ extra.id }}" value="1" min="1" disabled class="form-control form-control-sm text-center border-0 bg-light fw-bold small rounded-2 shadow-none" id="qty{{ item.id }}_{{ extra.id }}" style="width: 36px;">
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ extra.id }}', 1)">+</button>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 justify-content-between">
+          <div class="text-end w-100">
+            <div class="text-end">
+              <span class="me-3 fw-semibold text-dark">Total Price:</span>
+              <span class="text-warning fw-bold fs-5 glow-price">₹<span id="totalPrice{{ item.id }}">{{ item.price }}</span></span>
+            </div>
+            <button type="submit" class="btn btn-warning fw-semibold px-4 py-2 mt-3 rounded-pill">Save Customization</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// DOM Ready
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.veg-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.itemId;
+      document.getElementById(`veg-curries-${id}`).classList.remove('d-none');
+      document.getElementById(`nonveg-curries-${id}`).classList.add('d-none');
+    });
+  });
+
+  document.querySelectorAll('.nonveg-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.itemId;
+      document.getElementById(`veg-curries-${id}`).classList.add('d-none');
+      document.getElementById(`nonveg-curries-${id}`).classList.remove('d-none');
+    });
+  });
+
+  document.querySelectorAll('[data-bs-toggle="modal"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const modalId = btn.getAttribute('data-bs-target');
+      const itemId = modalId.replace('#customModal', '');
+      document.getElementById(`veg-curries-${itemId}`).classList.remove('d-none');
+      document.getElementById(`nonveg-curries-${itemId}`).classList.add('d-none');
+    });
+  });
+});
+
+function toggleQty(mealId, itemId) {
+  const qtyInput = document.getElementById(`qty${mealId}_${itemId}`);
+  qtyInput.disabled = !qtyInput.disabled;
+  updateTotal(mealId);
+}
+
+function adjustQty(mealId, itemId, delta) {
+  const qtyInput = document.getElementById(`qty${mealId}_${itemId}`);
+  if (!qtyInput.disabled) {
+    let currentQty = parseInt(qtyInput.value) || 1;
+    let newQty = currentQty + delta;
+    if (newQty >= 1) {
+      qtyInput.value = newQty;
+      updateTotal(mealId);
+    }
+  }
+}
+
+function updateTotal(mealId) {
+  let base = parseFloat(document.getElementById(`basePrice${mealId}`).value);
+  let total = base;
+
+  document.querySelectorAll(`#customModal${mealId} input[type=checkbox]:checked`).forEach(cb => {
+    const itemId = cb.value;
+    const qty = parseInt(document.getElementById(`qty${mealId}_${itemId}`).value) || 1;
+    const card = cb.closest('.card-body');
+    const priceText = card.querySelector('p.text-warning')?.innerText || '';
+    const match = priceText.match(/₹(\d+(\.\d+)?)/);
+    const price = match ? parseFloat(match[1]) : 0;
+    total += price * qty;
+  });
+
+  document.getElementById(`totalPrice${mealId}`).innerText = total.toFixed(2);
+}
+</script>
+
+<!-- Updated Swiggy-like CSS -->
+<style>
+.horizontal-scroll {
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #eee;
+  scroll-snap-type: x mandatory;
+}
+.horizontal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.horizontal-scroll::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 20px;
+}
+
+.curry-card {
+  flex: 0 0 auto;
+  width: 130px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease-in-out;
+  border: 1px solid #f1f1f1;
+}
+.curry-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.curry-img {
+  height: 110px;
+  object-fit: cover;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.card-body h6 {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+.card-body p {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.qty-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.qty-control input[type="number"] {
+  width: 48px;
+  text-align: center;
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.qty-control input[type="number"]:focus {
+  border-color: #ff6600;
+  outline: none;
+  box-shadow: 0 0 4px rgba(255, 102, 0, 0.3);
+}
+.qty-control button {
+  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  background-color: #f9f9f9;
+  transition: all 0.2s ease-in-out;
+}
+.qty-control button:hover {
+  background-color: #eaeaea;
+  color: #000;
+}
+
+.btn-outline-success,
+.btn-outline-danger {
+  border-width: 1.8px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn-outline-success:hover,
+.btn-outline-danger:hover {
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content {
+  border-radius: 20px;
+  background-color: #fff;
+  border: none;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+.modal-header,
+.modal-footer {
+  border: none;
+}
+.modal-title {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.form-control {
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.text-primary {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+
+
+/* Glassy effect on cards */
+.curry-card {
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  background: #ffffffcc;
+  backdrop-filter: blur(6px);
+}
+.curry-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Glow effect on total price */
+.glow-price {
+  animation: pulseGlow 1.8s infinite ease-in-out;
+}
+@keyframes pulseGlow {
+  0%, 100% { text-shadow: 0 0 5px #ffc10799; }
+  50% { text-shadow: 0 0 15px #ffc107; }
+}
+
+/* Button enhancements */
+.btn-outline-success:hover,
+.btn-outline-danger:hover {
+  transform: scale(1.05);
+  transition: 0.2s ease-in-out;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Scroll smoother */
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.scroll-snap-x > * {
+  scroll-snap-align: start;
+}
+
+/* Quantity input neumorphism */
+.qty-control input[type="number"] {
+  background: #f5f5f5;
+  box-shadow: inset 2px 2px 4px #e0e0e0, inset -2px -2px 4px #ffffff;
+  font-size: 13px;
+  width: 36px;
+  height: 30px;
+}
+
+/* Quantity buttons */
+.qty-control button {
+  transition: all 0.2s;
+  font-weight: bold;
+}
+.qty-control button:hover {
+  transform: scale(1.15);
+}
+
+/* Horizontal scroll tweaks */
+.horizontal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.horizontal-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+/* Save Button Boost */
+.modal-footer .btn-warning {
+  background-color: #ffc107;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 0 10px #ffc10766;
+  transition: all 0.3s ease;
+}
+.modal-footer .btn-warning:hover {
+  background-color: #ffb300;
+  box-shadow: 0 0 12px #ffb300aa;
+}
+
+
+</style>
+
+
+<script>
+
+
+// Optional: Star Rating Setup (if used elsewhere)
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.star-rating').forEach(starDiv => {
+    let rating = parseFloat(starDiv.dataset.rating || "0");
+    let starsHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      if (rating >= i) {
+        starsHTML += '<i class="fas fa-star"></i>';
+      } else if (rating >= i - 0.5) {
+        starsHTML += '<i class="fas fa-star-half-alt"></i>';
+      } else {
+        starsHTML += '<i class="far fa-star"></i>';
+      }
+    }
+    starDiv.innerHTML = starsHTML;
+  });
+});
+</script>
+
+
+{% endfor %}
+{% endif %}
+{% endblock %}

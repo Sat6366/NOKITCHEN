@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3>🍽 Order Details</h3>
+
+  <div class="card shadow-sm p-4 mb-4">
+    <p><strong>User:</strong> {{ order.user.username }}</p>
+    <p><strong>Order Type:</strong> {{ order_type|title }}</p>
+
+    {% if order_type == 'final' %}
+      <p><strong>Order ID:</strong> #{{ order.order_id }}</p>
+      <p><strong>Date:</strong> {{ order.start_date }} to {{ order.end_date }}</p>
+      <p><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+
+      <h5 class="mt-3">🏠 Address</h5>
+      <ul>
+        <li><strong>Flat:</strong> {{ flat_number }}</li>
+        <li><strong>Street:</strong> {{ street }}</li>
+        <li><strong>Landmark:</strong> {{ landmark }}</li>
+        <li><strong>Alt Mobile:</strong> {{ alt_mobile }}</li>
+      </ul>
+
+      <h5 class="mt-3">⏰ Delivery Timings</h5>
+      <ul>
+        <li><strong>Breakfast:</strong> {{ breakfast_time }} ({{ breakfast_address_type }})</li>
+        <li><strong>Lunch:</strong> {{ lunch_time }} ({{ lunch_address_type }})</li>
+        <li><strong>Dinner:</strong> {{ dinner_time }} ({{ dinner_address_type }})</li>
+      </ul>
+
+      <h5 class="mt-3">📝 Ordered Items</h5>
+      <p>{{ order.ordered_items }}</p>
+
+    {% elif order_type == 'meal' %}
+      <p><strong>Order ID:</strong> #{{ order.plan_order_id }}</p>
+      <p><strong>From:</strong> {{ order.from_date }} → <strong>To:</strong> {{ order.to_date }}</p>
+      <p><strong>Rotation Number:</strong> {{ order.rotation_number }}</p>
+
+      <h5 class="mt-3">🍳 Breakfast</h5>
+      <ul>
+        {% for item in order.breakfast_items.all %}
+          <li>{{ item.item_name }}</li>
+        {% endfor %}
+      </ul>
+
+      <h5 class="mt-3">🍛 Lunch</h5>
+      <ul>
+        {% for item in order.lunch_items.all %}
+          <li>{{ item.item_name }}</li>
+        {% endfor %}
+      </ul>
+
+      <h5 class="mt-3">🍽 Dinner</h5>
+      <ul>
+        {% for item in order.dinner_items.all %}
+          <li>{{ item.item_name }}</li>
+        {% endfor %}
+      </ul>
+
+    {% elif order_type == 'selection' %}
+      <p><strong>Order ID:</strong> #{{ order.custom_order_id }}</p>
+      <p><strong>From:</strong> {{ order.from_date }}</p>
+      <p><strong>To:</strong> {{ order.to_date }}</p>
+      <p><strong>Meal Type:</strong> {{ order.get_meal_type_display }}</p>
+      <p><strong>Total Price:</strong> ₹{{ order.total_price }}</p>
+
+      <h5 class="mt-3">🍱 Selected Items</h5>
+      <ul>
+        {% for item in order.selected_items.all %}
+          <li>{{ item.item_name }}</li>
+        {% endfor %}
+      </ul>
+
+    {% elif order_type == 'custom' %}
+      <p><strong>Order ID:</strong> #{{ order.custom_order_id }}</p>
+      <p><strong>Base Meal:</strong> {{ order.base_meal.item_name }}</p>
+      <p><strong>Start Date:</strong> {{ order.start_date }}</p>
+      <p><strong>End Date:</strong> {{ order.end_date }}</p>
+      <p><strong>Total Price:</strong> ₹{{ order.total_price }}</p>
+
+      <h5 class="mt-3">📦 Item Details</h5>
+      <ul>
+        {% for item in order.item_details.all %}
+          <li>{{ item.quantity }} × {{ item.item.item_name }} = ₹{{ item.get_total_price }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Dashboard | NoKitchen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a2d0fc01d1.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg-dark: #111111;
+      --card-bg: #1c1c1e;
+      --text-light: #e4e4e4;
+      --accent: #d76c2f; /* Elegant dark orange */
+      --accent-hover: #b85826;
+      --card-border: #2a2a2a;
+      --glass: rgba(255, 255, 255, 0.04);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+   
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background-color: #000;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .navbar h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      color: var(--accent);
+    }
+
+    .navbar .profile-btn {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .profile-btn:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 10px var(--accent-hover);
+    }
+
+  .hero {
+  background: url('{% static "images/no.jpg" %}') no-repeat center center / cover;
+  text-align: center;
+  padding: 120px 20px;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  height:90vh;
+}
+
+    .hero h2 {
+      font-size: 44px;
+      font-family: 'Playfair Display', serif;
+      margin-bottom: 15px;
+      color: var(--accent);
+    }
+
+    .hero p {
+      font-size: 18px;
+      max-width: 700px;
+      margin: auto;
+      color: #ccc;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+    }
+
+    .dashboard-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 30px rgba(215, 108, 47, 0.25);
+      transform: translateY(-4px);
+    }
+
+    .dashboard-card h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dashboard-card p {
+      font-size: 15px;
+      color: #bbb;
+      line-height: 1.6;
+    }
+
+    .dashboard-card i {
+      font-size: 20px;
+      color: var(--accent);
+    }
+
+    @media (max-width: 600px) {
+      .hero h2 {
+        font-size: 32px;
+      }
+
+      .dashboard-card {
+        padding: 24px;
+      }
+    }
+
+
+    .site-footer {
+  background: linear-gradient(135deg, #1f1f1f, #2d2d2d);
+  color: #f1f1f1;
+  padding: 60px 20px 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.site-footer h3,
+.site-footer h4 {
+  color: #ffa500;
+  margin-bottom: 12px;
+}
+
+.footer-about p,
+.footer-contact p,
+.footer-links ul {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links ul li {
+  margin-bottom: 8px;
+}
+
+.footer-links ul li a {
+  color: #ccc;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links ul li a:hover {
+  color: #ffa500;
+}
+
+.footer-contact i {
+  margin-right: 8px;
+  color: #ffa500;
+}
+
+.footer-social a {
+  display: inline-block;
+  margin-right: 12px;
+  color: #ffa500;
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.footer-social a:hover {
+  transform: scale(1.2);
+  color: #ffcc66;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  color: #999;
+}
+
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color:rgb(219, 197, 197);
+  color: #333;
+}
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* Compact Card */
+.food-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(4px);
+  border: 1px solid #ffcc80;
+  padding: 10px;
+}
+
+.food-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.food-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Info Section */
+.food-info {
+  padding: 10px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.food-info h4 {
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.food-info p {
+  font-size: 13px;
+  color: #666;
+  margin: 6px 0 10px;
+  line-height: 1.4;
+}
+
+/* Meta Info */
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.price {
+  color: #ff6f00;
+  font-weight: 700;
+}
+
+.type {
+  background: #fff3e0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: #ef6c00;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.edit-btn,
+.delete-btn {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Buttons with Effects */
+.edit-btn {
+  background: linear-gradient(135deg, #ff9800, #fb8c00);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(255, 152, 0, 0.3);
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #fb8c00, #ef6c00);
+  transform: scale(1.03);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ef5350, #e53935);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(244, 67, 54, 0.3);
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #e53935, #c62828);
+  transform: scale(1.03);
+}
+
+/* Responsive for Small Screens */
+@media (max-width: 768px) {
+  .food-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .food-card img {
+    height: 120px;
+  }
+
+  .food-info h4 {
+    font-size: 14px;
+  }
+
+  .food-info p {
+    font-size: 12px;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #fff8f0;
+    color: #333;
+  }
+  .week-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  .week-nav button {
+    background: #ffaa00;
+    border: none;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+  }
+  .week-nav button:hover {
+    background: #ff9900;
+  }
+  .week-nav button.active {
+    background: #ff6600;
+  }
+  .menu-day-section {
+    display: none;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  .menu-day-section.active {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .meal-section {
+    width: 32%;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  .meal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .meal-header h5 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+  }
+  .edit-icon {
+    cursor: pointer;
+    font-size: 18px;
+    color: #ffaa00;
+    background: #fff3d4;
+    border-radius: 50%;
+    padding: 5px;
+    transition: background 0.3s;
+    position: relative;
+  }
+  .edit-icon:hover {
+    background: #ffe2a8;
+  }
+  .edit-icon::after {
+    content: "Edit";
+    position: absolute;
+    top: -30px;
+    right: -10px;
+    background: #ffaa00;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .edit-icon:hover::after {
+    opacity: 1;
+  }
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    font-size: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+  }
+  select:hover {
+    box-shadow: 0 0 5px rgba(255, 170, 0, 0.3);
+  }
+  .day-title {
+    font-size: 22px;
+    margin-bottom: 18px;
+    color: #ff8800;
+    font-weight: bold;
+    width: 100%;
+  }
+  @media (max-width: 768px) {
+    .menu-day-section.active {
+      flex-direction: column;
+    }
+    .meal-section {
+      width: 100%;
+    }
+  }
+
+  .save-btn {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+.save-btn:hover {
+  background-color: #218838;
+}
+.food-card {
+  border: 1px solid #f1f1f1;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  background: #fffaf7;
+}
+
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <h1>NoKitchen Partner</h1>
+    <button class="profile-btn">My Profile</button>
+  </nav>
+
+  <section class="hero">
+    <h2>Welcome to Your No_Kitchen  Dashboard</h2>
+    <p>Manage your presence, menu, orders, and customer engagement in one luxury-grade platform.</p>
+  </section>
+
+ <div class="container">
+  <div class="dashboard-grid">
+    <a href="{% url 'restaurant_update_profile' %}" class="dashboard-card" style="text-decoration: none; color: inherit;">
+      <h3><i class="fas fa-user-edit"></i> Update Profile</h3>
+      <p>Edit your restaurant brand, details, and contact preferences in seconds.</p>
+    </a>
+    <a href="{% url 'restaurant_menu' %}" class="dashboard-card" style="text-decoration: none; color: inherit;">
+      <h3><i class="fas fa-utensils"></i> Manage Menu</h3>
+      <p>Refresh dishes, pricing, tags, and real-time menu availability.</p>
+    </a>
+
+    <a href="{% url 'today-orders' %}" class="dashboard-card" style="text-decoration: none; color: inherit;">
+      <h3><i class="fas fa-clipboard-list"></i> Today Orders</h3>
+      <p>View and manage live orders with instant update capabilities.</p>
+    </a>
+    <a href="{% url 'resturent_track_order' %}" class="dashboard-card" style="text-decoration: none; color: inherit;">
+      <h3><i class="fas fa-clipboard-list"></i> Track Orders</h3>
+      <p>View and manage orders with instant update capabilities.</p>
+    </a>
+
+
+    <a href="{% url 'restaurant_earnings' %}" class="dashboard-card" style="text-decoration: none; color: inherit;">
+      <h3><i class="fas fa-star-half-alt"></i> Earnings</h3>
+      <p>See insights, respond to reviews, and elevate your customer experience.</p>
+    </a>
+  </div>
+</div>
+
+
+<!-- ✅ Menu Items Section -->
+<section class="menu-display">
+  <h2><i class="fas fa-utensils"></i> Your Menu Items</h2>
+
+  <div class="food-grid">
+    {% for data in menu_with_curries %}
+    <div class="food-card">
+      {% if data.item.image %}
+        <img src="{{ data.item.image.url }}" alt="{{ data.item.item_name }}">
+      {% else %}
+        <img src="https://via.placeholder.com/300x200?text=No+Image" alt="No Image">
+      {% endif %}
+
+      <div class="food-info">
+        <h4>{{ data.item.item_name }}</h4>
+        <p>{{ data.item.description|default:"No description provided." }}</p>
+
+        <div class="meta">
+          <span class="price">₹{{ data.item.price }}</span>
+          <span class="type">{{ data.item.get_meal_type_display }}</span>
+        </div>
+
+        <div class="actions" style="margin-top: 10px;">
+          <form action="{% url 'delete_menu_item' data.item.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="delete-btn"><i class="fas fa-trash"></i> Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+      <p>No menu items available.</p>
+    {% endfor %}
+  </div>
+</section>
+<!-- ✅ Independent Curries Section -->
+<section class="menu-display" style="margin-top: 60px;">
+  <h2><i class="fas fa-pepper-hot"></i> All Curries</h2>
+
+  <div class="food-grid">
+    {% for curry in all_curries %}
+      <div class="food-card">
+        {% if curry.image %}
+          <img src="{{ curry.image.url }}" alt="{{ curry.curry_name }}">
+        {% else %}
+          <img src="https://via.placeholder.com/300x200?text=Curry+Image" alt="{{ curry.curry_name }}">
+        {% endif %}
+
+        <div class="food-info">
+          <h4>{{ curry.curry_name }}</h4>
+          <div class="meta">
+            <span class="price">₹{{ curry.price }}</span>
+            <span class="type">{{ curry.get_curry_type_display }}</span>
+            {% if curry.quantity %}
+              <span class="qty">Qty: {{ curry.quantity }}</span>
+            {% endif %}
+          </div>
+
+          <!-- ✅ Delete Button -->
+          <div class="actions" style="margin-top: 10px;">
+            <form action="{% url 'delete_curry_item' curry.id %}" method="post" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="delete-btn btn-sm" style="font-size: 13px; padding: 5px 10px;">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <p>No curries available.</p>
+    {% endfor %}
+  </div>
+</section>
+
+
+  <!-- How NoKitchen Works Section -->
+<section style="padding: 80px 20px; background-color: #e5d77f; color: #fff; text-align: center;">
+  <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; color: #d76c2f; margin-bottom: 40px;">How NoKitchen Works</h2>
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; max-width: 1200px; margin: auto;">
+    
+    <div style="background-color: #262626; border-radius: 16px; padding: 30px; max-width: 300px; flex: 1; border: 1px solid #333;">
+      <i class="fas fa-box-open" style="font-size: 30px; color: #d76c2f; margin-bottom: 20px;"></i>
+      <h3 style="color: #f1f1f1; font-size: 20px;">Choose a Subscription</h3>
+      <p style="color: #bbb; font-size: 15px;">Select the plan that suits your lifestyle—weekly or monthly packages with full flexibility.</p>
+    </div>
+
+    <div style="background-color: #262626; border-radius: 16px; padding: 30px; max-width: 300px; flex: 1; border: 1px solid #333;">
+      <i class="fas fa-concierge-bell" style="font-size: 30px; color: #d76c2f; margin-bottom: 20px;"></i>
+      <h3 style="color: #f1f1f1; font-size: 20px;">Customize Your Menu</h3>
+      <p style="color: #bbb; font-size: 15px;">Handpick dishes for each day based on your dietary needs and preferences.</p>
+    </div>
+
+    <div style="background-color: #262626; border-radius: 16px; padding: 30px; max-width: 300px; flex: 1; border: 1px solid #333;">
+      <i class="fas fa-shipping-fast" style="font-size: 30px; color: #d76c2f; margin-bottom: 20px;"></i>
+      <h3 style="color: #f1f1f1; font-size: 20px;">Delivered To Your Door</h3>
+      <p style="color: #bbb; font-size: 15px;">Freshly cooked gourmet meals delivered daily at your preferred time slot.</p>
+    </div>
+
+  </div>
+</section>
+
+
+<form method="POST" action="{% url 'save_weekly_menu' %}">
+  {% csrf_token %}
+  <div class="container my-5">
+    <h2 class="text-center mb-4">🍽️ Weekly Menu Planner</h2>
+
+    <!-- Day Navigation -->
+    <div class="week-nav d-flex justify-content-center flex-wrap gap-3 mb-4">
+     
+      <button type="button" onclick="showDay('monday')" class="active">Mon</button>
+      <button type="button" onclick="showDay('tuesday')">Tue</button>
+      <button type="button" onclick="showDay('wednesday')">Wed</button>
+      <button type="button" onclick="showDay('thursday')">Thu</button>
+      <button type="button" onclick="showDay('friday')">Fri</button>
+      <button type="button" onclick="showDay('saturday')">Sat</button>
+      <button type="button" onclick="showDay('sunday')">Sun</button>
+    </div>
+
+<!-- From Date & To Date (with Orange Borders) -->
+<div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; margin-bottom: 20px;">
+  <!-- From Date -->
+  <div style="flex: 0 0 auto;">
+    <label for="from_date" style="font-weight: 600; display: block; margin-bottom: 4px; font-size: 13px;">From</label>
+    <input type="date" id="from_date" name="from_date"
+           style="width: 140px; padding: 5px 8px; border: 2px solid orange; border-radius: 5px; font-size: 12px;">
+  </div>
+
+  <!-- To Date -->
+  <div style="flex: 0 0 auto;">
+    <label for="to_date" style="font-weight: 600; display: block; margin-bottom: 4px; font-size: 13px;">To</label>
+    <input type="date" id="to_date" name="to_date"
+           style="width: 140px; padding: 5px 8px; border: 2px solid orange; border-radius: 5px; font-size: 12px;">
+  </div>
+</div>
+
+
+    <!-- Menu for Each Day -->
+    <div id="menu-days">
+      {% for day, label in day_labels.items %}
+        <div class="menu-day-section {% if day == 'monday' %}active{% endif %}" id="{{ day }}">
+          <h4 class="text-center text-primary fw-bold mb-4">{{ label }}</h4>
+
+          <div class="meal-grid">
+            {% for meal in meal_types %}
+              <div class="meal-card">
+                <div class="meal-header">
+                  {% if meal == 'breakfast' %}🍳{% elif meal == 'lunch' %}🍱{% elif meal == 'dinner' %}🍽️{% endif %}
+                  {{ meal|title }}
+                </div>
+                <div class="meal-body">
+                  <select name="{{ day }}_{{ meal }}[]" multiple class="form-select">
+          {% for item in menu_items %}
+            {% if item.meal_type == meal %}
+              <option value="{{ item.id }}">{{ item.item_name }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Buttons Centered -->
+   <!-- Buttons Centered -->
+        <div class="button-group text-center mt-4">
+          <button type="button" class="btn-save btn btn-success">Save </button>
+        </div>
+
+  </div>
+</form>
+
+<script>
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  let currentDayIndex = 0;
+
+  function showDay(day) {
+    document.querySelectorAll('.menu-day-section').forEach(section => section.classList.remove('active'));
+    document.getElementById(day).classList.add('active');
+
+    document.querySelectorAll('.week-nav button').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.textContent.toLowerCase().includes(day.slice(0, 3))) {
+        btn.classList.add('active');
+      }
+    });
+  }
+
+  document.querySelector('.btn-save').addEventListener('click', function (e) {
+    e.preventDefault();
+
+    const formData = new FormData();
+    const fromDate = document.getElementById('from_date').value;
+    const toDate = document.getElementById('to_date').value;
+    const currentDay = days[currentDayIndex];
+    const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    if (!fromDate || !toDate) {
+      alert("⚠️ Please select both from and to dates.");
+      return;
+    }
+
+    formData.append('csrfmiddlewaretoken', csrf);
+    formData.append('from_date', fromDate);
+    formData.append('to_date', toDate);
+    formData.append('day', currentDay);
+    formData.append('rotation_number', 1);
+
+    ['breakfast', 'lunch', 'dinner'].forEach(meal => {
+      const select = document.querySelector(`select[name="${currentDay}_${meal}[]"]`);
+      Array.from(select.selectedOptions).forEach(opt => {
+        formData.append(`${currentDay}_${meal}[]`, opt.value);
+      });
+    });
+
+    fetch("{% url 'save_weekly_menu' %}", {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert(`✅ ${currentDay.toUpperCase()} saved.`);
+
+        currentDayIndex++;
+        if (currentDayIndex < days.length) {
+          showDay(days[currentDayIndex]);
+        } else {
+          alert("🎉 Weekly menu saved successfully!");
+        }
+      } else {
+        alert("❌ " + data.message);
+      }
+    })
+    .catch(err => {
+      alert("Server error: " + err.message);
+    });
+  });
+
+  showDay(days[currentDayIndex]);
+</script>
+
+
+<style>
+      body {
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 50px 35px;
+      max-width: 1200px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      font-size: 34px;
+      font-weight: bold;
+      color: #ffaa00;
+    }
+
+    .week-nav button {
+      border: none;
+      background: #eee;
+      color: #444;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .week-nav button.active,
+    .week-nav button:hover {
+      background: #ffaa00;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255, 170, 0, 0.3);
+    }
+
+    .meal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .meal-card {
+      background: #fffefc;
+      border-radius: 14px;
+      border: 1px solid #ddd;
+      overflow: hidden;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .meal-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      transform: translateY(-4px);
+    }
+
+    .meal-header {
+      background: #ffaa00;
+      color: #fff;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+      font-size: 17px;
+    }
+
+    .meal-body {
+      padding: 16px;
+    }
+
+  select.form-select {
+  height: 180px;
+  background:rgb(247, 247, 242); /* classic orange background */
+  color: #fff; /* white text */
+  border-radius: 25px;
+  border: 2px solid #ff9800;
+  padding: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease-in-out;
+}
+
+select.form-select:focus {
+  border-color: #ff7800;
+  box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.3);
+  outline: none;
+  background-color:rgb(198, 189, 182);
+}
+
+select.form-select option {
+  background-color: #fff;
+  color: #ff6a00;
+  font-weight: 500;
+  padding: 10px;
+  border-radius: 15px;
+  transition: all 0.2s ease-in-out;
+}
+
+select.form-select option:hover {
+  background-color:rgb(125, 120, 116);
+  color: #fff;
+}
+
+    .menu-day-section {
+      display: none;
+    }
+
+    .menu-day-section.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .btn-save {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 35px;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 30px;
+      transition: 0.3s ease-in-out;
+    }
+
+    .btn-save:hover {
+      background-color: #218838;
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-edit {
+      background-color: #ff8800;
+      color: white;
+      border: none;
+      padding: 12px 35px;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 30px;
+      transition: 0.3s ease-in-out;
+    }
+
+    .btn-edit:hover {
+      background-color: #e07000;
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(255, 136, 0, 0.3);
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+
+    
+</style>
+
+
+
+{% load static %}
+
+<!-- How NoKitchen Works -->
+<section style="padding: 80px 20px; background-color: #111; color: #fff;">
+  <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; text-align: center; color: #ff8c42; margin-bottom: 50px;">
+    How NoKitchen Works
+  </h2>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; max-width: 1200px; margin: auto;">
+    
+    <!-- Step 1 -->
+    <div style="background-color: #1c1c1c; border-radius: 16px; padding: 30px; text-align: center; border-top: 4px solid #ff8c42;">
+      <i class="fas fa-user-plus" style="font-size: 36px; color: #ff8c42; margin-bottom: 20px;"></i>
+      <h3 style="font-size: 20px; margin-bottom: 12px;">Sign Up & Create Profile</h3>
+      <p style="color: #bbb;">Join NoKitchen in minutes by signing up and providing your delivery details.</p>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="background-color: #262626; border-radius: 16px; padding: 30px; text-align: center; border-top: 4px solid #3fb68b;">
+      <i class="fas fa-box-open" style="font-size: 36px; color: #3fb68b; margin-bottom: 20px;"></i>
+      <h3 style="font-size: 20px; margin-bottom: 12px;">Choose Your Meal Plan</h3>
+      <p style="color: #bbb;">Select from flexible daily, weekly, or monthly subscriptions as per your needs.</p>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="background-color: #1c1c1c; border-radius: 16px; padding: 30px; text-align: center; border-top: 4px solid #ff3c6e;">
+      <i class="fas fa-calendar-check" style="font-size: 36px; color: #ff3c6e; margin-bottom: 20px;"></i>
+      <h3 style="font-size: 20px; margin-bottom: 12px;">Pre-select Your Menu</h3>
+      <p style="color: #bbb;">Customize meals for the next day from a curated, chef-prepared menu.</p>
+    </div>
+
+    <!-- Step 4 -->
+    <div style="background-color: #262626; border-radius: 16px; padding: 30px; text-align: center; border-top: 4px solid #ffa500;">
+      <i class="fas fa-utensils" style="font-size: 36px; color: #ffa500; margin-bottom: 20px;"></i>
+      <h3 style="font-size: 20px; margin-bottom: 12px;">Fresh Meals Delivered Daily</h3>
+      <p style="color: #bbb;">Enjoy fresh, homestyle meals delivered at your doorstep on-time every day.</p>
+    </div>
+
+  </div>
+</section>
+
+
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h3>NoKitchen</h3>
+      <p>Revolutionizing how food reaches your doorstep. Taste, quality, and trust – served fresh daily.</p>
+    </div>
+
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Menu</a></li>
+        <li><a href="#">Subscriptions</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-contact">
+      <h4>Contact Us</h4>
+      <p><i class="fas fa-phone-alt"></i> +91 98765 43210</p>
+      <p><i class="fas fa-envelope"></i> support@nokitchen.in</p>
+      <p><i class="fas fa-map-marker-alt"></i> Hyderabad, India</p>
+    </div>
+
+    <div class="footer-social">
+      <h4>Follow Us</h4>
+      <a href="#"><i class="fab fa-facebook-f"></i></a>
+      <a href="#"><i class="fab fa-instagram"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fab fa-youtube"></i></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2025 NoKitchen. All rights reserved.</p>
+  </div>
+</footer>
+
+
+
+</body>
+</html>

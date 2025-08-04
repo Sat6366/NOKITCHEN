@@ -1,0 +1,291 @@
+{% extends 'pages/main.html' %}
+{% block title %}Order Successful{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.9.6/lottie.min.js"></script>
+
+<style>
+  :root {
+    --primary: #212121;
+    --accent: #ff6f00;
+    --light-bg: #fafafa;
+    --soft-border: #e0e0e0;
+    --font: 'Inter', sans-serif;
+  }
+
+  body {
+    font-family: var(--font);
+    background-color: var(--light-bg);
+  }
+
+  .success-container {
+    max-width: 860px;
+    margin: 60px auto;
+    padding: 40px;
+    background-color: white;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .success-lottie {
+    width: 80px;
+    margin: 0 auto 16px;
+  }
+
+  .success-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+  }
+
+  .success-subtext {
+    font-size: 15px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .section {
+    padding: 24px 28px;
+    border: 1px solid var(--soft-border);
+    border-radius: 14px;
+    margin-bottom: 28px;
+    background-color: #fff;
+  }
+
+  .section-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+  }
+
+  .table th, .table td {
+    padding: 12px 10px;
+    font-size: 14px;
+    border-bottom: 1px solid #f2f2f2;
+    color: #333;
+  }
+
+  .table th {
+    background: #f9f9f9;
+    font-weight: 600;
+  }
+
+  .address-list {
+    list-style: none;
+    padding: 0;
+    font-size: 14px;
+    color: #444;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 28px;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    text-align: center;
+  }
+
+  .back-link:hover {
+    background-color: #e65100;
+  }
+
+  #confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+  }
+</style>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="success-container">
+  <div class="success-lottie" id="lottie-success"></div>
+  <h1 class="success-title">Payment Successful</h1>
+  <p class="success-subtext">Your order has been confirmed. A confirmation message will be sent shortly.</p>
+  <p class="success-subtext">Payment ID: <strong>{{ payment_id }}</strong></p>
+
+  <div class="section">
+    <div class="section-title">Selected Items</div>
+   {% for plan in plans %}
+  <p><strong>Order ID:</strong>#{{ plan.custom_order_id }}</p>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>{{ plan.base_meal.item_name }}</strong> (Base Meal)</td>
+        <td>1</td>
+        <td>₹{{ plan.base_meal.price }}</td>
+      </tr>
+      {% for item in plan.item_details.all %}
+      <tr>
+        <td>{{ item.item.item_name }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>₹{{ item.get_total_price }}</td>
+      </tr>
+      {% endfor %}
+      {% for curry in plan.curry_items.all %}
+      <tr>
+        <td>{{ curry.curry.curry_name }}</td>
+        <td>{{ curry.quantity }}</td>
+        <td>₹{{ curry.get_total_price }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div>
+    <p><strong>From:</strong> {{ plan.start_date }} to {{ plan.end_date }}</p>
+    <p><strong>Meals:</strong>
+      {% if plan.breakfast %} Breakfast {% endif %}
+      {% if plan.lunch %} Lunch {% endif %}
+      {% if plan.dinner %} Dinner {% endif %}
+    </p>
+    <p><strong>Base Price:</strong> ₹{{ plan.base_price }}</p>
+  </div>
+{% endfor %}
+
+<p><strong>Total Amount Paid:</strong> ₹{{ total_amount }}</p>
+
+</div>
+  
+
+  {% if address %}
+  <div class="section">
+    <div class="section-title">Home Address & Timings</div>
+    <ul class="address-list">
+      <li><strong>Flat:</strong> {{ address.flat_number }}</li>
+      <li><strong>Street:</strong> {{ address.street }}</li>
+      <li><strong>Landmark:</strong> {{ address.landmark|default:"—" }}</li>
+      <li><strong>Alt Mobile:</strong> {{ address.alt_mobile|default:"—" }}</li>
+      <li><strong>Breakfast:</strong> {{ address.breakfast_time }} ({{ address.breakfast_address_type }})</li>
+      <li><strong>Lunch:</strong> {{ address.lunch_time }} ({{ address.lunch_address_type }})</li>
+      <li><strong>Dinner:</strong> {{ address.dinner_time }} ({{ address.dinner_address_type }})</li>
+    </ul>
+  </div>
+
+  {% if address.office_flat %}
+  <div class="section">
+    <div class="section-title">Office Address</div>
+    <ul class="address-list">
+      <li><strong>Flat:</strong> {{ address.office_flat }}</li>
+      <li><strong>Street:</strong> {{ address.office_street }}</li>
+      <li><strong>Landmark:</strong> {{ address.office_landmark|default:"—" }}</li>
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if address.other_flat %}
+  <div class="section">
+    <div class="section-title">Other Address</div>
+    <ul class="address-list">
+      <li><strong>Flat:</strong> {{ address.other_flat }}</li>
+      <li><strong>Street:</strong> {{ address.other_street }}</li>
+      <li><strong>Landmark:</strong> {{ address.other_landmark|default:"—" }}</li>
+    </ul>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  <a href="{% url 'my_custom_plans' %}" class="back-link">Back to My Plans</a>
+  <a href="{% url 'menu' %}" class="back-link">Menu</a>
+</div>
+
+<script>
+  lottie.loadAnimation({
+    container: document.getElementById('lottie-success'),
+    renderer: 'svg',
+    loop: false,
+    autoplay: true,
+    path: 'https://assets10.lottiefiles.com/packages/lf20_jbrw3hcz.json'
+  });
+
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  let W = window.innerWidth;
+  let H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+
+  const confetti = [];
+  const confettiCount = 80;
+  const colors = ["#ff6f00", "#f57c00", "#ffcc80", "#fff3e0"];
+
+  function ConfettiPiece() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H - H;
+    this.r = Math.random() * 6 + 4;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.d = Math.random() * confettiCount;
+    this.tilt = Math.floor(Math.random() * 10) - 10;
+    this.tiltAngle = 0;
+    this.tiltAngleIncremental = (Math.random() * 0.07) + 0.05;
+
+    this.draw = function () {
+      ctx.beginPath();
+      ctx.lineWidth = this.r / 2;
+      ctx.strokeStyle = this.color;
+      ctx.moveTo(this.x + this.tilt + (this.r / 3), this.y);
+      ctx.lineTo(this.x + this.tilt, this.y + this.tilt + this.r);
+      ctx.stroke();
+    };
+  }
+
+  for (let i = 0; i < confettiCount; i++) {
+    confetti.push(new ConfettiPiece());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (let i = 0; i < confettiCount; i++) {
+      confetti[i].draw();
+      update(i);
+    }
+    requestAnimationFrame(draw);
+  }
+
+  function update(i) {
+    confetti[i].tiltAngle += confetti[i].tiltAngleIncremental;
+    confetti[i].y += (Math.cos(confetti[i].d) + 2 + confetti[i].r / 2) / 2;
+    confetti[i].x += Math.sin(confetti[i].d);
+    confetti[i].tilt = Math.sin(confetti[i].tiltAngle) * 15;
+    if (confetti[i].y > H) {
+      confetti[i].x = Math.random() * W;
+      confetti[i].y = -20;
+    }
+  }
+
+  draw();
+
+  window.addEventListener('resize', () => {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+  });
+</script>
+
+{% endblock %}

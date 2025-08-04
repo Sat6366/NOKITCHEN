@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #222;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #d3d3d3;
+        }
+        .active {
+            color: green;
+            font-weight: bold;
+        }
+        .inactive {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Subscription Report</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Duration</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Amount (₹)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in subscriptions %}
+            <tr>
+                <td>{{ sub.user.username }}</td>
+                <td>{{ sub.get_duration_display }}</td>
+                <td>{{ sub.start_date }}</td>
+                <td>{{ sub.end_date }}</td>
+                <td>{{ sub.amount }}</td>
+                <td>
+                    {% if sub.is_active %}
+                        <span class="active">Active</span>
+                    {% else %}
+                        <span class="inactive">Expired</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No subscriptions found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

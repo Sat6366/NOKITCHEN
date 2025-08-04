@@ -1,0 +1,271 @@
+{% extends 'pages/main.html' %}
+{% block title %}Delivery & Payment – No Kitchen{% endblock %}
+{% block content %}
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  :root {
+    --orange: #ff6d00;
+    --orange-dark: #e55d00;
+    --bg: #fffaf6;
+    --shadow: rgba(0, 0, 0, 0.08);
+    --radius: 14px;
+    --font: 'Poppins', sans-serif;
+  }
+
+  body {
+    background-color: var(--bg);
+    font-family: var(--font);
+  }
+
+  .form-wrapper {
+    max-width: 960px;
+    margin: 60px auto;
+    background: white;
+    padding: 50px;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 40px var(--shadow);
+    animation: fadeIn 0.6s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-area h5 {
+    margin-bottom: 30px;
+    font-weight: 600;
+    font-size: 28px;
+    color: var(--orange-dark);
+    text-align: center;
+  }
+
+  .form-group {
+    margin-bottom: 22px;
+  }
+
+  label {
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+    color: #222;
+  }
+
+  .form-control, select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    border: 1px solid #ccc;
+    font-size: 16px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 4px rgba(255, 109, 0, 0.15);
+    outline: none;
+  }
+
+  .btn-primary {
+    background: var(--orange);
+    border: none;
+    padding: 14px 32px;
+    color: white;
+    font-weight: 600;
+    border-radius: var(--radius);
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(255,109,0,0.25);
+    transition: background 0.3s ease, transform 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--orange-dark);
+    transform: translateY(-1px);
+  }
+
+  .address-tags {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .tag {
+    padding: 10px 18px;
+    background: #f1f1f1;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 500;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .tag:hover {
+    background: #ffe0c7;
+  }
+
+  .tag.active {
+    background: var(--orange);
+    color: white;
+    font-weight: 600;
+    border-color: var(--orange-dark);
+  }
+
+  .dynamic-address-form {
+    display: none;
+    margin-top: 24px;
+    background: #fdfdfd;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: var(--radius);
+  }
+</style>
+
+
+<div class="form-wrapper">
+  <div class="form-area">
+    <h5>🚚 Delivery Details</h5>
+    <form id="delivery-form" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="address_type" id="address_type" value="Home">
+
+      <div class="form-group">
+        <label>Flat / Apartment Number</label>
+        <input type="text" name="flat_number" class="form-control" placeholder="E.g. 2B - Skyline Apartments" required>
+      </div>
+
+      <div class="form-group">
+        <label>Street / Road</label>
+        <input type="text" name="street" class="form-control" placeholder="E.g. MG Road" required>
+      </div>
+
+      <div class="form-group">
+        <label>Landmark</label>
+        <input type="text" name="landmark" class="form-control" placeholder="E.g. Near SBI ATM" required>
+      </div>
+
+      <div class="form-group">
+        <label>Address Type</label>
+        <div class="address-tags">
+          <span class="tag active" data-type="Home">🏠 Home</span>
+          <span class="tag" data-type="Office">🏢 Office</span>
+          <span class="tag" data-type="Others">📍 Others</span>
+        </div>
+      </div>
+
+      <div id="office-address-container" class="dynamic-address-form">
+        <h6>Office Address</h6>
+        <input type="text" name="office_flat" class="form-control mb-2" placeholder="Office Flat">
+        <input type="text" name="office_street" class="form-control mb-2" placeholder="Office Street">
+        <input type="text" name="office_landmark" class="form-control mb-2" placeholder="Office Landmark">
+      </div>
+
+      <div id="others-address-container" class="dynamic-address-form">
+        <h6>Other Address</h6>
+        <input type="text" name="other_flat" class="form-control mb-2" placeholder="Other Flat">
+        <input type="text" name="other_street" class="form-control mb-2" placeholder="Other Street">
+        <input type="text" name="other_landmark" class="form-control mb-2" placeholder="Other Landmark">
+      </div>
+
+      <div class="form-group">
+        <label>Alternate Mobile</label>
+        <input type="text" name="alt_mobile" class="form-control" placeholder="Optional – 10 digits" pattern="\d{10}" maxlength="10">
+      </div>
+
+      <div class="form-group">
+        <label>Preferred Delivery Times</label>
+        <div class="row">
+          <div class="col-md-4">
+            <label>Breakfast</label>
+            <input type="time" name="breakfast_time" class="form-control" required>
+            <select name="breakfast_address_type" class="form-control mt-2" required>
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label>Lunch</label>
+            <input type="time" name="lunch_time" class="form-control" required>
+            <select name="lunch_address_type" class="form-control mt-2" required>
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label>Dinner</label>
+            <input type="time" name="dinner_time" class="form-control" required>
+            <select name="dinner_address_type" class="form-control mt-2" required>
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="button" id="razorpay-button" class="btn btn-primary">💳 Pay & Proceed</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('.tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      const selected = tag.dataset.type;
+      document.getElementById('address_type').value = selected;
+      document.getElementById('office-address-container').style.display = selected === 'Office' ? 'block' : 'none';
+      document.getElementById('others-address-container').style.display = selected === 'Others' ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById("razorpay-button").onclick = function () {
+    const form = document.getElementById("delivery-form");
+    const formData = new FormData(form);
+
+    fetch("{% url 'initiate_custom_plan_payment' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        Swal.fire({ icon: 'error', title: 'Error', text: data.error });
+      } else if (data.order_id) {
+        const options = {
+          key: data.key_id,
+          amount: data.amount,
+          currency: data.currency,
+          name: "No Kitchen Meals",
+          description: "Custom Plan Payment",
+          order_id: data.order_id,
+          handler: function (response) {
+            const paymentId = response.razorpay_payment_id;
+            const orderId = options.order_id;
+            window.location.href = `{% url 'custom_plan_payment_success' %}?payment_id=${paymentId}&order_id=${orderId}&total=${data.amount / 100}`;
+          },
+          theme: { color: "#0b7dda" }
+        };
+        const razorpay = new Razorpay(options);
+        razorpay.open();
+      }
+    })
+    .catch(() => {
+      Swal.fire({ icon: 'error', title: 'Server Error', text: 'Please try again later.' });
+    });
+  };
+</script>
+
+{% endblock %}

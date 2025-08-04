@@ -1,0 +1,32 @@
+{% extends 'pages/main.html' %}
+
+{% load static %}
+
+{% block title %}Payment{% endblock %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Payment for Subscription</h2>
+
+    <div class="card p-4">
+        <h4>Subscription Details</h4>
+        <p><strong>Duration:</strong> {{ subscription.get_duration_display }}</p>
+        <p><strong>Total Amount:</strong> ₹{{ subscription.amount }}</p>
+    </div>
+
+    <hr>
+
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+        {{ form.as_p }}  <!-- This will render all form fields as paragraphs -->
+        <button type="submit" class="btn btn-primary btn-block">Pay ₹{{ subscription.amount }}</button>
+    </form>
+    
+    
+    <hr>
+
+    <a href="{% url 'view_subscriptions' %}" class="btn btn-link">Cancel</a>
+</div>
+{% endblock %}
+

@@ -1,0 +1,720 @@
+{% extends 'pages/main.html' %}
+{% load static %}
+
+{% block title %}Pre-order Meals{% endblock %}
+
+{% block content %}
+<style>
+ :root {
+    --primary: #ff6f00;
+    --primary-light: #fff3e0;
+    --accent: #ffe3c3;
+    --text: #2c2c2c;
+    --muted: #7b7b7b;
+    --bg: #fffaf3;
+    --white: #ffffff;
+    --shadow: rgba(0, 0, 0, 0.05);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+  }
+
+  .top-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 30px 0 20px;
+  }
+
+  .top-tabs a {
+    padding: 10px 24px;
+    border-radius: 30px;
+    background-color: var(--white);
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--primary);
+    box-shadow: 0 4px 10px var(--shadow);
+    transition: all 0.3s ease;
+  }
+
+  .top-tabs a:hover,
+  .top-tabs a.active {
+    background-color: var(--primary);
+    color: #fff;
+  }
+
+  .container {
+    max-width: 1040px;
+    margin: auto;
+    padding: 0 20px 40px;
+  }
+
+  .header h2 {
+    font-size: 2rem;
+    color: var(--primary);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .date-range-display {
+    background-color: var(--accent);
+    border-radius: 12px;
+    padding: 10px 18px;
+    text-align: center;
+    color: var(--text);
+    font-weight: 500;
+    box-shadow: 0 2px 6px var(--shadow);
+    margin-bottom: 30px;
+  }
+
+  .meal-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
+  }
+
+  .meal-table thead {
+    background-color: var(--primary);
+    color: #fff;
+  }
+
+  .meal-table th,
+  .meal-table td {
+    padding: 16px;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: left;
+  }
+
+  .meal-table tbody tr:nth-child(even) {
+    background-color: #fffaf2;
+  }
+
+  .meal-table tbody tr:hover {
+    background-color: #fff3e0;
+    transition: background 0.3s ease;
+  }
+
+  .weekday {
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .no-items {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .total-price {
+    text-align: right;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 20px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .meal-table, thead, tbody, th, td, tr {
+      display: block;
+    }
+
+    .meal-table thead {
+      display: none;
+    }
+
+    .meal-table tbody tr {
+      background: white;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .meal-table td {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      border: none;
+      border-bottom: 1px solid #eee;
+    }
+
+    .meal-table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .total-price {
+      text-align: center;
+      font-size: 1rem;
+      padding-top: 12px;
+    }
+  }
+
+
+
+
+
+  /* FORM WRAPPER: centered and constrained */
+.form-wrapper {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* MAIN FORM CARD */
+.form-area {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  padding: 28px 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* FORM HEADER */
+.form-area h5 {
+  color: #fa6400;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* FORM GROUP SPACING */
+.form-group {
+  margin-bottom: 20px;
+}
+
+/* LABELS */
+.form-group label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* INPUTS */
+.form-control {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fcfcfc;
+  transition: 0.3s;
+}
+
+.form-control:focus {
+  border-color: #fa6400;
+  background-color: #fff;
+  outline: none;
+}
+
+/* ADDRESS TAGS */
+.address-tags {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 8px 18px;
+  background-color: #fff3e6;
+  color: #fa6400;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #fa6400;
+  transition: all 0.2s ease-in-out;
+}
+
+.tag:hover {
+  background-color: #ffe3c2;
+}
+
+.tag.active {
+  background-color: #fa6400;
+  color: white;
+}
+/* BUTTON AREA */
+.submit-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* BUTTONS */
+.btn-back,
+.btn-proceed {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.btn-back {
+  background-color: #f8d7da;
+  color: #b71c1c;
+  border: 1px solid #f5c6cb;
+}
+
+.btn-back:hover {
+  background-color: #f1b0b7;
+  color: #880e4f;
+}
+
+.btn-proceed {
+  background-color: #ff6600;
+  color: #fff;
+  border: 1px solid #e65100;
+}
+
+.btn-proceed:hover {
+  background-color: #e65100;
+  box-shadow: 0 2px 10px rgba(255, 102, 0, 0.3);
+}
+
+/* RESPONSIVE */
+@media screen and (max-width: 600px) {
+  .submit-buttons {
+    flex-direction: column;
+  }
+
+  .btn-back,
+  .btn-proceed {
+    width: 100%;
+  }
+}
+
+
+.input-error {
+  animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+</style>
+
+<!-- Top Tabs -->
+<div class="top-tabs">
+  <a href="?type=plan" class="{% if data_type == 'plan' %}active{% endif %}">Show Weekly Plan</a>
+  <a href="?type=selection" class="{% if data_type == 'selection' %}active{% endif %}">Show My Selection</a>
+</div>
+
+<!-- Summary Section -->
+<div class="container">
+  <div class="header">
+    <h2>
+      {% if data_type == 'plan' %}
+        Weekly Predefined Meal Plan Summary
+      {% elif data_type == 'selection' %}
+        Your Customized Weekly Meal Selection
+      {% else %}
+        Weekly Meal Plan Summary
+      {% endif %}
+    </h2>
+
+    {% if date_range %}
+      <div class="date-range-display">
+        Duration: <strong>{{ date_range }}</strong>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if plans %}
+    <table class="meal-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Breakfast</th>
+          <th>Lunch</th>
+          <th>Dinner</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for plan in plans %}
+        <tr>
+          <td class="weekday">{{ plan.day }}</td>
+          <td>{{ plan.breakfast }}</td>
+          <td>{{ plan.lunch }}</td>
+          <td>{{ plan.dinner }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Total Price Display -->
+    <div class="total-price">
+      {% if data_type == 'plan' %}
+        Total Price (Menu Plan): ₹{{ menuplan_price }}
+      {% elif data_type == 'selection' %}
+        Total Price (Your Selection): ₹{{ selection_price }}
+      {% endif %}
+    </div>
+
+   
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById("pay-btn").onclick = function () {
+    const formData = new FormData(document.getElementById("payment-form"));
+
+    fetch("{% url 'create_razorpay_order' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        var options = {
+          "key": data.key_id,
+          "amount": data.amount,
+          "currency": data.currency,
+          "name": "No Kitchen Meals",
+          "description": "Weekly Meal Payment",
+          "order_id": data.order_id,
+          "handler": function (response) {
+            // Success handler
+            fetch("{% url 'razorpay_success' %}", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+              },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            }).then(res => {
+              if (res.ok) {
+                window.location.href = "/thank_you/";  // Replace with your success page
+              } else {
+                alert("Something went wrong during payment confirmation.");
+              }
+            });
+          },
+          "theme": {
+            "color": "#0b7dda"
+          }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+      } else {
+        alert(data.message);
+      }
+    });
+  };
+</script>
+
+
+  {% else %}
+    <p class="no-items">No meal plans found for this week.</p>
+  {% endif %}
+</div>
+
+
+<!-- Delivery Form -->
+<div class="form-wrapper">
+  <div class="form-area">
+    <h5>📦 Delivery Details</h5>
+    <form id="delivery-form" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="type" value="{{ data_type }}">
+
+      <div class="form-group">
+        <label>Flat / Apartment Number</label>
+        <input type="text" name="flat_number" class="form-control" placeholder="Flat No, Apartment Name" required>
+      </div>
+
+      <div class="form-group">
+        <label>Street / Road</label>
+        <input type="text" name="street" class="form-control" placeholder="e.g., 2nd Cross Road" required>
+      </div>
+
+      <div class="form-group">
+        <label>Landmark</label>
+        <input type="text" name="landmark" class="form-control" placeholder="Near ICICI ATM, Temple, etc." required>
+      </div>
+
+      <div class="form-group">
+        <label>Address Type</label>
+        <div class="address-tags">
+          <span class="tag active" data-type="Home">Home</span>
+          <span class="tag" data-type="Office">Office</span>
+          <span class="tag" data-type="Others">Others</span>
+        </div>
+        <input type="hidden" name="address_type" id="address_type" value="Home">
+      </div>
+
+      <div class="form-group">
+        <label>Preferred Delivery Time & Address Type</label>
+        <div class="row">
+          <!-- Breakfast -->
+          <div class="col-md-4">
+            <label><i class="fas fa-coffee"></i> Breakfast</label>
+            <input type="time" name="breakfast_time" class="form-control" required>
+            <select name="breakfast_address_type" class="form-control mt-2" required>
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+
+          <!-- Lunch -->
+          <div class="col-md-4">
+            <label><i class="fas fa-utensils"></i> Lunch</label>
+            <input type="time" name="lunch_time" class="form-control" required>
+            <select name="lunch_address_type" class="form-control mt-2" required>
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+
+          <!-- Dinner -->
+          <div class="col-md-4">
+            <label><i class="fas fa-moon"></i> Dinner</label>
+            <input type="time" name="dinner_time" class="form-control" required>
+            <select name="dinner_address_type" class="form-control mt-2" required>
+              <option value="Home">Home</option>
+              <option value="Office">Office</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Alternative Mobile Number</label>
+        <input type="text" name="alt_mobile" class="form-control" maxlength="10" placeholder="Optional">
+      </div>
+
+      <div style="display: flex; justify-content: center; align-items: center; margin-top: 25px;">
+        <button type="button" id="razorpay-button"
+          style="padding: 12px 28px; background-color: #0b7dda; color: white; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;">
+          Pay & Place Order
+        </button>
+      </div>
+    </form>
+
+    <!-- Office Address Container -->
+    <div id="office-address-container" class="dynamic-address-form" style="display: none;">
+      <h5 style="margin-top: 20px;"><i class="fas fa-building"></i> Office Address</h5>
+      <form id="office-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Flat / Building</label>
+          <input type="text" name="flat_number" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>Street</label>
+          <input type="text" name="street" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>Landmark</label>
+          <input type="text" name="landmark" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>Alternative Mobile</label>
+          <input type="text" name="alt_mobile" class="form-control" maxlength="10">
+        </div>
+
+        <input type="hidden" name="address_type" value="Office">
+
+        <div class="text-end">
+          <button type="button" onclick="saveAddress(this, 'office-form')" class="btn btn-success">Save Office Address</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Others Address Container -->
+    <div id="others-address-container" class="dynamic-address-form" style="display: none;">
+      <h5 style="margin-top: 20px;"><i class="fas fa-map-marker-alt"></i> Other Address</h5>
+      <form id="others-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Flat / Location</label>
+          <input type="text" name="flat_number" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>Street</label>
+          <input type="text" name="street" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>Landmark</label>
+          <input type="text" name="landmark" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label>Alternative Mobile</label>
+          <input type="text" name="alt_mobile" class="form-control" maxlength="10">
+        </div>
+
+        <input type="hidden" name="address_type" value="Others">
+
+        <div class="text-end">
+          <button type="button" onclick="saveAddress(this, 'others-form')" class="btn btn-success">Save Other Address</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById("razorpay-button").onclick = function () {
+    const form = document.getElementById("delivery-form");
+    const flat = form.flat_number.value.trim();
+    const street = form.street.value.trim();
+    const landmark = form.landmark.value.trim();
+
+    if (!flat || !street || !landmark) {
+      alert("Please fill all required delivery fields.");
+      return;
+    }
+
+    const deliveryData = new FormData(form);
+
+    fetch("{% url 'save_delivery_address' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: deliveryData
+    })
+    .then(res => res.json())
+    .then(response => {
+      if (response.status === "success") {
+        const type = form.querySelector('[name="type"]').value;
+        const orderData = new FormData();
+        orderData.append("type", type);
+
+        fetch("{% url 'create_razorpay_order' %}", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: orderData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") {
+            const options = {
+              key: data.key_id,
+              amount: data.amount,
+              currency: data.currency,
+              name: "No Kitchen Meals",
+              description: "Weekly Meal Payment",
+              order_id: data.order_id,
+              handler: function (response) {
+                fetch("{% url 'razorpay_success' %}", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                  },
+                  body: JSON.stringify({
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
+                  })
+                }).then(res => {
+                  if (res.ok) {
+                    window.location.href = "/nokitchen/thank_you/";
+                  } else {
+                    alert("Something went wrong during payment confirmation.");
+                  }
+                });
+              },
+              theme: {
+                color: "#0b7dda"
+              }
+            };
+            const rzp = new Razorpay(options);
+            rzp.open();
+          } else {
+            alert(data.message);
+          }
+        });
+      } else {
+        alert("Failed to save delivery address.");
+      }
+    });
+  };
+
+  document.querySelectorAll('.tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+      const selected = tag.dataset.type;
+      document.getElementById('address_type').value = selected;
+
+      document.getElementById('office-address-container').style.display = (selected === 'Office') ? 'block' : 'none';
+      document.getElementById('others-address-container').style.display = (selected === 'Others') ? 'block' : 'none';
+    });
+  });
+
+  function saveAddress(button, formId) {
+    const form = document.getElementById(formId);
+    const formData = new FormData(form);
+
+    fetch("{% url 'save_delivery_address' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert("✅ Address saved successfully!");
+        form.reset();
+      } else {
+        alert("❌ Failed to save address.");
+      }
+    });
+  }
+</script>
+
+
+
+
+{% endblock %}

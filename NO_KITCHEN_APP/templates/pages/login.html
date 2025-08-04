@@ -1,0 +1,54 @@
+{% extends 'pages/main.html' %}
+
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div>
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+    <div class="wrapper p-4" style='margin-bottom:150px'>
+        <div class="title">
+            Login
+        </div>
+        <hr>
+        <br>
+        <div class="form">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <div class="inputfield">
+                    <input type="text" name="username" class="input" placeholder="Username..">
+                </div> 
+            
+                <div class="inputfield">
+                <input type="password" class="input" name="password" placeholder="Password..">
+                </div>  
+                <div class="title">
+                    <button type="submit" class="px-5 btn btn-outline-warning">Log in</button>
+                </div><br>
+
+                {{form.errors}}
+                {% for message in messages  %}
+                    <p id='messages'>{{message}}</p>
+                {% endfor %}
+            </form>
+
+            <p>Don't have an account? <a href="{% url 'register' %}">Signup</a></p>
+            
+            <p><a href="{% url 'forgot_password' %}">Forgot Password?</a></p>
+
+        </div>
+    </div>
+    <div class="floatimg3">
+        <img src="{% static 'images/flotingimg.png' %}" alt="floating-burger">
+      </div>
+{% endblock %}

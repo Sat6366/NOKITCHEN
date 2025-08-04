@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Cart Payments</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2e86de;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #2e86de;
+            color: white;
+        }
+        
+        .navbar {
+            background-color: #2e86de;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 10px 15px;
+            font-weight: bold;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="navbar">
+        <a href="{% url 'adminhome' %}">Home</a>
+       
+        <a href="{% url 'admin_cartpayments' %}">Cart Payments</a>
+       
+        <a href="{% url 'admin_contact' %}">Contacts</a>
+        <a href="{% url 'add_food' %}">Foods</a>
+        <a href="{% url 'admin_payment' %}">Payments</a>
+        
+        <a href="{% url 'all_subscriptions' %}">Subscriptions</a>
+    </div>
+
+    <h1>Cart Payment Details</h1>
+    <a href="{% url 'cart_payment_pdf' %}" class="btn btn-primary">Download PDF</a>
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Subscription</th>
+                <th>Amount (₹)</th>
+                <th>Payment Date</th>
+                <th>Status</th>
+                <th>Card Number</th>
+                <th>CVV</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.user.username }}</td>
+                <td>{{ payment.subscription.get_duration_display }}</td>
+                <td>{{ payment.amount }}</td>
+                <td>{{ payment.payment_date }}</td>
+                <td>{{ payment.status|title }}</td>
+                <td>{{ payment.card_number }}</td>
+                <td>{{ payment.cvv }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">No payments found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

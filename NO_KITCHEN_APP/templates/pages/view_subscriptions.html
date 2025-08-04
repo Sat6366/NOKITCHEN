@@ -1,0 +1,185 @@
+{% extends 'pages/main.html' %}
+{% load static %}
+{% block title %}Your Subscriptions{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  }
+
+  .container {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    margin-bottom: 40px;
+  }
+
+  h2, h4 {
+    color: #fc8019;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+  }
+
+  th {
+    background-color: #ffeede;
+    color: #333;
+    font-weight: 600;
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #f0f0f0;
+  }
+
+  td {
+    padding: 12px;
+    border: 1px solid #f0f0f0;
+    color: #555;
+    vertical-align: top;
+  }
+
+  td img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-top: 5px;
+  }
+
+  .alert-info {
+    background-color: #fcf3e8;
+    color: #555;
+    border-left: 5px solid #fc8019;
+  }
+</style>
+
+<div class="container mt-4">
+  <h2 class="text-center">{{ username|capfirst }}'s Active Subscriptions</h2>
+
+  <!-- Weekly Meal Selections -->
+  {% if weekly_selections %}
+  <h4>🗓️ Weekly Meal Selections</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Order ID</th><th>Day</th><th>Meal Type</th><th>Items</th><th>From</th><th>To</th><th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in weekly_selections %}
+      <tr>
+        <td>{{ s.custom_order_id }}</td>
+        <td>{{ s.day|title }}</td>
+        <td>{{ s.meal_type|title }}</td>
+        <td>
+          {% for item in s.selected_items.all %}
+            {{ item.item_name }} (₹{{ item.price }})<br>
+          {% endfor %}
+        </td>
+        <td>{{ s.from_date }}</td>
+        <td>{{ s.to_date }}</td>
+        <td><strong>₹{{ s.total_price }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Weekly Menu Plans -->
+  {% if weekly_plans %}
+  <h4>📋 Weekly Menu Plans</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Order ID</th><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th><th>From</th><th>To</th><th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for plan in weekly_plans %}
+      <tr>
+        <td>{{ plan.plan_order_id }}</td>
+        <td>{{ plan.day|title }}</td>
+        <td>
+          {% for item in plan.breakfast_items.all %}
+            {{ item.item_name }} (₹{{ item.price }})<br>
+          {% endfor %}
+        </td>
+        <td>
+          {% for item in plan.lunch_items.all %}
+            {{ item.item_name }} (₹{{ item.price }})<br>
+          {% endfor %}
+        </td>
+        <td>
+          {% for item in plan.dinner_items.all %}
+            {{ item.item_name }} (₹{{ item.price }})<br>
+          {% endfor %}
+        </td>
+        <td>{{ plan.from_date }}</td>
+        <td>{{ plan.to_date }}</td>
+        <td><strong>₹{{ plan.total_price }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Custom Meal Plans -->
+  {% if custom_plans %}
+  <h4>🍽️ Custom Meal Plans</h4>
+  <table>
+    <thead>
+      <tr><th>Order ID</th><th>Base Meal</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th><th>From</th><th>To</th><th>Total Price</th></tr>
+    </thead>
+    <tbody>
+      {% for plan in custom_plans %}
+      <tr>
+        <td>{{ plan.custom_order_id }}</td>
+        <td>{{ plan.base_meal.item_name }}</td>
+        <td>{{ plan.breakfast }}</td>
+        <td>{{ plan.lunch }}</td>
+        <td>{{ plan.dinner }}</td>
+        <td>{{ plan.start_date }}</td>
+        <td>{{ plan.end_date }}</td>
+        <td><strong>₹{{ plan.total_price }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Final Meal Orders -->
+  {% if final_orders %}
+  <h4>🧾 Final Meal Orders</h4>
+  <table>
+    <thead>
+      <tr><th>Order ID</th><th>Items</th><th>From</th><th>To</th><th>Address</th><th>Amount</th></tr>
+    </thead>
+    <tbody>
+      {% for o in final_orders %}
+      <tr>
+        <td>{{ o.order_id }}</td>
+        <td>{{ o.ordered_items }}</td>
+        <td>{{ o.start_date }}</td>
+        <td>{{ o.end_date }}</td>
+        <td>{{ o.flat_number }}, {{ o.street }}</td>
+        <td><strong>₹{{ o.total_amount }}</strong></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if not weekly_selections and not weekly_plans and not custom_plans and not final_orders %}
+  <div class="alert alert-info text-center mt-4">
+    You have no active subscriptions.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

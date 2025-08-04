@@ -1,0 +1,530 @@
+{% extends 'pages/main.html' %}
+{% load static %}
+
+{% block title %}My Weekly Meal Plan{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+  body {
+    background-color: #f9fafb;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+  }
+
+  .wallet-float {
+    position: fixed;
+    top: 15%;
+    right: 30px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    transform: translateY(-50%);
+  }
+
+  .wallet-toggle-box {
+    background-color: #fff7eb;
+    border: 1px solid #ffe0b3;
+    padding: 10px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(255, 111, 0, 0.08);
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .wallet-toggle-box:hover {
+    background-color: #fff0d5;
+  }
+
+  .wallet-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #ff6f00;
+  }
+
+  .chevron-icon {
+    transition: transform 0.3s;
+    color: #ff6f00;
+  }
+
+  .wallet-details {
+    margin-top: 6px;
+    padding: 14px;
+    background-color: #fffaf4;
+    border-radius: 10px;
+    border: 1px dashed #ffd180;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    text-align: right;
+    max-width: 260px;
+    display: none;
+  }
+
+  .wallet-details.show {
+    display: block;
+  }
+
+  .wallet-amount {
+    font-size: 1.05rem;
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .wallet-btn {
+    background-color: #ff6f00;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: 0.3s;
+  }
+
+  .wallet-btn:hover {
+    background-color: #e65100;
+  }
+
+  .account-container {
+    max-width: 1200px;
+    margin: 80px auto 30px auto;
+    padding: 20px;
+  }
+
+  .account-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .account-header h2 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #ff6f00;
+    margin-bottom: 6px;
+  }
+
+  .user-info {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .user-info a {
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: #ff6f00;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.3s ease;
+    margin-top: 6px;
+    display: inline-block;
+  }
+
+  .user-info a:hover {
+    background-color: #e65100;
+  }
+
+  .meal-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 14px;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+  }
+
+  .meal-grid::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .meal-grid::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+  }
+
+  .day-card {
+    min-width: 240px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    padding: 14px;
+    border: 1px solid #f0f0f0;
+  }
+
+  .day-card h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ff6f00;
+    margin-bottom: 10px;
+  }
+
+  .meal-item {
+    padding: 6px 0;
+    border-top: 1px dashed #eaeaea;
+  }
+
+  .meal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .meal-type {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #333;
+  }
+
+  .meal-buttons-inline {
+    display: flex;
+    gap: 5px;
+  }
+
+  .btn-meal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s ease-in-out;
+  }
+
+  .btn-skip {
+    background-color: #ff6f00;
+    color: #fff;
+  }
+
+  .btn-skip:hover {
+    background-color: #e65100;
+  }
+
+  .btn-edit {
+    background-color: #eeeeee;
+    color: #333;
+  }
+
+  .btn-edit:hover {
+    background-color: #ddd;
+  }
+
+  .btn-edit i {
+    font-size: 0.75rem;
+  }
+
+  .meal-details {
+    font-size: 0.74rem;
+    color: #222;
+    line-height: 1.4;
+  }
+
+  .no-meals {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #999;
+    font-style: italic;
+    padding: 40px 0;
+  }
+
+  .skipped-meal {
+    background-color: #fff3e0;
+    border-left: 4px solid #ff6f00;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 500px) {
+    .meal-buttons-inline {
+      gap: 4px;
+    }
+
+    .wallet-float {
+      right: 16px;
+      top: 16px;
+    }
+
+    .wallet-details {
+      max-width: 100%;
+      text-align: center;
+    }
+  }
+
+
+  .date-range {
+  font-size: 16px;
+  color: #333;
+  background-color: #f1f1f1;
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+</style>
+
+<!-- Wallet Floating -->
+<div class="wallet-float">
+  <div class="wallet-toggle-box" onclick="toggleWallet()">
+    <i class="fas fa-wallet"></i>
+    <span class="wallet-label">My Wallet</span>
+    <i class="fas fa-chevron-down chevron-icon" id="chevronIcon"></i>
+  </div>
+  <div class="wallet-details" id="walletDetails">
+    <p class="wallet-amount">Available Balance: ₹{{ wallet_balance|default:"0.00" }}</p>
+  </div>
+</div>
+
+<div class="account-container">
+  <div class="account-header">
+    <h2>🍽 Weekly Meal Plan for {{ user.username }}</h2>
+
+    <div class="user-info">
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      {% if user.is_superuser %}
+        <a href="/admin">Go to Admin Portal</a>
+      {% endif %}
+    </div>
+
+    {# ✅ DATE RANGE DISPLAY BLOCK — FIXED! #}
+    {% if from_date and to_date %}
+      <div class="date-range mt-3">
+        <strong>Meal Plan Duration:</strong>
+        <span>{{ from_date|date:"F j, Y" }} → {{ to_date|date:"F j, Y" }}</span>
+      </div>
+    {% else %}
+      <div class="date-range mt-3" style="color:#999;">
+        <em>No date range selected.</em>
+      </div>
+    {% endif %}
+  </div>
+
+
+
+  {# ✅ MEAL LIST #}
+  {% if meal_schedule %}
+    <div class="meal-grid">
+      {% for day, meals in meal_schedule.items %}
+        <div class="day-card">
+          <h5>{{ day }}</h5>
+          {% for meal_type, meal_info in meals.items %}
+            {% with meal_info.selection as meal_selection %}
+             <div class="meal-item {% if meal_selection.id in skipped_ids %}skipped-meal{% endif %}" data-meal-id="{{ meal_selection.id }}">
+
+                <div class="meal-header">
+                  <div class="meal-type">{{ meal_type }}</div>
+                  <div class="meal-buttons-inline">
+                    {% if meal_selection.id not in skipped_ids %}
+                      <button class="btn-meal btn-skip" title="Skip" onclick="skipMeal({{ meal_selection.id }}, this)">⨉</button>
+                    {% endif %}
+                   <button class="btn-meal btn-edit" title="Edit"
+                      onclick="openEditModal({{ meal_selection.id }}, '{{ meal_info.items|join:", " }}', '{{ meal_type }}')">
+                      <i class="fas fa-pencil-alt"></i>
+                    </button>
+
+                  </div>
+                </div>
+
+                <div class="meal-details">
+                  {% if meal_info.items %}
+                    {% for item in meal_info.items %}
+                      {{ item.item_name }} (₹{{ item.price }}){% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  {% else %}
+                    <span style="color: #aaa; font-style: italic;">No selection</span>
+                  {% endif %}
+
+                  {% if meal_selection.id in skipped_ids %}
+                    <div><em style="color: red;">(Skipped)</em></div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="no-meals">No meal selections found for your account.</p>
+  {% endif %}
+</div>
+
+<!-- Edit Meal Modal -->
+<div id="editMealModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:20px; border-radius:12px; max-width:400px; width:90%; position:relative;">
+    <h3 style="color:#ff6f00; margin-bottom:10px;">Edit <span id="modalMealType">Meal</span></h3>
+    <form id="editMealForm">
+      <input type="hidden" id="editMealId" name="meal_id">
+      <div id="mealItemsContainer" style="max-height:250px; overflow-y:auto; margin-bottom:14px;"></div>
+      <div style="margin-top:16px; display:flex; justify-content:space-between;">
+        <button type="button" onclick="closeEditModal()" style="background:#ccc; border:none; padding:6px 14px; border-radius:6px;">Cancel</button>
+        <button type="submit" style="background:#ff6f00; color:#fff; border:none; padding:6px 14px; border-radius:6px;">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ✅ Skip Meal Function
+  function skipMeal(mealId, button) {
+    const csrfToken = "{{ csrf_token }}";
+
+    if (!confirm("Are you sure you want to skip this meal?")) return;
+
+    fetch("{% url 'skip_meal' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ 'meal_id': mealId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert("✅ Meal skipped! ₹" + data.refunded + " added to your wallet.");
+        const mealItem = button.closest(".meal-item");
+        mealItem.classList.add("skipped-meal");
+
+        const detailsDiv = mealItem.querySelector('.meal-details');
+        if (!detailsDiv.innerHTML.includes('Skipped')) {
+          detailsDiv.innerHTML += '<div><em style="color:red;">(Skipped)</em></div>';
+        }
+
+        button.remove();
+        document.querySelector('.wallet-amount').innerText = "Available Balance: ₹" + data.new_balance;
+      } else {
+        alert("❌ Failed: " + data.message);
+      }
+    })
+    .catch(error => {
+      alert("⚠️ Request failed: " + error);
+    });
+  }
+
+  // ✅ Toggle Wallet Panel
+  function toggleWallet() {
+    const details = document.getElementById('walletDetails');
+    const icon = document.getElementById('chevronIcon');
+    details.classList.toggle('show');
+    icon.classList.toggle('fa-chevron-down');
+    icon.classList.toggle('fa-chevron-up');
+  }
+
+  // ✅ Open Edit Modal
+  function openEditModal(mealId, currentItems, mealType) {
+    document.getElementById("editMealId").value = mealId;
+    document.getElementById("modalMealType").innerText = mealType;
+    document.getElementById("editMealModal").style.display = "flex";
+
+    const container = document.getElementById("mealItemsContainer");
+    container.innerHTML = "<p>Loading items...</p>";
+
+    fetch("{% url 'get_meal_items' %}?meal_id=" + mealId)
+    .then(res => {
+      if (!res.ok) throw new Error("Server error: " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      if (data.status === 'success') {
+        container.innerHTML = '';
+        if (data.items.length === 0) {
+          container.innerHTML = "<p>No items available for this meal type.</p>";
+          return;
+        }
+
+        data.items.forEach(item => {
+          const div = document.createElement("div");
+          div.style.marginBottom = "6px";
+          div.innerHTML = `
+            <label>
+              <input type="checkbox" name="meal_item" value="${item.id}" ${item.selected ? 'checked' : ''}>
+              ${item.name} (₹${item.price})
+            </label>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = `<p style='color:red;'>⚠️ ${data.message}</p>`;
+      }
+    })
+    .catch(error => {
+      console.error("Fetch failed:", error);
+      container.innerHTML = "<p style='color:red;'>⚠️ Something went wrong while loading.</p>";
+    });
+  }
+
+  // ✅ Close Modal
+  function closeEditModal() {
+    document.getElementById("editMealModal").style.display = "none";
+  }
+
+  // ✅ Submit Updated Meal Selection
+  document.getElementById("editMealForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const csrfToken = "{{ csrf_token }}";
+    const mealId = document.getElementById("editMealId").value;
+    const selectedItems = Array.from(document.querySelectorAll("input[name='meal_item']:checked"))
+                               .map(cb => cb.value);
+
+    fetch("{% url 'edit_meal' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        'meal_id': mealId,
+        'items': selectedItems.join(',')  // IDs, not names
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const mealBlock = document.querySelector(`.meal-item[data-meal-id='${mealId}']`);
+        const detailsDiv = mealBlock.querySelector('.meal-details');
+
+        if (data.updated_items && data.updated_items.length > 0) {
+          const updatedHTML = data.updated_items
+            .map(item => `${item.name} (₹${item.price})`)
+            .join(', ');
+          detailsDiv.innerHTML = updatedHTML;
+        } else {
+          detailsDiv.innerHTML = `<span style="color: #aaa; font-style: italic;">No selection</span>`;
+        }
+
+        // ✅ Remove "(Skipped)" label if exists
+        const skippedTag = detailsDiv.querySelector('em');
+        if (skippedTag) skippedTag.remove();
+
+        // ✅ Remove skipped class
+        mealBlock.classList.remove("skipped-meal");
+
+        // ✅ Add visual feedback animation
+        mealBlock.classList.add("updated-flash");
+        setTimeout(() => mealBlock.classList.remove("updated-flash"), 1000);
+
+        closeEditModal();
+        alert("✅ Meal updated successfully.");
+      } else {
+        alert("❌ Error: " + data.message);
+      }
+    })
+    .catch(error => {
+      alert("⚠️ Request failed: " + error);
+    });
+  });
+</script>
+
+{% endblock %}

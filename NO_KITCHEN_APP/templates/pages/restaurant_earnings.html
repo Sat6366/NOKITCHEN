@@ -1,0 +1,340 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Restaurant Earnings</title>
+  <link rel="stylesheet" href="{% static 'css/restaurant_earnings.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<style>
+    body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #fffefb;
+  color: #333;
+}
+
+/* Hero Section */
+.hero {
+  background: linear-gradient(to right, #ff9800, #ff6f00);
+  padding: 60px 20px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.hero h1 {
+  font-size: 40px;
+  margin: 0;
+}
+
+.hero p {
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+/* Summary Cards */
+.summary-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-around;
+  margin: 40px 20px;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  width: 250px;
+  transition: 0.3s;
+}
+
+.summary-card .icon {
+  font-size: 28px;
+  margin-right: 20px;
+}
+
+.summary-card h4 {
+  margin: 0;
+  font-weight: 600;
+  color: #444;
+}
+
+.summary-card p {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+/* Card Colors */
+.orange { background: #fff3e0; color: #e65100; }
+.orange .icon { color: #e65100; }
+
+.dark { background: #ede7f6; color: #512da8; }
+.dark .icon { color: #512da8; }
+
+.light { background: #e0f2f1; color: #00695c; }
+.light .icon { color: #00695c; }
+
+.sky { background: #e3f2fd; color: #1976d2; }
+.sky .icon { color: #1976d2; }
+
+/* Table Section */
+.transaction-section {
+  padding: 30px 40px;
+}
+
+.transaction-section h2 {
+  margin-bottom: 20px;
+  color: #ff6f00;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+th, td {
+  padding: 16px 14px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+thead {
+  background-color: #fff8e1;
+  color: #bf360c;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .summary-section {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .summary-card {
+    width: 90%;
+  }
+}
+
+
+    .site-footer {
+  background: linear-gradient(135deg, #1f1f1f, #2d2d2d);
+  color: #f1f1f1;
+  padding: 60px 20px 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.site-footer h3,
+.site-footer h4 {
+  color: #ffa500;
+  margin-bottom: 12px;
+}
+
+.footer-about p,
+.footer-contact p,
+.footer-links ul {
+  font-size: 14px;
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links ul li {
+  margin-bottom: 8px;
+}
+
+.footer-links ul li a {
+  color: #ccc;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links ul li a:hover {
+  color: #ffa500;
+}
+
+.footer-contact i {
+  margin-right: 8px;
+  color: #ffa500;
+}
+
+.footer-social a {
+  display: inline-block;
+  margin-right: 12px;
+  color: #ffa500;
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.footer-social a:hover {
+  transform: scale(1.2);
+  color: #ffcc66;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  color: #999;
+}
+
+
+</style>
+<body>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1><i class="fas fa-chart-line"></i> Restaurant Earnings</h1>
+      <p>Monitor your earnings, transactions, and growth performance with ease.</p>
+    </div>
+  </section>
+
+  <!-- Summary Cards -->
+  <section class="summary-section">
+    <div class="summary-card orange">
+      <div class="icon"><i class="fas fa-wallet"></i></div>
+      <div>
+        <h4>Total Earnings</h4>
+        <p>₹1,24,000</p>
+      </div>
+    </div>
+    <div class="summary-card dark">
+      <div class="icon"><i class="fas fa-calendar-day"></i></div>
+      <div>
+        <h4>Today</h4>
+        <p>₹1,250</p>
+      </div>
+    </div>
+    <div class="summary-card light">
+      <div class="icon"><i class="fas fa-calendar-week"></i></div>
+      <div>
+        <h4>This Week</h4>
+        <p>₹8,500</p>
+      </div>
+    </div>
+    <div class="summary-card sky">
+      <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+      <div>
+        <h4>This Month</h4>
+        <p>₹36,200</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Transactions Table -->
+  <section class="transaction-section">
+    <h2><i class="fas fa-receipt"></i> Latest Transactions</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Amount</th>
+            <th>Payment</th>
+            <th>Customer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>#1023</td>
+            <td>2025-06-06</td>
+            <td>Lunch Combo</td>
+            <td>₹320</td>
+            <td>UPI</td>
+            <td>Arjun</td>
+          </tr>
+          <tr>
+            <td>#1024</td>
+            <td>2025-06-06</td>
+            <td>Family Dinner</td>
+            <td>₹800</td>
+            <td>Cash</td>
+            <td>Sneha</td>
+          </tr>
+          <tr>
+            <td>#1025</td>
+            <td>2025-06-05</td>
+            <td>Breakfast Pack</td>
+            <td>₹210</td>
+            <td>Card</td>
+            <td>Rahul</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+  
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-about">
+      <h3>NoKitchen</h3>
+      <p>Revolutionizing how food reaches your doorstep. Taste, quality, and trust – served fresh daily.</p>
+    </div>
+
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Menu</a></li>
+        <li><a href="#">Subscriptions</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-contact">
+      <h4>Contact Us</h4>
+      <p><i class="fas fa-phone-alt"></i> +91 98765 43210</p>
+      <p><i class="fas fa-envelope"></i> support@nokitchen.in</p>
+      <p><i class="fas fa-map-marker-alt"></i> Hyderabad, India</p>
+    </div>
+
+    <div class="footer-social">
+      <h4>Follow Us</h4>
+      <a href="#"><i class="fab fa-facebook-f"></i></a>
+      <a href="#"><i class="fab fa-instagram"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fab fa-youtube"></i></a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <p>&copy; 2025 NoKitchen. All rights reserved.</p>
+  </div>
+</footer>
+
+
+</body>
+</html>

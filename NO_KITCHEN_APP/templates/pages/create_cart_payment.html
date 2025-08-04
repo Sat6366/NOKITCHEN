@@ -1,0 +1,35 @@
+
+{% extends 'pages/main.html' %}
+
+{% load static %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+<!-- create_cart_payment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Cart Payment</title>
+    <link rel="stylesheet" href="{% static 'your_css_file.css' %}"> <!-- Include your CSS file -->
+</head>
+<body>
+    <h1>Create Cart Payment</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit Payment</button>
+    </form>
+
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
+{%endblock%}

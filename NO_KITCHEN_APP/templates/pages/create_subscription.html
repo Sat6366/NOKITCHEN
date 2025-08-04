@@ -1,0 +1,1194 @@
+
+{% extends 'pages/main.html' %}
+
+{% load static %}
+
+{% block title %}Subscribe{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+    .meal-planner-container {
+  background: linear-gradient(to right, #fff8f0, #fff3e0);
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.planner-heading {
+  text-align: center;
+  color: #ff6f00;
+  font-family: 'Georgia', serif;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.planner-tabs .nav-link {
+  color: #ff9800;
+  font-weight: 600;
+  border: none;
+  padding: 10px 18px;
+  transition: all 0.3s ease;
+}
+
+.planner-tabs .nav-link.active {
+  background-color: #ff9800;
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+.meal-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s;
+}
+
+.meal-card:hover {
+  transform: translateY(-5px);
+}
+
+.meal-select {
+  border: 2px solid #ffcc80;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.btn-orange {
+  background-color: #ff9800;
+  color: white;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-weight: 600;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.btn-orange:hover {
+  background-color: #fb8c00;
+}
+
+.btn-outline-orange {
+  border: 2px solid #ff9800;
+  color: #ff9800;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-weight: 600;
+  background-color: transparent;
+}
+
+.btn-outline-orange:hover {
+  background-color: #fff3e0;
+}
+
+
+
+/* How It Works Section */
+.how-it-works {
+  background: linear-gradient(to right, #fff3e0, #ffe0b2);
+  padding: 80px 40px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.container-work {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1300px;
+  margin: 0 auto;
+  gap: 40px;
+}
+
+.text-content {
+  flex: 1;
+  min-width: 320px;
+}
+
+.text-content h2 {
+  font-size: 2.8rem;
+  color: #e65100;
+  margin-bottom: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.text-content p {
+  font-size: 1.1rem;
+  color: #4e342e;
+  line-height: 1.8;
+}
+
+.btn-subscribe {
+  display: inline-block;
+  margin-top: 25px;
+  padding: 12px 28px;
+  background-color: #ff6f00;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 30px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(255, 111, 0, 0.4);
+  transition: background 0.3s ease;
+}
+
+.btn-subscribe:hover {
+  background-color: #e65100;
+}
+
+.image-content {
+  flex: 1;
+  min-width: 320px;
+  text-align: center;
+}
+
+.image-content img {
+  max-width: 100%;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container-work {
+    flex-direction: column-reverse;
+    text-align: center;
+  }
+
+  .text-content h2 {
+    font-size: 2.1rem;
+  }
+
+  .text-content p {
+    font-size: 1rem;
+  }
+}
+
+/* Subscription Flexibility Section */
+.subscription-flex {
+  background: linear-gradient(to right, #fff8f0, #ffe9dc);
+  padding: 80px 40px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.container-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1300px;
+  margin: 0 auto;
+  gap: 40px;
+}
+
+.text-area {
+  flex: 1;
+  min-width: 320px;
+}
+
+.text-area h2 {
+  font-size: 2.6rem;
+  color: #d84315;
+  font-weight: 800;
+  margin-bottom: 20px;
+  letter-spacing: 0.6px;
+}
+
+.text-area p {
+  font-size: 1.1rem;
+  color: #4a2c1e;
+  line-height: 1.8;
+}
+
+.btn-customize {
+  display: inline-block;
+  margin-top: 25px;
+  padding: 12px 28px;
+  background-color: #ff6f00;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 30px;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(255, 111, 0, 0.4);
+  transition: background 0.3s ease;
+}
+
+.btn-customize:hover {
+  background-color: #e65100;
+}
+
+.image-area {
+  flex: 1;
+  min-width: 320px;
+  text-align: center;
+}
+
+.image-area img {
+  max-width: 100%;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container-sub {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .text-area h2 {
+    font-size: 2rem;
+  }
+
+  .text-area p {
+    font-size: 1rem;
+  }
+}
+
+
+
+    </style>
+    
+</div>
+<!-- How It Works Section -->
+<section class="how-it-works">
+  <div class="container-work">
+    <div class="text-content">
+      <h2>Crafted With Care, Delivered With Hygiene</h2>
+      <p>
+        At <strong>NoKitchen</strong>, we prioritize health and hygiene. Our meals are freshly prepared every day using high-quality ingredients in a sanitized kitchen environment. 
+        <br><br>
+        With our flexible <strong>meal subscription</strong> plans, you can customize your food preferences — whether it's a weekly combo or a daily surprise — delivered hot and on time.
+        <br><br>
+        Choose your own menu, pick your delivery time, and enjoy a restaurant-quality experience at home — consistently.
+      </p>
+      <a href="#subscription" class="btn-subscribe">Explore Subscription Plans</a>
+    </div>
+    <div class="image-content">
+      <img src="{% static 'images/k1.jpg' %}" alt="Hygienic Food Preparation">
+    </div>
+  </div>
+</section>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+
+<section class="today-menu-section">
+  <div class="banner-content">
+    <div class="menu-box">
+      <h2 class="menu-header">
+        <i class="fas fa-concierge-bell"></i> Today's Menu - {{ day|title }}
+      </h2>
+
+      <div class="icon-strip">
+        <div class="meal-icon" title="Breakfast"><i class="fas fa-mug-hot"></i></div>
+        <div class="meal-icon" title="Lunch"><i class="fas fa-utensils"></i></div>
+        <div class="meal-icon" title="Dinner"><i class="fas fa-drumstick-bite"></i></div>
+      </div>
+
+      <ul class="menu-list">
+        <li>
+          <i class="fas fa-mug-hot"></i>
+          <span class="label">Breakfast:</span>
+          <span class="items">
+            {% for item in breakfast_items %}
+              {{ item.item_name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              <em>Not Available</em>
+            {% endfor %}
+          </span>
+        </li>
+
+        <li>
+          <i class="fas fa-utensils"></i>
+          <span class="label">Lunch:</span>
+          <span class="items">
+            {% for item in lunch_items %}
+              {{ item.item_name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              <em>Not Available</em>
+            {% endfor %}
+          </span>
+        </li>
+
+        <li>
+          <i class="fas fa-drumstick-bite"></i>
+          <span class="label">Dinner:</span>
+          <span class="items">
+            {% for item in dinner_items %}
+              {{ item.item_name }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              <em>Not Available</em>
+            {% endfor %}
+          </span>
+        </li>
+      </ul>
+
+      <div class="weekly-total-box">
+  <h4>Total Weekly Menu Price</h4>
+  <div class="price-value">₹{{ weekly_total_price }}</div>
+</div>
+
+      <div class="menu-actions">
+        <button class="action-btn" onclick="toggleWeeklyMenu()">📅 Weekly Plan</button>
+
+       <a href="{% url 'pay_now' %}" class="action-btn subscribe">
+  🔔 Get Subscription
+</a>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<div id="weekly-row" class="horizontal-weekly-cards d-none">
+  {% for menu in weekly_data %}
+    <div class="week-card" style="background: var(--day{{ forloop.counter }})">
+      <div class="card-overlay">
+        <div class="circle-image">
+          <img src="{% static 'images/food-circle.png' %}" alt="Food Icon" />
+        </div>
+        <h5 class="day-label">{{ menu.get_day_display }}</h5>
+        <div class="meal-info">
+          <p><strong>🍳</strong> {% for b in menu.breakfast_items.all %}{{ b.item_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+          <p><strong>🍱</strong> {% for l in menu.lunch_items.all %}{{ l.item_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+          <p><strong>🍽️</strong> {% for d in menu.dinner_items.all %}{{ d.item_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- JS -->
+<script>
+  function toggleWeeklyMenu() {
+    const section = document.getElementById('weekly-row');
+    const button = document.getElementById('weekly-toggle-btn');
+    section.classList.toggle('d-none');
+    button.textContent = section.classList.contains('d-none') ? "Show Weekly Menu" : "Hide Weekly Menu";
+  }
+</script>
+
+
+<style>
+  
+ :root {
+  --day1: linear-gradient(135deg, #5f4b32, #d6ad60);    /* Sunday - Espresso & Honey Gold */
+  --day2: linear-gradient(135deg, #3e3a39, #9d8f85);    /* Monday - Charcoal & Warm Clay */
+  --day3: linear-gradient(135deg, #40312f, #c3b091);    /* Tuesday - Mocha & Almond Beige */
+  --day4: linear-gradient(135deg, #4a3f35, #eac39f);    /* Wednesday - Vintage Cocoa & Peach */
+  --day5: linear-gradient(135deg, #2d2a26, #cab48b);    /* Thursday - Ash Black & Oatmeal */
+  --day6: linear-gradient(135deg, #2f2e41, #ffd9a0);    /* Friday - Ink & Creamy Apricot */
+  --day7: linear-gradient(135deg, #312e2b, #e0b084);    /* Saturday - Dark Roast & Soft Sand */
+}
+.week-card {
+  min-width: 260px;
+  max-width: 280px;
+  border-radius: 18px;
+  padding: 1.2rem 1rem;
+  flex: 0 0 auto;
+  color: white;
+  scroll-snap-align: center;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  font-family: 'Poppins', sans-serif;
+  background-blend-mode: multiply;
+}
+
+.week-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 24px rgba(255, 215, 100, 0.3);
+}
+
+/* Text inside */
+.week-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 6px 0;
+  color: #fdfdfd;
+}
+
+.week-card h5 {
+  font-size: 18px;
+  margin-top: 8px;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+.circle-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -20px auto 10px auto;
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(0,0,0,0.2);
+}
+.circle-image img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+
+.today-menu-section {
+  background: url('https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+  padding: 60px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}
+
+.banner-content {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px 40px;
+  max-width: 900px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.menu-box {
+  color: #fff;
+}
+
+.menu-header {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-strip {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  justify-content: center;
+}
+
+.meal-icon {
+  font-size: 28px;
+  background: rgba(255,255,255,0.15);
+  padding: 14px;
+  border-radius: 50%;
+  color: #ffeb3b;
+  transition: all 0.3s ease;
+}
+
+.meal-icon:hover {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.1);
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-list li {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 14px 18px;
+  border-left: 4px solid #ffc107;
+  border-radius: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.menu-list i {
+  font-size: 16px;
+  color: #ffeb3b;
+  margin-top: 2px;
+}
+
+.label {
+  font-weight: 600;
+  min-width: 80px;
+  display: inline-block;
+}
+
+.items em {
+  font-style: italic;
+  color: #ffe082;
+}
+
+.menu-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.action-btn {
+  background: #fff;
+  color: #f57c00;
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: none;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: #f57c00;
+  color: #fff;
+}
+
+.subscribe {
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+.subscribe:hover {
+  background: #e65100;
+  color: #fff;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .banner-content {
+    padding: 20px;
+  }
+
+  .menu-header {
+    font-size: 22px;
+  }
+
+  .menu-list li {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .menu-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .icon-strip {
+    gap: 14px;
+  }
+}
+
+
+
+/* ---------------- Weekly Menu Cards (Horizontal Scroll) ---------------- */
+.horizontal-weekly-cards {
+  display: flex;
+  gap: 1.2rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  margin-top: 20px;
+}
+
+.week-card {
+  min-width: 240px;
+  max-width: 260px;
+  height: auto;
+  border-radius: 18px;
+  padding: 1.2rem;
+  flex: 0 0 auto;
+  color: white;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  transition: all 0.4s ease;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.week-card:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.2);
+}
+
+/* ---------------- Circle Image on Top of Card ---------------- */
+.circle-image {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -30px auto 15px auto;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 2;
+}
+
+.circle-image img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* ---------------- Button ---------------- */
+#weekly-toggle-btn {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease-in-out;
+}
+
+#weekly-toggle-btn:hover {
+  background-color: #ffca2c;
+  transform: scale(1.03);
+}
+
+/* ---------------- Scrollbar Style (Optional for Desktop) ---------------- */
+.horizontal-weekly-cards::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-weekly-cards::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.horizontal-weekly-cards::-webkit-scrollbar-thumb {
+  background: #ffba00;
+  border-radius: 10px;
+}
+
+.horizontal-weekly-cards::-webkit-scrollbar-thumb:hover {
+  background: #ffa500;
+}
+
+/* Responsive Tweaks */
+@media (max-width: 768px) {
+  .week-card {
+    min-width: 80%;
+  }
+
+  .today-menu-card .list-group-item {
+    font-size: 0.95rem;
+  }
+}
+
+ .custom-toggle-btn {
+  background: linear-gradient(to right, #ff8008, #ffc837);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 22px;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(255, 128, 8, 0.3);
+  transition: all 0.3s ease-in-out;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.custom-toggle-btn:hover {
+  background: linear-gradient(to right, #ffc837, #ff8008);
+  box-shadow: 0 6px 16px rgba(255, 128, 8, 0.4);
+  transform: translateY(-1px);
+  cursor: pointer;
+}
+
+
+
+.text-center .btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  margin: 0 8px;
+}
+
+.save-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+}
+
+.save-btn:hover {
+  background-color: #218838;
+}
+
+.subscription-btn {
+  background-color:rgb(247, 149, 30);
+  color: white;
+  border: none;
+}
+
+.subscription-btn:hover {
+  background-color:rgb(122, 127, 132);
+}
+
+  
+</style>
+
+
+
+<!-- Subscription Flexibility Section -->
+<section class="subscription-flex">
+  <div class="container-sub">
+    <div class="image-area">
+      <img src="{% static 'images/k2.jpg' %}" alt="Flexible Meal Subscription">
+    </div>
+    <div class="text-area">
+      <h2>Freedom to Choose. Power to Skip.</h2>
+      <p>
+        Our <strong>customizable meal subscription</strong> gives you full control of your weekly menu. 
+        Choose from a variety of delicious meals — breakfast, lunch, dinner, or snacks — based on your daily mood or dietary goals.
+        <br><br>
+        Want to <strong>skip a day</strong> or cancel a meal? Just tap to skip — no questions asked.
+        <br><br>
+        With NoKitchen, you're not locked in — you’re in charge.
+      </p>
+      <a href="#customize" class="btn-customize">Customize My Meals</a>
+    </div>
+  </div>
+</section>
+
+
+
+ {% if user.is_authenticated %}
+  <div class="container my-5">
+    <h2 class="text-center mb-4">🍽 Weekly Meal Selection</h2>
+
+    <!-- Weekday Buttons -->
+    <div class="d-flex justify-content-center gap-2 flex-wrap mb-4">
+      {% for day in days %}
+        <button type="button" class="btn btn-outline-primary day-btn {% if day == 'monday' %}active{% endif %}" data-day="{{ day }}">
+          {{ day|title|slice:":3" }}
+        </button>
+      {% endfor %}
+    </div>
+
+    <!-- From Date & To Date -->
+<div class="row mb-4 justify-content-between align-items-end">
+  <div class="col-md-3">
+    <label for="from_date" class="form-label fw-semibold">From Date</label>
+    <input type="date" class="form-control" id="from_date" name="from_date">
+  </div>
+  <div class="col-md-3 text-end">
+    <label for="to_date" class="form-label fw-semibold">To Date</label>
+    <input type="date" class="form-control" id="to_date" name="to_date">
+  </div>
+</div>
+
+
+    <!-- Meal Plan Form -->
+    <form id="meal-form">
+      {% csrf_token %}
+      <div id="week-tabs-content">
+        {% for day in days %}
+          <div class="day-tab {% if day != 'monday' %}d-none{% endif %}" id="{{ day }}Tab">
+            <div class="row g-4 justify-content-center">
+
+              <!-- Breakfast -->
+              <div class="col-md-4">
+                <div class="meal-block">
+                  <img src="{% static 'images/dosa.jpg' %}" class="meal-icon" alt="Breakfast">
+                  <h5>Breakfast ({{ day|title }})</h5>
+                  <select name="{{ day }}_breakfast[]" multiple class="form-select mb-3">
+                    {% for item in meal_items.breakfast %}
+                      <option value="{{ item.id }}">{{ item.item_name }} (₹{{ item.price }})</option>
+
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Lunch -->
+              <div class="col-md-4">
+                <div class="meal-block">
+                  <img src="{% static 'images/1.jpg' %}" class="meal-icon" alt="Lunch">
+                  <h5>Lunch ({{ day|title }})</h5>
+                  <select name="{{ day }}_lunch[]" multiple class="form-select mb-3">
+                    {% for item in meal_items.lunch %}
+                      <option value="{{ item.id }}">{{ item.item_name }} (₹{{ item.price }})</option>
+
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Dinner -->
+              <div class="col-md-4">
+                <div class="meal-block">
+                  <img src="{% static 'images/biriyani.png' %}" class="meal-icon" alt="Dinner">
+                  <h5>Dinner ({{ day|title }})</h5>
+                  <select name="{{ day }}_dinner[]" multiple class="form-select mb-3">
+                    {% for item in meal_items.dinner %}
+                      <option value="{{ item.id }}">{{ item.item_name }} (₹{{ item.price }})</option>
+
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+<div class="text-end mt-4 mb-3">
+  <h5>Total Price: ₹<span id="totalPrice">0.00</span></h5>
+</div>
+
+
+    <div class="text-center mt-4">
+      <button type="submit" class="btn btn-success save-btn">Save</button>
+    <a href="{% url 'pay_now' %}?type=selection" class="btn btn-primary subscription-btn ms-3">
+  Pay & Get Subscription
+</a>
+
+
+    </div>
+
+    </form>
+  </div>
+<script>
+  const buttons = document.querySelectorAll('.day-btn');
+  const dayTabs = document.querySelectorAll('.day-tab');
+  const saveBtn = document.querySelector('.save-btn');
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const mealTypes = ['breakfast', 'lunch', 'dinner'];
+  const itemPrices = {};
+
+  // Map prices from options
+  document.querySelectorAll("select option").forEach(opt => {
+    const priceMatch = opt.textContent.match(/₹([\d.]+)/);
+    if (priceMatch) {
+      itemPrices[opt.value] = parseFloat(priceMatch[1]);
+    }
+  });
+
+  // Calculate total price
+  function calculateTotal() {
+    let total = 0;
+    document.querySelectorAll("select").forEach(sel => {
+      Array.from(sel.selectedOptions).forEach(opt => {
+        const itemId = opt.value;
+        if (itemPrices[itemId]) {
+          total += itemPrices[itemId];
+        }
+      });
+    });
+    document.getElementById("totalPrice").textContent = total.toFixed(2);
+  }
+
+  document.querySelectorAll("select").forEach(sel => {
+    sel.addEventListener("change", calculateTotal);
+  });
+
+  calculateTotal();
+
+  // Tab Switcher
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      dayTabs.forEach(tab => tab.classList.add('d-none'));
+      document.getElementById(btn.dataset.day + "Tab").classList.remove('d-none');
+    });
+  });
+
+  // Save Day Meal Plan
+  saveBtn.addEventListener('click', function (event) {
+    event.preventDefault();
+
+    const fromDate = document.getElementById('from_date').value;
+    const toDate = document.getElementById('to_date').value;
+
+    if (!fromDate || !toDate) {
+      alert("⚠️ Please select both From Date and To Date.");
+      return;
+    }
+
+    const activeBtn = document.querySelector('.day-btn.active');
+    const currentDay = activeBtn.dataset.day;
+
+    const meal_plan = {};
+    meal_plan[currentDay] = {};
+
+    mealTypes.forEach(meal => {
+      const select = document.querySelector(`select[name="${currentDay}_${meal}[]"]`);
+      const selected = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
+      meal_plan[currentDay][meal] = selected;
+    });
+
+    const payload = {
+      from_date: fromDate,
+      to_date: toDate,
+      meal_plan: meal_plan,
+      day: currentDay,
+    };
+
+    fetch("{% url 'save_weekly_meal' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(result => {
+      if (result.status === 'success') {
+        alert(`✅ ${currentDay.charAt(0).toUpperCase() + currentDay.slice(1)} meals saved.`);
+
+        // Move to next day
+        const currentIndex = days.indexOf(currentDay);
+        if (currentIndex < days.length - 1) {
+          const nextDay = days[currentIndex + 1];
+          document.querySelector(`.day-btn[data-day="${nextDay}"]`).click();
+        } else {
+          alert("🎉 All meals saved for the week!");
+        }
+      } else {
+        alert("❌ Failed to save: " + result.message);
+      }
+    })
+    .catch(err => {
+      alert("⚠️ Error: " + err);
+    });
+  });
+</script>
+
+
+
+  {% else %}
+    <div class="container text-center mt-5">
+      <p class="text-danger">🔒 Please log in to use the weekly meal selection feature.</p>
+    </div>
+  {% endif %}
+
+
+  <script>
+  const itemPrices = {};
+
+  // 1. Map all option values to prices from data attributes
+  document.querySelectorAll("select option").forEach(opt => {
+    const price = opt.textContent.match(/₹([\d.]+)/);
+    if (price) {
+      itemPrices[opt.value] = parseFloat(price[1]);
+    }
+  });
+
+  function calculateTotal() {
+    let total = 0;
+    document.querySelectorAll("select").forEach(sel => {
+      Array.from(sel.selectedOptions).forEach(opt => {
+        const itemId = opt.value;
+        if (itemPrices[itemId]) {
+          total += itemPrices[itemId];
+        }
+      });
+    });
+
+    document.getElementById("totalPrice").textContent = total.toFixed(2);
+  }
+
+  // 2. Recalculate on any change
+  document.querySelectorAll("select").forEach(sel => {
+    sel.addEventListener("change", calculateTotal);
+  });
+
+  // Initial trigger on page load
+  calculateTotal();
+</script>
+
+
+
+<!-- CSS -->
+<style>
+
+  
+ .planner-outer {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  padding: 50px 30px;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  font-family: 'Poppins', sans-serif;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.form-label {
+    font-weight: 600;
+  }
+.planner-title {
+  font-weight: 700;
+  color: #ff6f00;
+  margin-bottom: 40px;
+  font-size: 2rem;
+  text-align: center;
+  text-shadow: 1px 1px 2px #ffe0b2;
+}
+
+.planner-nav .nav-link {
+  color: #ff8f00;
+  background: #fff;
+  border-radius: 25px;
+  margin: 0 6px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border: 2px solid #ffc107;
+  transition: all 0.3s ease;
+}
+
+.planner-nav .nav-link:hover {
+  background: #fff3cd;
+  border-color: #ffa000;
+}
+
+.planner-nav .nav-link.active {
+  background-color: #ff8f00;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(255, 143, 0, 0.3);
+}
+
+.meal-block {
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+  height: 100%;
+}
+
+.meal-block:hover {
+  transform: translateY(-6px);
+}
+
+.meal-block h5 {
+  margin: 15px 0 10px;
+  color: #ff6f00;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.meal-input {
+  border: 2px solid #ffcc80;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 500;
+  background-color: #fffefc;
+  width: 100%;
+  transition: border-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.meal-input:focus {
+  border-color: #ff8f00;
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 143, 0, 0.3);
+}
+
+.meal-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #ff9800;
+  box-shadow: 0 4px 10px rgba(255, 152, 0, 0.2);
+}
+
+/* Optional: Adjust responsiveness */
+@media (max-width: 768px) {
+  .planner-title {
+    font-size: 1.5rem;
+  }
+
+  .planner-nav .nav-link {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  .meal-block {
+    margin-bottom: 20px;
+  }
+}
+.save-btn {
+  background: #ff6f00;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-size: 1rem;
+  box-shadow: 0 6px 18px rgba(255, 111, 0, 0.25);
+  transition: all 0.3s ease;
+  margin-top: 30px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.save-btn:hover {
+  background: #e65100;
+  box-shadow: 0 8px 22px rgba(250, 182, 161, 0.35);
+  transform: translateY(-2px);
+}
+
+.save-btn:active {
+  transform: scale(0.98);
+}
+.day-btn {
+  padding: 10px 20px;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  border: 1px solid #ff7700;
+  color: #ff7700;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+.day-btn:hover {
+  background-color: #ff7700;
+  color: #fff;
+}
+
+.day-btn.active {
+  background-color: #ff7700;
+  color: #fff;
+  box-shadow: 0 0 6px rgba(255, 119, 0, 0.3);
+}
+
+</style>
+
+<!-- Bootstrap JS (for tabs) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+{% endblock %}
+
+

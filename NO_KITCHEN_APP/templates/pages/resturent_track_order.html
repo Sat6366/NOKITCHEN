@@ -1,0 +1,362 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NoKitchen | Order Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary: #fc8019;
+      --accent: #ff9b21;
+      --dark: #1c1c1c;
+      --light: #ffffff;
+      --muted: #6c6c6c;
+      --green: #2e7d32;
+      --blue: #007aff;
+      --shadow-light: rgba(0, 0, 0, 0.06);
+      --shadow-hover: rgba(0, 0, 0, 0.1);
+      --font-header: 'Playfair Display', serif;
+      --font-body: 'Poppins', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: #fafafa;
+      color: var(--dark);
+    }
+
+    header {
+      background: var(--primary);
+      color: var(--light);
+      text-align: center;
+      padding: 60px 20px 40px;
+      border-bottom: 5px solid var(--accent);
+      box-shadow: 0 4px 10px var(--shadow-light);
+    }
+
+    header h1 {
+      font-family: var(--font-header);
+      font-size: 2.6rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: #ffe8d3;
+      margin-top: 10px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #fff;
+      padding: 14px 0;
+      box-shadow: 0 2px 8px var(--shadow-light);
+      position: sticky;
+      top: 0;
+      z-index: 99;
+    }
+
+    .tab-btn {
+      border: 1px solid #eee;
+      padding: 10px 26px;
+      border-radius: 999px;
+      font-size: 1rem;
+      background-color: #f9f9f9;
+      color: var(--dark);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn.active,
+    .tab-btn:hover {
+      background-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--shadow-hover);
+    }
+
+    .tab-content {
+      display: none;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 24px;
+      animation: fadeIn 0.5s ease;
+      min-height: 300px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .orders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 26px;
+    }
+
+    .order-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 22px 24px;
+      box-shadow: 0 6px 20px var(--shadow-light);
+      position: relative;
+      transition: all 0.3s ease;
+      border-top: 4px solid var(--primary);
+    }
+
+    .order-card:hover {
+      box-shadow: 0 12px 25px var(--shadow-hover);
+      transform: translateY(-4px);
+    }
+
+    .order-id {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 0 8px rgba(252, 128, 25, 0.4);
+    }
+
+    .order-info p {
+      font-size: 0.95rem;
+      color: var(--dark);
+      margin: 10px 0;
+    }
+
+    .order-info p i {
+      color: var(--primary);
+      margin-right: 8px;
+    }
+
+    .order-price {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--green);
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-primary {
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: scale(1.03);
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.8rem;
+      }
+      .tab-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Search input */
+    #searchInput {
+      padding: 12px 18px;
+      width: 300px;
+      border-radius: 30px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      outline: none;
+      margin: 0 auto 30px;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+
+<header>
+  <h1><i class="fas fa-utensils"></i> NoKitchen Order Tracker</h1>
+  <p>Track your orders, plans & weekly meals in real time</p>
+</header>
+
+
+<!-- Tabs -->
+<div class="tabs" style="display: flex; justify-content: space-between; align-items: center;">
+  <div>
+    <button class="tab-btn active" onclick="switchTab(event, 'final-order')">Final Orders</button>
+    <button class="tab-btn" onclick="switchTab(event, 'weekly-menu')">Weekly Menu</button>
+    <button class="tab-btn" onclick="switchTab(event, 'meal-selection')">Meal Selections</button>
+    <button class="tab-btn" onclick="switchTab(event, 'custom-plan')">Custom Plans</button>
+  </div>
+  <!-- 🔍 Search Input Top-Right -->
+  <input type="text" id="searchInput" onkeyup="searchOrder()" placeholder="Search by Order ID..."
+         style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 250px; font-size: 14px;" />
+</div>
+
+
+<!-- Final Orders Tab -->
+<div id="final-order" class="tab-content active">
+  {% if final_orders %}
+  <div class="orders-grid all-orders">
+    {% for order in final_orders|dictsortreversed:"start_date" %}
+    <div class="order-card" data-order-id="{{ order.order_id }}">
+      <div class="order-id">#{{ order.order_id }}</div>
+      <div class="order-info">
+        <p><i class="fas fa-user"></i><strong>User:</strong> {{ order.user.username }}</p>
+        <p><i class="fas fa-calendar-alt"></i><strong>Dates:</strong> {{ order.start_date }} to {{ order.end_date }}</p>
+        <p><i class="fas fa-map-marker-alt"></i><strong>Address:</strong> {{ order.flat_number }}, {{ order.street }}</p>
+        <p class="order-price"><i class="fas fa-rupee-sign"></i> {{ order.total_amount }}</p>
+        <a href="{% url 'view_order_details' 'final' order.id %}" class="btn btn-primary btn-sm">View</a>
+
+
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="text-align: center; font-size: 16px; color: var(--muted);">No orders found.</p>
+  {% endif %}
+</div>
+
+<!-- Weekly Menu -->
+<div id="weekly-menu" class="tab-content">
+  {% if weekly_menus %}
+  <div class="orders-grid all-orders">
+    {% for menu in weekly_menus|dictsortreversed:"from_date" %}
+    <div class="order-card" data-order-id="{{ menu.order_id }}">
+      <div class="order-id">#{{ menu.order_id|default:"N/A" }}</div>
+      <div class="order-info">
+        <p><i class="fas fa-user"></i><strong>User:</strong> {{ menu.user.username }}</p>
+        <p><i class="fas fa-calendar-day"></i><strong>From:</strong> {{ menu.from_date }}</p>
+        <p><i class="fas fa-calendar-day"></i><strong>To:</strong> {{ menu.to_date }}</p>
+        <p><strong>Rotation:</strong> {{ menu.rotation_number }}</p>
+       <a href="{% url 'view_order_details' 'meal' menu.id %}" class="btn btn-primary btn-sm">View</a>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="text-align: center; font-size: 16px; color: var(--muted);">No weekly menus found.</p>
+  {% endif %}
+</div>
+
+<!-- Meal Selection -->
+<div id="meal-selection" class="tab-content">
+  {% if meal_selections %}
+  <div class="orders-grid all-orders">
+    {% for selection in meal_selections|dictsortreversed:"from_date" %}
+    <div class="order-card" data-order-id="{{ selection.custom_order_id }}">
+      <div class="order-id">#{{ selection.custom_order_id|default:"N/A" }}</div>
+      <div class="order-info">
+        <p><i class="fas fa-user"></i><strong>User:</strong> {{ selection.user.username }}</p>
+        <p><i class="fas fa-calendar-alt"></i><strong>From:</strong> {{ selection.from_date }}</p>
+        <p><i class="fas fa-calendar-alt"></i><strong>To:</strong> {{ selection.to_date }}</p>
+        <p><i class="fas fa-rupee-sign"></i><strong>Price:</strong> {{ selection.total_price }}</p>
+        <a href="{% url 'view_order_details' 'selection' selection.id %}" class="btn btn-primary btn-sm">View</a>
+
+
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="text-align: center; font-size: 16px; color: var(--muted);">No meal selections found.</p>
+  {% endif %}
+</div>
+
+<!-- Custom Plans -->
+<div id="custom-plan" class="tab-content">
+  {% if custom_plans %}
+  <div class="orders-grid all-orders">
+    {% for plan in custom_plans|dictsortreversed:"start_date" %}
+    <div class="order-card" data-order-id="{{ plan.custom_order_id }}">
+      <div class="order-id">#{{ plan.custom_order_id|default:"N/A" }}</div>
+      <div class="order-info">
+        <p><i class="fas fa-user"></i><strong>User:</strong> {{ plan.user.username }}</p>
+        <p><i class="fas fa-utensils"></i><strong>Base Meal:</strong> {{ plan.base_meal.name|default:"N/A" }}</p>
+        <p><i class="fas fa-calendar-alt"></i><strong>Start:</strong> {{ plan.start_date }}</p>
+        <p><i class="fas fa-calendar-alt"></i><strong>End:</strong> {{ plan.end_date }}</p>
+        <p><i class="fas fa-rupee-sign"></i><strong>Total:</strong> {{ plan.total_price }}</p>
+     <a href="{% url 'view_order_details' 'custom' plan.id %}" class="btn btn-primary btn-sm">View</a>
+
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="text-align: center; font-size: 16px; color: var(--muted);">No custom plans found.</p>
+  {% endif %}
+</div>
+
+<!-- Scripts -->
+<script>
+  function switchTab(evt, tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  }
+
+  function searchOrder() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.all-orders .order-card');
+
+    let found = false;
+
+    cards.forEach(card => {
+      const orderId = card.getAttribute('data-order-id')?.toLowerCase() || '';
+      const match = orderId.includes(input);
+      card.style.display = match ? 'block' : 'none';
+      if (match) found = true;
+    });
+
+    // Optionally show a message if no results
+    document.querySelectorAll('.all-orders').forEach(section => {
+      const visible = Array.from(section.children).some(c => c.style.display !== 'none');
+      if (!visible && input.length > 0) {
+        section.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--muted);">No orders found.</p>`;
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

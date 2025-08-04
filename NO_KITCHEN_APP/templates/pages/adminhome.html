@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: #1e272e;
+            padding: 20px 40px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+
+        .navbar a:hover {
+            color: #f6b01e;
+            transform: scale(1.05);
+        }
+
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 30px auto 10px;
+            padding: 0 20px;
+        }
+
+        .add-admin-btn {
+            background: #2e86de;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .add-admin-btn:hover {
+            background: #1b5dbf;
+        }
+
+        .store-admin-form {
+            display: none;
+            background: white;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .store-admin-form h3 {
+            margin-bottom: 20px;
+            color: #2f3640;
+        }
+
+        .store-admin-form label {
+            font-weight: 600;
+        }
+
+        .store-admin-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 18px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .store-admin-form button {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .section {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(to right, #00c853, #00bfa5);
+            color: #fff;
+            padding: 12px 26px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(to right, #00bfa5, #00c853);
+            transform: translateY(-2px);
+        }
+
+        h2 {
+            font-size: 30px;
+            font-weight: 700;
+            color: #2f3640;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0 12px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+        }
+
+        thead {
+            background-color: #f6b01e;
+            color: white;
+        }
+
+        th, td {
+            padding: 18px 20px;
+            text-align: left;
+            font-size: 15px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #888;
+        }
+
+        .messages {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .messages div {
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .messages .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .messages .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            th, td {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            .download-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .top-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="{% url 'adminhome' %}">🏠 Home</a>
+        <a href="{% url 'admin_cartpayments' %}">🛒 Cart Payments</a>
+        <a href="{% url 'admin_contact' %}">📞 Contacts</a>
+        <a href="{% url 'add_food' %}">🍽️ Foods</a>
+        <a href="{% url 'admin_payment' %}">💳 Payments</a>
+        <a href="{% url 'all_subscriptions' %}">📦 Subscriptions</a>
+         <a href="{% url 'storeadmin_list' %}">👤 Store Admin</a>
+         <a href="{% url 'manage_stores' %}">📍 Add Store</a>
+
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="top-section">
+        <h2>Admin Dashboard</h2>
+        <button class="add-admin-btn" onclick="toggleStoreForm()">➕ Add Store Admin</button>
+    </div>
+
+    <!-- Store Admin Form -->
+    <div class="store-admin-form" id="storeAdminForm">
+        <h3>Add Store Admin</h3>
+        <form method="post" action="{% url 'add_storeadmin_backend' %}">
+            {% csrf_token %}
+            <label>Name</label>
+            <input type="text" name="name" required>
+
+            <label>Mobile</label>
+            <input type="text" name="mobile" required>
+
+            <label>Email</label>
+            <input type="email" name="email" required>
+
+            <button type="submit">Save Store Admin</button>
+        </form>
+    </div>
+
+    <!-- User Table -->
+    <div class="section">
+        <a href="{% url 'download_users_pdf' %}" class="download-btn" download>
+            📥 Download Users PDF
+        </a>
+
+        <h2>All Registered Users</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Mobile Number</th>
+                    <th>Address</th>
+                    <th>Pincode</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in profiles %}
+                <tr>
+                    <td>{{ profile.user.username }}</td>
+                    <td>{{ profile.user.email }}</td>
+                    <td>{{ profile.mobile_number }}</td>
+                    <td>{{ profile.address }}</td>
+                    <td>{{ profile.pincode }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-msg">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function toggleStoreForm() {
+            const form = document.getElementById("storeAdminForm");
+            form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoKitchen Delivery Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    :root {
+      --orange: #ff7e00;
+      --green: #28a745;
+      --sidebar-bg: #fff4e6;
+      --hover-bg: rgba(255, 126, 0, 0.15);
+      --gradient-green: linear-gradient(135deg, #44c67c, #76df7c);
+      --light-bg: #f7f9fc;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--light-bg);
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 240px;
+      background-color: var(--orange);
+      color: #2b2b2b;
+      padding-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+    }
+
+    .sidebar img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #fff;
+    }
+
+    .sidebar .user-id {
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      width: 90%;
+      color: #000;
+      padding: 12px 18px;
+      margin: 6px 0;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .sidebar .nav-link:hover {
+      background-color: var(--hover-bg);
+      transform: translateX(5px);
+    }
+
+    .sidebar .nav-link.active {
+      background-color: #fff;
+      color: var(--orange);
+      font-weight: 700;
+    }
+
+    .sidebar .nav-link i {
+      margin-right: 10px;
+      font-size: 1.1rem;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 30px;
+      min-height: 100vh;
+      background: #f5f8fa;
+    }
+
+    .banner-strip {
+      background: linear-gradient(90deg, #ff7e00, #ffa94d);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-align: center;
+      animation: pulse 3s infinite;
+      margin-bottom: 25px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    .summary-box {
+      background: var(--gradient-green);
+      color: white;
+      padding: 25px 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-box .row > div {
+      border-right: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .summary-box .row > div:last-child {
+      border-right: none;
+    }
+
+    .summary-box h6 {
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      opacity: 0.85;
+    }
+
+    .summary-box p {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .earnings-table {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.05);
+    }
+
+    .earnings-table h5 {
+      margin-bottom: 20px;
+    }
+
+    .table thead {
+      background-color: #e0ffe6;
+      font-size: 0.95rem;
+    }
+
+    .table tbody tr:hover {
+      background-color: #f3fdf6;
+    }
+
+    .text-success {
+      color: var(--green) !important;
+    }
+
+    .text-danger {
+      color: #dc3545 !important;
+    }
+
+    .table td,
+    .table th {
+      vertical-align: middle;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <img src="https://i.pravatar.cc/100?img=11" alt="Profile Image" />
+  <div class="user-id">DLR12345</div>
+  <a href="{% url 'delivery_dashboard' %}" class="nav-link active"><i class="bi bi-speedometer2"></i>Dashboard</a>
+  <a href="{% url 'delivery_myorders' %}" class="nav-link"><i class="bi bi-box-seam"></i>My Orders</a>
+  <a href="{% url 'delivery_myearnings' %}" class="nav-link"><i class="bi bi-wallet2"></i>Earnings</a>
+  <a href="#" class="nav-link"><i class="bi bi-star-fill"></i>Ratings</a>
+  <a href="{% url 'delivery_profile' %}" class="nav-link"><i class="bi bi-person-circle"></i>Profile</a>
+  <a href="#" class="nav-link"><i class="bi bi-box-arrow-right"></i>Logout</a>
+</div>
+
+<!-- Main content -->
+<div class="main-content">
+  <div class="banner-strip">
+    🎉 Exclusive Offer: Get ₹100 Bonus for Completing 15 Orders Today! 🚴‍♂️💨
+  </div>
+
+  <h2 class="mb-3 text-success">Earnings Dashboard</h2>
+  <p class="text-muted mb-4">Track your delivery performance, bonuses, and payouts.</p>
+
+  <!-- Summary -->
+  <div class="summary-box">
+    <div class="row text-center text-white fw-semibold">
+      <div class="col-md-4">
+        <h6>Last Payout Date</h6>
+        <p>2025-06-07</p>
+      </div>
+      <div class="col-md-4">
+        <h6>Amount Paid</h6>
+        <p>₹2,780</p>
+      </div>
+      <div class="col-md-4">
+        <h6>Status</h6>
+        <p><i class="bi bi-check-circle-fill me-1"></i> Paid</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Earnings Table -->
+  <div class="earnings-table">
+    <h5 class="fw-bold text-dark">Recent Earnings</h5>
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Orders</th>
+          <th>Base</th>
+          <th>Bonus</th>
+          <th>Penalty</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2025-06-10</td>
+          <td>10</td>
+          <td>₹800</td>
+          <td class="text-success fw-semibold">+ ₹100</td>
+          <td class="text-danger fw-semibold">- ₹0</td>
+          <td><strong class="text-success">₹900</strong></td>
+        </tr>
+        <tr>
+          <td>2025-06-09</td>
+          <td>8</td>
+          <td>₹640</td>
+          <td class="text-success fw-semibold">+ ₹60</td>
+          <td class="text-danger fw-semibold">- ₹20</td>
+          <td><strong class="text-success">₹680</strong></td>
+        </tr>
+        <tr>
+          <td>2025-06-08</td>
+          <td>12</td>
+          <td>₹960</td>
+          <td class="text-success fw-semibold">+ ₹120</td>
+          <td class="text-danger fw-semibold">- ₹0</td>
+          <td><strong class="text-success">₹1,080</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

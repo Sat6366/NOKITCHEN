@@ -1,0 +1,1345 @@
+{% extends 'pages/main.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Include Font Awesome CDN for icons -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  integrity="sha512-p7R0B+4tDjTzDnxkeqHTpjNc0Ep6co8dPEHbI1lHoW8TpooHc73VuU3WqrvqUzJ08r6ffDq6XDqCPCkFaf4Xww=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+
+<style>
+
+
+  .category-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 20px;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .category-scroll-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+
+  .food-category {
+    flex: 0 0 auto;
+    background-color: #fff;
+    border-radius: 16px;
+    padding: 15px 10px;
+    min-width: 90px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+
+  .food-category:hover {
+    transform: scale(1.05);
+  }
+
+  .food-category i {
+    font-size: 28px;
+    color: #ff5e57;
+    margin-bottom: 8px;
+  }
+
+  .food-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .scroll-section-wrapper {
+    position: relative;
+  }
+
+  .scroll-arrow {
+    position: absolute;
+    top: 35%;
+    transform: translateY(-50%);
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .scroll-left {
+    left: 5px;
+  }
+
+  .scroll-right {
+    right: 5px;
+  }
+/* Main Banner */
+.wrapper01 {
+  width: 100%;
+  height: 500px;
+  background-size: cover;
+  background-position: center;
+  animation: BgAnimation 16s infinite;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  margin-bottom: 3rem;
+}
+@keyframes BgAnimation {
+  0% { background-image: url("{% static 'images/idli.jpg' %}"); }
+  25% { background-image: url("{% static 'images/dosa.jpg' %}"); }
+  50% { background-image: url("{% static 'images/pesarattu.jpg' %}"); }
+  75% { background-image: url("{% static 'images/mysore-bonda.jpg' %}"); }
+  100% { background-image: url("{% static 'images/idli.jpg' %}"); }
+}
+
+/* Section Titles */
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #2c3e50;
+  text-transform: uppercase;
+  position: relative;
+  letter-spacing: 2px;
+}
+.section-title::after {
+  content: "";
+  height: 5px;
+  width: 100px;
+  background-color: #ff6f61;
+  display: block;
+  margin: 10px auto 0 auto;
+  border-radius: 3px;
+}
+.menu-card {
+    flex: 0 0 auto;
+    width: 140px;
+    background: white;
+    border-radius: 16px;
+    padding: 15px 10px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+
+  .menu-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+
+  .menu-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    margin: auto;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .menu-card h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin-top: 5px;
+  }
+
+  /* Scrollbar for overflow */
+  .menu-card::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    .menu-card { width: 120px; }
+  }
+/* Offer Banner */
+.offer-banner {
+  background: linear-gradient(45deg, #ff8a00, #e52e71);
+  padding: 30px;
+  margin: 40px 0;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 6px 25px rgba(229,46,113,0.4);
+  color: white;
+  font-weight: 700;
+  font-size: 1.8rem;
+  letter-spacing: 1.5px;
+}
+.offer-banner button {
+  padding: 12px 30px;
+  font-weight: 700;
+  background-color: #fff;
+  color: #e52e71;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.offer-banner button:hover {
+  background-color: #e52e71;
+  color: white;
+}
+
+/* Featured Specials Banner */
+.featured-banner {
+  background: url("{% static 'images/chef-special.jpg' %}") no-repeat center center/cover;
+  border-radius: 15px;
+  padding: 70px 30px;
+  color: white;
+  text-align: center;
+  margin: 60px 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+.featured-banner h3 {
+  font-size: 2.8rem;
+  font-weight: 900;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+}
+.featured-banner p {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 30px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+.featured-banner button {
+  padding: 15px 35px;
+  font-weight: 700;
+  border-radius: 40px;
+  border: none;
+  cursor: pointer;
+  background: #ff6f61;
+  color: white;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+}
+.featured-banner button:hover {
+  background: #e85c50;
+}
+
+/* Testimonials Section */
+.testimonials {
+  margin: 60px 0;
+  background: #f9f9f9;
+  padding: 50px 20px;
+  border-radius: 15px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+.testimonial-item {
+  max-width: 600px;
+  margin: 0 auto 40px auto;
+  text-align: center;
+  font-style: italic;
+  color: #555;
+  font-size: 1.2rem;
+  position: relative;
+  padding: 30px 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.testimonial-item::before {
+  content: "“";
+  font-size: 4rem;
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  color: #ff6f61;
+  font-weight: 900;
+}
+.testimonial-author {
+  margin-top: 15px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* Newsletter Section */
+.newsletter {
+  background: #ff6f61;
+  padding: 40px 20px;
+  border-radius: 20px;
+  text-align: center;
+  color: white;
+  margin-bottom: 60px;
+}
+.newsletter h4 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 15px;
+  letter-spacing: 1.5px;
+}
+.newsletter p {
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+.newsletter input[type="email"] {
+  padding: 12px 18px;
+  border-radius: 40px;
+  border: none;
+  width: 280px;
+  max-width: 90%;
+  margin-right: 10px;
+  font-size: 1rem;
+}
+.newsletter button {
+  padding: 12px 28px;
+  border-radius: 40px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fff;
+  color: #ff6f61;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.newsletter button:hover {
+  background: #e85c50;
+  color: white;
+}
+
+.banner-scroll-wrapper {
+    position: relative;
+    margin-top: 40px;
+  }
+
+  .banner-container {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px 0;
+    scrollbar-width: none;
+  }
+
+  .banner-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .banner-card {
+    min-width: 280px;
+    height: 350px;
+    border-radius: 20px;
+    overflow: hidden;
+    flex: 0 0 auto;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-size: cover;
+    background-position: center;
+    color: white;
+  }
+
+  .banner-label {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    background-color: white;
+    color: #000;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+
+  .banner-text {
+    position: absolute;
+    bottom: 20px;
+    left: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    line-height: 1.4;
+    width: 85%;
+    color: white;
+  }
+
+  .scroll-arrow-btn {
+    position: absolute;
+    top: 40%;
+    transform: translateY(-50%);
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .scroll-left-banner {
+    left: -10px;
+  }
+
+  .scroll-right-banner {
+    right: -10px;
+  }
+  .delivery-section {
+    background: linear-gradient(to right, #f9f9f9, #f1f1ff);
+    padding: 60px 0;
+  }
+
+  .delivery-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+
+  .delivery-text {
+    max-width: 500px;
+  }
+
+  .delivery-text h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+
+  .delivery-text p {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 15px;
+  }
+
+  .delivery-features {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .feature-box {
+    background: white;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    flex: 1 1 200px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .feature-box i {
+    font-size: 24px;
+    color: #ff6347;
+  }
+
+  .delivery-img img {
+    max-width: 400px;
+    width: 100%;
+    border-radius: 20px;
+  }
+
+  * {
+      box-sizing: border-box;
+    }
+
+
+    .carousel-container {
+      position: relative;
+      width: 90%;
+      max-width: 1200px;
+      margin: auto;
+      overflow: hidden;
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform 0.4s ease-in-out;
+    }
+
+    .carousel-item {
+      min-width: 300px;
+      margin: 0 15px;
+      text-align: center;
+      border: 8px solid #000;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .carousel-item img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .carousel-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: yellow;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .carousel-button.left {
+      left: -25px;
+    }
+
+    .carousel-button.right {
+      right: -25px;
+    }
+
+    @media (max-width: 768px) {
+      .carousel-item {
+        min-width: 200px;
+      }
+
+      .carousel-button {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+    }
+
+
+     .scrolling-container {
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      padding: 20px 0;
+    }
+
+    .scrolling-text {
+      display: inline-block;
+      animation: scroll-left 50s linear infinite;
+    }
+
+    .restaurant-name {
+      display: inline-block;
+      margin: 0 50px;
+      font-size: 48px;
+      font-weight: 800;
+      opacity: 0.9;
+      transition: transform 0.3s;
+    }
+
+    .restaurant-name:hover {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+
+    /* Animation */
+    @keyframes scroll-left {
+      0% {
+        transform: translateX(100%);
+      }
+      100% {
+        transform: translateX(-100%);
+      }
+    }
+
+    /* Each name different color */
+    .color1 { color: #e91e63; }  /* Pink */
+    .color2 { color: #9c27b0; }  /* Purple */
+    .color3 { color: #3f51b5; }  /* Indigo */
+    .color4 { color: #2196f3; }  /* Blue */
+    .color5 { color: #009688; }  /* Teal */
+    .color6 { color: #4caf50; }  /* Green */
+    .color7 { color: #ff9800; }  /* Orange */
+    .color8 { color: #f44336; }  /* Red */
+    .color9 { color: #795548; }  /* Brown */
+    .color10 { color: #607d8b; } /* Blue Grey */
+    .color11 { color: #ff5722; } /* Deep Orange */
+    .color12 { color: #673ab7; } /* Deep Purple */
+
+    @media (max-width: 768px) {
+      .restaurant-name {
+        font-size: 28px;
+        margin: 0 25px;
+      }
+    }
+
+.modern-lunch-order {
+  padding: 80px 20px;
+  background: linear-gradient(to right, #fffdf9, #fff4eb);
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+}
+
+.modern-lunch-order h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+.modern-lunch-order .subtext {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.order-features {
+  margin-bottom: 35px;
+}
+
+.order-features .feature {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 15px;
+}
+
+.order-features i {
+  color: #ff5722;
+  font-size: 1.2rem;
+  margin-right: 10px;
+}
+
+.order-btn {
+  background-color: #ff5722;
+  color: #fff;
+  padding: 12px 26px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.order-btn:hover {
+  background-color: #e64a19;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.lunch-img {
+  max-width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modern-lunch-order h1 {
+    font-size: 2rem;
+    text-align: center;
+  }
+  .subtext, .order-features, .order-btn {
+    text-align: center;
+  }
+  .order-btn {
+    display: block;
+    margin: auto;
+  }
+}
+
+.subscription-section {
+  background: linear-gradient(to right, #fff3e0, #ffe0b2);
+  padding: 40px 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  margin: 40px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.subscription-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sub-left h2 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #bf360c;
+  margin-bottom: 10px;
+}
+
+.sub-left p {
+  font-size: 1rem;
+  color: #5d4037;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.sub-btn {
+  background-color: #ff5722;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 12px 26px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.sub-btn:hover {
+  background-color: #e64a19;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 768px) {
+  .subscription-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  .sub-left h2 {
+    font-size: 1.5rem;
+  }
+}
+.subscription-section {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  padding: 60px 30px;
+  margin: 80px 0;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.subscription-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.sub-left {
+  max-width: 620px;
+}
+
+.sub-left h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #ff5722;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sub-left h2 i {
+  font-size: 1.6rem;
+  color: #ff7043;
+}
+
+.sub-left p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #3e2723;
+}
+
+.sub-left p i {
+  color: #ff6d00;
+  margin-right: 10px;
+}
+
+.sub-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sub-btn {
+  background: linear-gradient(135deg, #ff7043, #ff5722);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 14px 34px;
+  border-radius: 12px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 18px rgba(255, 87, 34, 0.3);
+  transition: all 0.3s ease;
+}
+
+.sub-btn:hover {
+  background: linear-gradient(135deg, #f4511e, #d84315);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(255, 87, 34, 0.4);
+}
+
+.subscription-section::after {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 87, 34, 0.15), transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+@media (max-width: 768px) {
+  .subscription-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .sub-left h2 {
+    font-size: 1.6rem;
+    justify-content: center;
+  }
+  .sub-btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+}
+
+.nokitchen-glow-scroll {
+  width: 100%;
+  overflow: hidden;
+  padding: 16px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.glow-track {
+  display: flex;
+  white-space: nowrap;
+  animation: smoothScroll 40s linear infinite;
+  gap: 18px;
+  align-items: center;
+}
+
+.glow-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 40px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  transition: transform 0.4s ease, box-shadow 0.3s ease;
+}
+
+.glow-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+.icon {
+  font-size: 1.1rem;
+}
+
+/* Unique soft color glows */
+.glow1 { color: #2e7d32; background: linear-gradient(90deg, #f18b06, #f1f8e9); }
+.glow2 { color: #1565c0; background: linear-gradient(90deg, #e3f2fd, #bbdefb); }
+.glow3 { color: #ef6c00; background: linear-gradient(90deg, #fff3e0, #ffe0b2); }
+.glow4 { color: #6a1b9a; background: linear-gradient(90deg, #f3e5f5, #e1bee7); }
+.glow5 { color: #ad1457; background: linear-gradient(90deg, #fce4ec, #f8bbd0); }
+.glow6 { color: #388e3c; background: linear-gradient(90deg, #f1f8e9, #dcedc8); }
+.glow7 { color: #f57f17; background: linear-gradient(90deg, #fff8e1, #ffe57f); }
+
+@keyframes smoothScroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-250%); }
+}
+
+
+
+
+.nk-difference {
+  background-color: #fff;
+  padding: 80px 20px;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+}
+
+.nk-heading {
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #e65100;
+}
+
+.nk-heading span {
+  color: #070300;
+}
+
+.nk-subheading {
+  color: #5e5e5e;
+  max-width: 680px;
+  margin: 0 auto 50px;
+  font-size: 1.1rem;
+}
+
+.nk-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  justify-items: center;
+}
+
+.nk-feature-box {
+  background: #fff7f0;
+  border-radius: 16px;
+  padding: 30px 20px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  transition: 0.3s ease;
+  text-align: center;
+}
+
+.nk-feature-box:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+}
+
+.nk-icon {
+  font-size: 2.5rem;
+  color: #ff5722;
+  margin-bottom: 20px;
+}
+
+.nk-texts h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #bf360c;
+  margin-bottom: 10px;
+}
+
+.nk-texts p {
+  color: #444;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nk-heading {
+    font-size: 2rem;
+  }
+
+  .nk-subheading {
+    font-size: 1rem;
+  }
+}
+
+.nkpromise-section {
+  background: linear-gradient(to right, #fff7f0, #ffffff);
+  padding: 80px 20px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.nkp-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 60px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.nkp-left {
+  flex: 1 1 500px;
+}
+
+.nkp-left h2 {
+  font-size: 2.4rem;
+  color: #d84315;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.nkp-left p {
+  color: #4e342e;
+  font-size: 1rem;
+  margin-bottom: 30px;
+  line-height: 1.7;
+}
+
+.nkp-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px;
+}
+
+.nkp-features li {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #5d4037;
+  margin-bottom: 15px;
+}
+
+.nkp-features li i {
+  color: #ff5722;
+  margin-right: 12px;
+  font-size: 1.2rem;
+}
+
+.nkp-btn {
+  background-color: #e64a19;
+  color: #fff;
+  padding: 12px 26px;
+  font-weight: 600;
+  border-radius: 10px;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: background 0.3s;
+}
+
+.nkp-btn:hover {
+  background-color: #bf360c;
+}
+
+/* Right visual */
+.nkp-right {
+  flex: 1 1 500px;
+  position: relative;
+}
+
+.nkp-visual {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.nkp-visual img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.nkp-overlay-card {
+  position: absolute;
+}
+
+</style>
+
+{% if messages %}
+  <div>
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<!-- Hero Banner -->
+<div class="wrapper01"></div>
+
+
+
+ 
+
+
+  <!-- Explore Menu Section -->
+<section style="background: #fff8f1; padding: 60px 20px;">
+  <div class="container" style="max-width: 1200px; margin: auto;">
+    <h2 style="text-align: center; font-size: 2rem; color: #333; font-family: 'Poppins', sans-serif; margin-bottom: 30px;">
+      🍽️ Explore Our Menu
+    </h2>
+
+    <div style="display: flex; overflow-x: auto; gap: 20px; padding-bottom: 10px; scroll-behavior: smooth;">
+      
+      <!-- Menu Card -->
+      <div class="menu-card">
+        <img src="{% static 'images/biriyani.png' %}" alt="Full Menu">
+        <h4>Full Menu</h4>
+      </div>
+
+      <div class="menu-card">
+        <img src="{% static 'images/pizza.png' %}" alt="Breakfast">
+        <h4>Breakfast</h4>
+      </div>
+
+      <div class="menu-card">
+        <img src="{% static 'images/friedchicken.png' %}" alt="Lunch">
+        <h4>Lunch</h4>
+      </div>
+
+      <div class="menu-card">
+        <img src="{% static 'images/noodle.png' %}" alt="Dinner">
+        <h4>Dinner</h4>
+      </div>
+
+      <div class="menu-card">
+        <img src="{% static 'images/desserts.jpg' %}" alt="Desserts">
+        <h4>Desserts</h4>
+      </div>
+
+      <div class="menu-card">
+        <img src="{% static 'images/snacks.jpg' %}" alt="Snacks">
+        <h4>Snacks</h4>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Why NoKitchen is Different -->
+<section class="nk-difference">
+  <div class="container">
+
+    <h2 class="nk-heading">Why Choose <span>NoKitchen?</span></h2>
+    <p class="nk-subheading">We don't just deliver food — we deliver convenience, customization, and care.</p>
+
+    <div class="nk-features">
+
+      <!-- Feature 1 -->
+      <div class="nk-feature-box">
+        <div class="nk-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="nk-texts">
+          <h4>Flexible Subscriptions</h4>
+          <p>Pick a weekly/monthly plan. Pause, skip or cancel anytime.</p>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="nk-feature-box">
+        <div class="nk-icon"><i class="fas fa-sliders-h"></i></div>
+        <div class="nk-texts">
+          <h4>Custom Meals Daily</h4>
+          <p>Choose what goes into your lunch — every single day.</p>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="nk-feature-box">
+        <div class="nk-icon"><i class="fas fa-box-open"></i></div>
+        <div class="nk-texts">
+          <h4>Smart Lunch Box Packing</h4>
+          <p>Modern packaging that’s spill-proof and heat-sealed.</p>
+        </div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="nk-feature-box">
+        <div class="nk-icon"><i class="fas fa-shipping-fast"></i></div>
+        <div class="nk-texts">
+          <h4>Timely Doorstep Delivery</h4>
+          <p>Always on-time with live tracking in select locations.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+  <!-- Modern Lunch Order Section -->
+<section class="modern-lunch-order">
+  <div class="container">
+    <div class="row align-items-center flex-wrap-reverse">
+
+      <!-- Left Content -->
+      <div class="col-md-6 order-content">
+        <h1>Delicious. Hygienic. On-Time.</h1>
+        <p class="subtext">
+          Powered by NoKitchen – your daily lunch partner for PGs, students, and busy professionals. No commitments. Just hot meals daily.
+        </p>
+
+        <div class="order-features">
+          <div class="feature">
+            <i class="fas fa-concierge-bell"></i>
+            <span>Fully Customizable Meals</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-shipping-fast"></i>
+            <span>Guaranteed Delivery in 45 min</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-wallet"></i>
+            <span>No Subscription Required</span>
+          </div>
+        </div>
+
+        <a href="{% url 'order_lunch' %}" class="order-btn">🍱 Order Your Lunch</a>
+      </div>
+
+      <!-- Right Image -->
+      <div class="col-md-6 text-center">
+        <img src="{% static 'images/l.jpg' %}" alt="Lunch Delivery" class="img-fluid lunch-img">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+
+
+<!-- Include Font Awesome CDN in your <head> if not already -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+<!-- Subscription Promo Section -->
+<div class="subscription-section">
+  <div class="container subscription-inner">
+    <!-- Left Content -->
+    <div class="sub-left">
+      <h2><i class="fas fa-box-open"></i> Go Unlimited with <span>NoKitchen+</span></h2>
+      <p>
+        <i class="fas fa-calendar-day"></i> Daily curated meals <br />
+        <i class="fas fa-truck-fast"></i> Free express delivery <br />
+        <i class="fas fa-headset"></i> 24/7 priority customer support
+      </p>
+    </div>
+
+    <!-- Right Button -->
+    <div class="sub-right">
+      {% if user.is_authenticated %}
+        <a href="{% url 'create_subscription' %}" class="sub-btn">
+          <i class="fas fa-bolt"></i> Activate Subscription
+        </a>
+      {% else %}
+        <a href="{% url 'login' %}" class="sub-btn">
+          <i class="fas fa-lock-open"></i> Login to Subscribe
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+<section class="nkpromise-section">
+  <div class="nkp-container">
+    <!-- Left Text Panel -->
+    <div class="nkp-left">
+      <h2>✨ The NoKitchen Promise</h2>
+      <p>Every box we deliver carries the care of a home-cooked meal. With professionally trained chefs and spotless kitchens, we’re more than just food delivery — we’re your lunchtime companion.</p>
+
+      <ul class="nkp-features">
+        <li><i class="fas fa-hat-chef"></i><span>Professional Chefs with Homestyle Touch</span></li>
+        <li><i class="fas fa-hand-sparkles"></i><span>100% Hygienic & Sanitized Kitchens</span></li>
+        <li><i class="fas fa-leaf"></i><span>Farm-Fresh & Preservative-Free Ingredients</span></li>
+        <li><i class="fas fa-shield-alt"></i><span>Sealed, Safe, Tamper-Proof Packaging</span></li>
+      </ul>
+
+      
+    </div>
+
+    <!-- Right Visual Panel -->
+    <div class="nkp-right">
+      <div class="nkp-visual">
+        <img src="{% static 'images/c2.jpg' %}" alt="Chef Cooking" />
+        <div class="nkp-overlay-card">
+          <i class="fas fa-star"></i>
+          <p>Over <strong>10,000+</strong> Happy Subscribers</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="delivery-section">
+  <div class="container delivery-container">
+    <!-- Image -->
+    <div class="delivery-img">
+      <img src="{% static 'images/del.png' %}" alt="Delivery Boy">
+    </div>
+
+    <!-- Text + Features -->
+    <div class="delivery-text">
+      <h2>Super Fast & On-Time Delivery</h2>
+      <p>We ensure your food is delivered hot and fresh by our professional delivery partners. Your convenience and satisfaction is our top priority.</p>
+
+      <div class="delivery-features">
+        <div class="feature-box">
+          <i class="fas fa-clock"></i>
+          <span>On-Time Guarantee</span>
+        </div>
+        <div class="feature-box">
+          <i class="fas fa-map-marked-alt"></i>
+          <span>Real-Time Tracking</span>
+        </div>
+        <div class="feature-box">
+          <i class="fas fa-smile-beam"></i>
+          <span>Friendly & Verified Staff</span>
+        </div>
+        <div class="feature-box">
+          <i class="fas fa-shield-alt"></i>
+          <span>Secure & Safe Delivery</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Elegant NoKitchen Scrolling Highlights -->
+<div class="nokitchen-glow-scroll">
+  <div class="glow-track">
+    <div class="glow-card glow1"><i class="fas fa-seedling icon"></i> Freshly Prepared Every Morning</div>
+    <div class="glow-card glow2"><i class="fas fa-bolt icon"></i> Delivered Hot in 45 Minutes</div>
+    <div class="glow-card glow3"><i class="fas fa-box-tissue icon"></i> Tamper‑Proof Eco Packaging</div>
+    <div class="glow-card glow4"><i class="fas fa-utensils icon"></i> Customize Your Daily Menu</div>
+    <div class="glow-card glow5"><i class="fas fa-rupee-sign icon"></i> Pay Per Meal. No Lock-in.</div>
+    <div class="glow-card glow6"><i class="fas fa-thumbs-up icon"></i> Trusted by 1000+ Subscribers</div>
+    <div class="glow-card glow7"><i class="fas fa-star icon"></i> Premium Add‑Ons Available</div>
+  </div>
+</div>
+
+
+ <script>
+    const track = document.getElementById('carouselTrack');
+    const itemWidth = 330; // width + margin (adjust as per CSS)
+    let currentIndex = 0;
+
+    function moveSlide(direction) {
+      const totalItems = track.children.length;
+      const visibleItems = Math.floor(track.parentElement.offsetWidth / itemWidth);
+      const maxIndex = totalItems - visibleItems;
+
+      currentIndex += direction;
+      if (currentIndex < 0) currentIndex = 0;
+      if (currentIndex > maxIndex) currentIndex = maxIndex;
+
+      track.style.transform = `translateX(-${currentIndex * itemWidth}px)`;
+    }
+  </script>
+
+{% endblock %}
+<script>
+  function scrollLeft() {
+    document.getElementById('foodScroll').scrollBy({ left: -200, behavior: 'smooth' });
+  }
+  function scrollRight() {
+    document.getElementById('foodScroll').scrollBy({ left: 200, behavior: 'smooth' });
+  }
+</script>

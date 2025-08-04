@@ -1,0 +1,207 @@
+{% extends 'pages/main.html' %}
+{% load static %}
+
+{% block title %}Cart{% endblock %}
+
+{% block content %}
+{% if not cart_items %}
+  <div class="text-center mt-5">
+    <h1 class="product_title">Your cart is empty</h1>
+    <p>Please click <a href="{% url 'menu' %}">here</a> to browse the menu.</p>
+  </div>
+{% else %}
+  <style>
+    .wallet-top-button {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .wallet-top-button a {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ff6f00;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .wallet-top-button i {
+      margin-right: 6px;
+      font-size: 1.2rem;
+    }
+
+    .cart-header h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #e65100;
+      margin-bottom: 20px;
+    }
+
+    .preorder-section {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .preorder-btn {
+      background-color: #ff6f00;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 10px 26px;
+      border: none;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .preorder-btn:hover {
+      background-color: #e65100;
+    }
+
+    .checkout-heading {
+      font-size: 1.5rem;
+      color: #1e2a38;
+      margin-bottom: 10px;
+    }
+
+    .checkout-label {
+      font-weight: 500;
+    }
+  </style>
+
+  <div class="container my-4">
+    <!-- Wallet Button -->
+    <div class="wallet-top-button">
+      <a href="#"><i class="fas fa-wallet"></i> Wallet</a>
+    </div>
+
+    <!-- Cart Title -->
+    <div class="cart-header">
+      <h3>Your Cart Items</h3>
+    </div>
+
+    <!-- Cart Items Table -->
+    <div class="row">
+      <div class="col-lg-12">
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Image</th>
+              <th>Item Details</th>
+              <th>Subtotal</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cart_item in cart_items %}
+            <tr>
+              <td>
+                <img src="{{ cart_item.item.image.url }}" width="100" height="100" alt="{{ cart_item.item.item_name }}">
+              </td>
+              <td>
+                {{ cart_item.item.item_name }}<br>
+                SKU: {{ cart_item.item.id }}<br>
+                Price: ₹{{ cart_item.item.price }}<br>
+                Qty: {{ cart_item.quantity }}
+              </td>
+              <td>₹{{ cart_item.sub_total }}</td>
+              <td>
+                {% if cart_item.quantity < cart_item.item.stock %}
+                  <a href="{% url 'add_to_cart' cart_item.item.id %}"><i class="fas fa-plus-circle cart_icon"></i></a>
+                  <a href="{% url 'cart_remove' cart_item.item.id %}"><i class="fas fa-minus-circle cart_icon"></i></a>
+                  <a href="{% url 'cart_remove_product' cart_item.item.id %}"><i class="fas fa-trash-alt cart_icon"></i></a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+
+    <!-- Checkout Section -->
+    <div class="col-lg-12 mt-5">
+      <h4 class="checkout-heading">Checkout</h4>
+      <p>Review your cart items before proceeding to payment.</p>
+      <p>Total: <strong>₹{{ total }}</strong></p>
+
+      <form method="POST" class="mt-4">
+        {% csrf_token %}
+        <div class="form-group mb-2">
+          {{ form.card_number.label_tag }} {{ form.card_number }}
+          {% if form.card_number.errors %}
+            <div class="text-danger">{{ form.card_number.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          {{ form.cvv.label_tag }} {{ form.cvv }}
+          {% if form.cvv.errors %}
+            <div class="text-danger">{{ form.cvv.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          {{ form.total_amount.label_tag }} {{ form.total_amount }}
+          {% if form.total_amount.errors %}
+            <div class="text-danger">{{ form.total_amount.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          {{ form.order_type.label_tag }} {{ form.order_type }}
+          {% if form.order_type.errors %}
+            <div class="text-danger">{{ form.order_type.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          {{ form.mobile_number.label_tag }} {{ form.mobile_number }}
+          {% if form.mobile_number.errors %}
+            <div class="text-danger">{{ form.mobile_number.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group mb-2">
+          {{ form.address.label_tag }} {{ form.address }}
+          {% if form.address.errors %}
+            <div class="text-danger">{{ form.address.errors }}</div>
+          {% endif %}
+        </div>
+
+        
+      </form>
+
+      
+    </div>
+  </div>
+      <!-- Preorder Button Centered -->
+<div class="preorder-section text-center">
+  <a href="{% url 'preorder' %}" class="preorder-btn">Pre-order</a>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const cardInput = document.querySelector('input[name="card_number"]');
+    const cvvInput = document.querySelector('input[name="cvv"]');
+
+    if (cardInput) {
+      cardInput.addEventListener('input', () => {
+        cardInput.value = cardInput.value.replace(/\D/g, '').slice(0, 16);
+      });
+    }
+
+    if (cvvInput) {
+      cvvInput.addEventListener('input', () => {
+        cvvInput.value = cvvInput.value.replace(/\D/g, '').slice(0, 3);
+      });
+    }
+  });
+</script>
+{% endblock %}

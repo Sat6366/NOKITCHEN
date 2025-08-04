@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Confirmed – No Kitchen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f7f8fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .confirmation-card {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 480px;
+      width: 90%;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .tick-circle {
+      background: linear-gradient(to right, #4caf50, #66bb6a);
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+    }
+
+    .tick-mark svg {
+      width: 60px;
+      height: 60px;
+      stroke: white;
+      stroke-width: 6;
+      fill: none;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: draw 0.7s ease forwards 0.2s;
+    }
+
+    @keyframes draw {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 10px;
+      background: linear-gradient(to right, #ff6f00, #ff9800);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p {
+      color: #444;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .tags {
+      margin: 20px 0;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #ffe0b2;
+      color: #e65100;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 6px 4px;
+    }
+
+    .button {
+      padding: 12px 28px;
+      background: linear-gradient(to right, #ff6f00, #ff8f00);
+      border: none;
+      border-radius: 30px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 14px rgba(255, 111, 0, 0.3);
+    }
+
+    .button:hover {
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 500px) {
+      .confirmation-card {
+        padding: 30px 20px;
+      }
+      .tick-circle {
+        width: 90px;
+        height: 90px;
+      }
+      .tick-mark svg {
+        width: 45px;
+        height: 45px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="confirmation-card">
+  <div class="tick-circle">
+    <div class="tick-mark">
+      <svg viewBox="0 0 52 52">
+        <path d="M14 27l7 7 17-17" />
+      </svg>
+    </div>
+  </div>
+
+  <h1>Order Confirmed!</h1>
+  <p>Thanks for ordering with <strong>No Kitchen Meals</strong>.<br>Your food will be delivered soon 🚚</p>
+
+<h2>Thank You!</h2>
+<p><strong>Transaction ID:</strong> {{ transaction_id }}</p>
+
+{% if show_plan %}
+    <p><strong>Meal Plan Order ID:</strong> {{ plan_order_id }}</p>
+    <p><strong>Total (Meal Plan):</strong> ₹{{ menuplan_price }}</p>
+{% endif %}
+
+{% if show_selection %}
+    <p><strong>Custom Order ID:</strong> {{ custom_order_id }}</p>
+    <p><strong>Total (Selected Meals):</strong> ₹{{ selection_total }}</p>
+{% endif %}
+
+{% if address %}
+    <h4>Delivery Address</h4>
+    <p>{{ address.flat_number }}, {{ address.street }}, {{ address.landmark }}</p>
+{% endif %}
+
+  <button class="button" onclick="window.location.href='/'">Go to Home</button>
+</div>
+
+</body>
+</html>

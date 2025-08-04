@@ -1,0 +1,281 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Store Locations</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f8;
+            padding-top: 30px;
+        }
+
+        h2 {
+            font-weight: 700;
+            color: #212121;
+        }
+         #map {
+    height: 400px;
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid #ddd;
+  }
+
+        .card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            background: #ffffff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-control, .form-check-input {
+            border-radius: 8px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #ff6d00;
+            box-shadow: 0 0 0 0.2rem rgba(255, 109, 0, 0.25);
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+        }
+
+        .btn-primary {
+            background-color: #ff6d00;
+            border-color: #ff6d00;
+        }
+
+        .btn-primary:hover {
+            background-color: #e55b00;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            border-radius: 30px;
+            padding: 0.4em 0.7em;
+        }
+
+        table th {
+            background-color: #fafafa;
+            font-weight: 600;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .modal-content {
+            border-radius: 15px;
+        }
+
+        .alert {
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="mb-4">📍 Manage Store Locations</h2>
+    <div id="map"></div>
+
+
+    <!-- Flash Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Add Store Form -->
+    <div class="card">
+        <div class="card-header">➕ Add New Store</div>
+        <div class="card-body">
+            <form method="post" action="{% url 'add_store_location' %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="name" class="form-control" placeholder="Store Name" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="latitude" class="form-control" placeholder="Latitude" required>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="longitude" class="form-control" placeholder="Longitude" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" checked>
+                            <label class="form-check-label">Active</label>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success mt-3">Add Store</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Store Table -->
+    <div class="card">
+        <div class="card-header">🏪 All Store Locations</div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for loc in locations %}
+                    <tr>
+                        <td>{{ loc.id }}</td>
+                        <td>{{ loc.name }}</td>
+                        <td>{{ loc.latitude }}</td>
+                        <td>{{ loc.longitude }}</td>
+                        <td>
+                            {% if loc.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ loc.created_at|date:"d M Y H:i" }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ loc.id }}">Edit</button>
+                            <a href="{% url 'delete_store_location' loc.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="editModal{{ loc.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ loc.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'edit_store_location' loc.id %}">
+                                    {% csrf_token %}
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editModalLabel{{ loc.id }}">Edit {{ loc.name }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label>Store Name</label>
+                                            <input type="text" name="name" value="{{ loc.name }}" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>Latitude</label>
+                                            <input type="text" name="latitude" value="{{ loc.latitude }}" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label>Longitude</label>
+                                            <input type="text" name="longitude" value="{{ loc.longitude }}" class="form-control" required>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="is_active" {% if loc.is_active %}checked{% endif %}>
+                                            <label class="form-check-label">Active</label>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">Update</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No store locations found.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Initialize the map
+  const map = L.map('map').setView(
+    [{{ locations.0.latitude|default:20 }}, {{ locations.0.longitude|default:78 }}],
+    7
+  );
+
+  // Add OpenStreetMap base layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // Define custom store icon
+  const storeIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png', // Store icon
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+    popupAnchor: [0, -35]
+  });
+
+  // Store location data passed from Django
+  const storeLocations = [
+    {% for store in locations %}
+      {
+        name: "{{ store.name|escapejs }}",
+        lat: {{ store.latitude }},
+        lon: {{ store.longitude }},
+        active: {{ store.is_active|yesno:"true,false" }}
+      },
+    {% endfor %}
+  ];
+
+  // Loop through stores and place markers
+  storeLocations.forEach(store => {
+    const marker = L.marker([store.lat, store.lon], { icon: storeIcon }).addTo(map);
+
+    const popupContent = `
+      <div style="font-family: sans-serif;">
+        <strong style="font-size: 16px;">🏬 ${store.name}</strong><br>
+        <span style="color: ${store.active ? 'green' : 'red'}; font-weight: bold;">
+          ${store.active ? '🟢 Active' : '🔴 Inactive'}
+        </span>
+      </div>
+    `;
+
+    marker.bindPopup(popupContent);
+  });
+</script>
+</body>
+</html>

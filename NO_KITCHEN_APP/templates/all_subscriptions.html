@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Subscriptions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .active {
+            color: green;
+            font-weight: bold;
+        }
+        .inactive {
+            color: red;
+            font-weight: bold;
+        }
+         body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #2e86de;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 10px 15px;
+            font-weight: bold;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="{% url 'adminhome' %}">Home</a>
+       
+        <a href="{% url 'admin_cartpayments' %}">Cart Payments</a>
+       
+        <a href="{% url 'admin_contact' %}">Contacts</a>
+        <a href="{% url 'add_food' %}">Foods</a>
+        <a href="{% url 'admin_payment' %}">Payments</a>
+        
+        <a href="{% url 'all_subscriptions' %}">Subscriptions</a>
+    </div>
+
+
+<h1>All Subscriptions</h1>
+<a href="{% url 'subscription_report_pdf' %}" class="btn btn-success" target="_blank">📄 Download Subscription PDF</a>
+
+
+
+
+<table>
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Duration</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Amount (₹)</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sub in subscriptions %}
+        <tr>
+            <td>{{ sub.user.username }}</td>
+            <td>{{ sub.get_duration_display }}</td>
+            <td>{{ sub.start_date }}</td>
+            <td>{{ sub.end_date }}</td>
+            <td>{{ sub.amount }}</td>
+            <td>
+                {% if sub.is_active %}
+                    <span class="active">Active</span>
+                {% else %}
+                    <span class="inactive">Expired</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No subscriptions found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

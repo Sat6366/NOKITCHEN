@@ -1,0 +1,214 @@
+{% extends 'pages/main.html' %}
+{% block content %}
+
+<!-- Lottie Animation -->
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+<style>
+  body {
+    background: linear-gradient(130deg, #fefefe, #eaf6f6);
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .success-wrapper {
+    max-width: 750px;
+    margin: 60px auto;
+    padding: 30px;
+    border-radius: 20px;
+    background: #ffffffea;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+    position: relative;
+    animation: fadeInUp 0.9s ease-out;
+  }
+
+  .success-header {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .success-header h2 {
+    color: #219653;
+    font-weight: 700;
+    font-size: 2rem;
+  }
+
+  .payment-id, .order-id {
+    display: inline-block;
+    background: #fff7ed;
+    color: #f97316;
+    padding: 6px 18px;
+    border-radius: 25px;
+    font-size: 0.88rem;
+    margin-top: 8px;
+    font-weight: 600;
+    border: 1px solid #f97316;
+  }
+
+  .section-box {
+    margin-top: 30px;
+    padding: 22px;
+    border-radius: 14px;
+    background: #f9fafb;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  }
+
+  .section-title {
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: 16px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+  }
+
+  .info-label {
+    color: #555;
+    font-weight: 500;
+  }
+
+  .info-value {
+    color: #222;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+    word-wrap: break-word;
+  }
+
+  .price-highlight {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #f97316;
+    margin-top: 10px;
+    text-align: right;
+  }
+
+  .divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 35px 0;
+  }
+
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .floating-animation {
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, #f97316 10%, transparent 70%);
+    opacity: 0.15;
+    animation: floatGlow 6s ease-in-out infinite;
+    border-radius: 50%;
+  }
+
+  @keyframes floatGlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); opacity: 0.3; }
+  }
+
+  .link-container {
+  text-align: center;
+  margin-top: 30px; /* space from top */
+}
+
+.back-link {
+  display: inline-block;
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #ff8800, #ffaa00);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.back-link:hover {
+  background: linear-gradient(135deg, #e67600, #ff9900);
+  transform: scale(1.05);
+}
+
+</style>
+
+<div class="success-wrapper animate__animated animate__fadeIn">
+  <div class="floating-animation"></div>
+
+  <div class="success-header">
+    <lottie-player
+      src="https://assets4.lottiefiles.com/packages/lf20_jbrw3hcz.json"
+      background="transparent"
+      speed="1"
+      style="width: 90px; height: 90px; margin: auto;"
+      autoplay>
+    </lottie-player>
+
+    <h2>Payment Successful</h2>
+    <div class="payment-id"><i class="fas fa-check-circle"></i> Payment ID: {{ payment_id|default:"N/A" }}</div>
+    {% if order_id %}
+      <div class="order-id"><i class="fas fa-receipt"></i> Order ID: {{ order_id }}</div>
+    {% endif %}
+  </div>
+
+  <!-- Order Summary -->
+  <div class="section-box">
+    <div class="section-title"><i class="fas fa-list-ul"></i> Order Summary</div>
+    {% if breakfast_items %}
+      <div class="info-row"><span class="info-label"><i class="fas fa-mug-hot"></i> Breakfast</span><span class="info-value">{{ breakfast_items|join:", " }}</span></div>
+    {% endif %}
+    {% if lunch_items %}
+      <div class="info-row"><span class="info-label"><i class="fas fa-drumstick-bite"></i> Lunch</span><span class="info-value">{{ lunch_items|join:", " }}</span></div>
+    {% endif %}
+    {% if dinner_items %}
+      <div class="info-row"><span class="info-label"><i class="fas fa-utensils"></i> Dinner</span><span class="info-value">{{ dinner_items|join:", " }}</span></div>
+    {% endif %}
+    <div class="info-row"><span class="info-label"><i class="fas fa-calendar-alt"></i> Plan Duration</span><span class="info-value">{{ start_date }} to {{ end_date }}</span></div>
+    <div class="price-highlight">Total Paid: ₹{{ total|floatformat:2 }}</div>
+  </div>
+
+  <!-- Address -->
+  <div class="divider"></div>
+
+  <div class="section-box">
+    <div class="section-title"><i class="fas fa-map-marker-alt"></i> Delivery Address</div>
+    <div class="info-row"><span class="info-label">Flat</span><span class="info-value">{{ delivery.flat_number|default:"-" }}</span></div>
+    <div class="info-row"><span class="info-label">Street</span><span class="info-value">{{ delivery.street|default:"-" }}</span></div>
+    <div class="info-row"><span class="info-label">Landmark</span><span class="info-value">{{ delivery.landmark|default:"-" }}</span></div>
+    <div class="info-row"><span class="info-label">Alt. Mobile</span><span class="info-value">{{ delivery.alt_mobile|default:"-" }}</span></div>
+    <div class="info-row"><span class="info-label">Type</span><span class="info-value">{{ delivery.breakfast_address_type }}/{{ delivery.lunch_address_type }}/{{ delivery.dinner_address_type }}</span></div>
+    {% if delivery.breakfast_time %}
+      <div class="info-row"><span class="info-label">Breakfast Time</span><span class="info-value">{{ delivery.breakfast_time }}</span></div>
+    {% endif %}
+    {% if delivery.lunch_time %}
+      <div class="info-row"><span class="info-label">Lunch Time</span><span class="info-value">{{ delivery.lunch_time }}</span></div>
+    {% endif %}
+    {% if delivery.dinner_time %}
+      <div class="info-row"><span class="info-label">Dinner Time</span><span class="info-value">{{ delivery.dinner_time }}</span></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="link-container">
+  <a href="{% url 'menu' %}" class="back-link">Menu</a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,561 @@
+{% extends 'pages/main.html' %}
+{% load static %}
+{% block content %}
+<title>Premium Lunch Box Delivery</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --orange: #f57c00;
+    --orange-dark: #e65100;
+    --text-color: #333;
+    --bg: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text-color);
+  }
+
+  /* Hero */
+  .hero {
+    background-color: var(--bg);
+    padding: 60px 20px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    color: var(--orange-dark);
+    margin-bottom: 12px;
+  }
+  .hero p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+  }
+  .btn-primary {
+    background-color: var(--orange);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: 0.3s ease;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background-color: var(--orange-dark);
+  }
+
+ .categories-flip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  padding: 50px 20px;
+}
+
+.flip-card {
+  background: transparent;
+  width: 180px;
+  height: 180px;
+  perspective: 1000px;
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+  border-radius: 50%;
+}
+
+.flip-card:hover .flip-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-front, .flip-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  background: white;
+  overflow: hidden;
+}
+
+.flip-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.flip-front h4 {
+  position: absolute;
+  bottom: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.flip-back {
+  background-color: #f57c00;
+  color: white;
+  transform: rotateY(180deg);
+  padding: 15px;
+}
+
+.flip-back h4 {
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.flip-back p {
+  font-size: 0.85rem;
+}
+
+ .meal-scroll-section {
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #fffaf4, #fffdf9);
+      text-align: center;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 2.2rem;
+      margin-bottom: 30px;
+      font-family: 'Playfair Display', serif;
+      color: #333;
+    }
+
+    .meal-scroll-wrapper {
+      position: relative;
+    }
+
+    .scroll-btn {
+      position: absolute;
+      top: 40%;
+      transform: translateY(-50%);
+      background: #ff7f50;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 5;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .scroll-btn:hover {
+      background: #e76e3c;
+    }
+
+    .scroll-left { left: -10px; }
+    .scroll-right { right: -10px; }
+
+    .meal-scroll-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 20px;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .meal-item {
+      flex: 0 0 auto;
+      width: 160px;
+      border-radius: 14px;
+      padding: 15px 10px;
+      background-color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      scroll-snap-align: start;
+      transition: transform 0.2s ease;
+    }
+
+    .meal-item:nth-child(odd) {
+      background-color: #fff9f1;
+    }
+
+    .meal-item:nth-child(even) {
+      background-color: #f3f8fc;
+    }
+
+    .meal-item:hover {
+      transform: translateY(-4px);
+    }
+
+    .meal-item img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .meal-item h4 {
+      font-size: 0.95rem;
+      margin: 5px 0;
+      color: #2f2f2f;
+    }
+
+    .price {
+      font-size: 0.9rem;
+      color: #4caf50;
+      margin-bottom: 10px;
+    }
+
+    .add-btn {
+      background-color: #4caf50;
+      color: white;
+      font-size: 0.8rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .add-btn:hover {
+      background-color: #3d8b40;
+    }
+
+    /* Sticky Cart Preview */
+    .sticky-cart {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #ff7f50;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      z-index: 100;
+    }
+
+    .sticky-cart span {
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      .meal-scroll-container {
+        gap: 12px;
+      }
+
+      .meal-item {
+        width: 140px;
+      }
+
+      .scroll-btn {
+        display: none;
+      }
+
+      .sticky-cart {
+        font-size: 0.8rem;
+        padding: 8px 16px;
+      }
+    }
+  /* Benefits */
+  .benefits {
+    background: #fff;
+    padding: 50px 20px;
+    max-width: 1100px;
+    margin: auto;
+    text-align: center;
+  }
+  .benefits h2 {
+    color: var(--orange-dark);
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+  }
+  .benefit-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+  }
+  .benefit {
+    flex: 1 1 220px;
+    text-align: left;
+    display: flex;
+    gap: 12px;
+  }
+  .benefit-icon {
+    font-size: 1.8rem;
+    color: var(--orange);
+  }
+  .benefit-text h4 {
+    margin-bottom: 6px;
+    font-size: 1rem;
+  }
+  .benefit-text p {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  /* Footer */
+  .footer {
+    background: #222;
+    color: #ccc;
+    text-align: center;
+    padding: 30px 10px;
+    font-size: 0.9rem;
+  }
+
+  @media(max-width: 600px) {
+    .hero h1 { font-size: 2rem; }
+    .meal-section h2 { font-size: 1.6rem; }
+  }
+</style>
+<!-- Fullscreen Hero with Background Image -->
+<section style="position: relative; width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0; background: url('https://source.unsplash.com/1600x900/?lunchbox,meal') center center/cover no-repeat;">
+  <!-- Optional Overlay Content -->
+  <div style="position: relative; z-index: 2; color: white; text-align: center; top: 50%; transform: translateY(-50%); max-width: 800px; margin: auto;">
+    <h1 style="font-size: 3rem; font-weight: 600;">Delicious Lunch Boxes Delivered Fresh</h1>
+    <p style="font-size: 1.2rem; margin-top: 10px;">For PGs, Students, and Working Professionals – curated with care.</p>
+    <button style="margin-top: 25px; background-color: #ff5722; color: white; border: none; padding: 12px 28px; font-size: 1rem; border-radius: 8px; cursor: pointer;">Browse Menu</button>
+  </div>
+
+  <!-- Optional semi-transparent overlay -->
+  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1;"></div>
+</section>
+
+
+  
+
+
+<!-- Categories Flip Cards -->
+<section class="categories-flip">
+  <div class="flip-card">
+    <div class="flip-inner">
+      <div class="flip-front">
+        <img src="{% static 'images/v1.jpg' %}" alt="Veg">
+        <h4>Vegetarian</h4>
+      </div>
+      <div class="flip-back">
+        <h4>Pure Veg Meals</h4>
+        <p>Wholesome & homely dishes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flip-card">
+    <div class="flip-inner">
+      <div class="flip-front">
+        <img src="{% static 'images/v1.jpg' %}" alt="Non-Veg">
+        <h4>Non‑Veg</h4>
+      </div>
+      <div class="flip-back">
+        <h4>Chicken/Meat Meals</h4>
+        <p>High protein lunch boxes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flip-card">
+    <div class="flip-inner">
+      <div class="flip-front">
+        <img src="{% static 'images/v1.jpg' %}" alt="Combo">
+        <h4>Combo Box</h4>
+      </div>
+      <div class="flip-back">
+        <h4>Veg + Non-Veg</h4>
+        <p>Dual delight meals curated daily.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flip-card">
+    <div class="flip-inner">
+      <div class="flip-front">
+        <img src="{% static 'images/v1.jpg' %}" alt="Premium">
+        <h4>Premium</h4>
+      </div>
+      <div class="flip-back">
+        <h4>Luxury Meals</h4>
+        <p>Biryani, sides, sweets & more.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+ <!-- Signature Meals Scroll Section -->
+  <section class="meal-scroll-section">
+    <h2 class="section-title">Our Signature Meal Boxes</h2>
+
+    <div class="meal-scroll-wrapper">
+      <button class="scroll-btn scroll-left" onclick="scrollMeals(-1)">‹</button>
+
+      <div class="meal-scroll-container" id="mealScroll">
+        <!-- Example Items (add up to 15) -->
+        <div class="meal-item">
+          <img src="https://source.unsplash.com/160x160/?veg,meal" alt="Veg Box" />
+          <h4>Deluxe Veg Meal</h4>
+          <div class="price">₹129</div>
+          <button class="add-btn">Add</button>
+        </div>
+
+        <div class="meal-item">
+          <img src="https://source.unsplash.com/160x160/?chicken,lunchbox" alt="Chicken Box" />
+          <h4>Classic Chicken Box</h4>
+          <div class="price">₹159</div>
+          <button class="add-btn">Add</button>
+        </div>
+
+        <div class="meal-item">
+          <img src="https://source.unsplash.com/160x160/?combo,lunch" alt="Combo" />
+          <h4>Combo Delight</h4>
+          <div class="price">₹179</div>
+          <button class="add-btn">Add</button>
+        </div>
+
+        <div class="meal-item">
+          <img src="https://source.unsplash.com/160x160/?biryani,meal" alt="Biryani" />
+          <h4>Biryani Premium Box</h4>
+          <div class="price">₹199</div>
+          <button class="add-btn">Add</button>
+        </div>
+
+        <!-- Add more items... -->
+      </div>
+
+      <button class="scroll-btn scroll-right" onclick="scrollMeals(1)">›</button>
+    </div>
+  </section>
+
+  <!-- Sticky Cart Preview -->
+  <div class="sticky-cart">
+    <span>🛒 0 items | ₹0</span>
+  </div>
+
+  <!-- JS for Scroll Buttons -->
+  <script>
+    function scrollMeals(direction) {
+      const container = document.getElementById('mealScroll');
+      const scrollAmount = 180; // Adjust per card width + margin
+      container.scrollBy({
+        left: scrollAmount * direction,
+        behavior: 'smooth'
+      });
+    }
+  </script>
+
+  <!-- Non-Veg Meal Scroll Section -->
+<section class="meal-scroll-section" style="background: linear-gradient(135deg, #fff4f2, #fffaf8);">
+  <h2 class="section-title">Non‑Veg Meal Specials</h2>
+
+  <div class="meal-scroll-wrapper">
+    <button class="scroll-btn scroll-left" onclick="scrollMealsNV(-1)">‹</button>
+
+    <div class="meal-scroll-container" id="nonVegScroll">
+      
+      <div class="meal-item">
+        <img src="https://source.unsplash.com/160x160/?chicken,curry" alt="Chicken Curry">
+        <h4>Chicken Curry Box</h4>
+        <div class="price">₹159</div>
+        <button class="add-btn">Add</button>
+      </div>
+
+      <div class="meal-item">
+        <img src="https://source.unsplash.com/160x160/?chicken,biryani" alt="Chicken Biryani">
+        <h4>Chicken Biryani</h4>
+        <div class="price">₹179</div>
+        <button class="add-btn">Add</button>
+      </div>
+
+      <div class="meal-item">
+        <img src="https://source.unsplash.com/160x160/?fish,meal" alt="Fish Meal">
+        <h4>Fish Fry Meal</h4>
+        <div class="price">₹189</div>
+        <button class="add-btn">Add</button>
+      </div>
+
+      <div class="meal-item">
+        <img src="https://source.unsplash.com/160x160/?egg,curry" alt="Egg Curry">
+        <h4>Egg Curry Box</h4>
+        <div class="price">₹139</div>
+        <button class="add-btn">Add</button>
+      </div>
+
+      <div class="meal-item">
+        <img src="https://source.unsplash.com/160x160/?mutton,curry" alt="Mutton Curry">
+        <h4>Mutton Curry Box</h4>
+        <div class="price">₹229</div>
+        <button class="add-btn">Add</button>
+      </div>
+
+    </div>
+
+    <button class="scroll-btn scroll-right" onclick="scrollMealsNV(1)">›</button>
+  </div>
+</section>
+<script>
+  function scrollMealsNV(direction) {
+    const container = document.getElementById('nonVegScroll');
+    const scrollAmount = 180;
+    container.scrollBy({
+      left: scrollAmount * direction,
+      behavior: 'smooth'
+    });
+  }
+</script>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-MiO/bdjZLmU2v8mAHJzHYWz8FFJlfGg3uQH6xkp5ubN/zzFjYsbMKeSAZCkNTC2r+pNk8NK6qJDYOo9G4zFu6w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+<!-- Benefits -->
+<section class="benefits">
+  <h2>Why Choose Us</h2>
+  <div class="benefit-list">
+    <div class="benefit">
+      <div class="benefit-icon"><i class="fas fa-leaf"></i></div>
+      <div class="benefit-text">
+        <h4>Fresh Daily</h4>
+        <p>Cooked every morning with handpicked ingredients.</p>
+      </div>
+    </div>
+    <div class="benefit">
+      <div class="benefit-icon"><i class="fas fa-truck-fast"></i></div>
+      <div class="benefit-text">
+        <h4>Fast Delivery</h4>
+        <p>Right to your doorstep in time for lunch.</p>
+      </div>
+    </div>
+    <div class="benefit">
+      <div class="benefit-icon"><i class="fas fa-box-open"></i></div>
+      <div class="benefit-text">
+        <h4>Hygienic Packaging</h4>
+        <p>Sealed, safe & spill-proof containers.</p>
+      </div>
+    </div>
+    <div class="benefit">
+      <div class="benefit-icon"><i class="fas fa-thumbs-up"></i></div>
+      <div class="benefit-text">
+        <h4>Customer Trust</h4>
+        <p>Rated 4.8+ by 1000+ daily happy users.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+{% endblock %}

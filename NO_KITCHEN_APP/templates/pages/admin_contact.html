@@ -1,0 +1,95 @@
+<!-- templates/pages/admin_contact.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Contact Submissions</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+        }
+         body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #2e86de;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 10px 15px;
+            font-weight: bold;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <div class="navbar">
+        <a href="{% url 'adminhome' %}">Home</a>
+       
+        <a href="{% url 'admin_cartpayments' %}">Cart Payments</a>
+       
+        <a href="{% url 'admin_contact' %}">Contacts</a>
+        <a href="{% url 'add_food' %}">Foods</a>
+        <a href="{% url 'admin_payment' %}">Payments</a>
+        
+        <a href="{% url 'all_subscriptions' %}">Subscriptions</a>
+    </div>
+
+    <h1>All Contact Submissions</h1>
+    <a href="{% url 'contact_report_pdf' %}" class="btn btn-primary" target="_blank">📄 Download Contact Submissions PDF</a>
+
+    <table>
+        <tr>
+            <th>User</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Message</th>
+            <th>Date</th>
+        </tr>
+        {% for contact in contacts %}
+        <tr>
+            <td>{{ contact.user.username }}</td>
+            <td>{{ contact.name }}</td>
+            <td>{{ contact.email }}</td>
+            <td>{{ contact.subject }}</td>
+            <td>{{ contact.message }}</td>
+            <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No contact submissions found.</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

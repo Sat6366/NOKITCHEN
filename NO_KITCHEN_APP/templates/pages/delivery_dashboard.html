@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Delivery Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --orange: #ff7e00;
+      --sidebar-bg: #fff4e6;
+      --text-dark: #2b2b2b;
+      --hover-bg: rgba(255, 126, 0, 0.15);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f7f7;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 240px;
+      background-color: var(--orange);
+      color: var(--text-dark);
+      padding-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+    }
+
+    .sidebar img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #fff;
+    }
+
+    .sidebar .user-id {
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      width: 90%;
+      color: #000;
+      padding: 12px 18px;
+      margin: 6px 0;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .sidebar .nav-link:hover {
+      background-color: var(--hover-bg);
+      transform: translateX(5px);
+    }
+
+    .sidebar .nav-link.active {
+      background-color: #fff;
+      color: var(--orange);
+      font-weight: 700;
+    }
+
+    .sidebar .nav-link i {
+      margin-right: 10px;
+      font-size: 1.1rem;
+    }
+
+    /* Main content */
+    .main-content {
+      margin-left: 240px;
+      padding: 30px;
+    }
+
+    .banner-section h3 {
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    /* Responsive Sidebar (Optional) */
+    @media screen and (max-width: 768px) {
+      .sidebar {
+        position: relative;
+        height: auto;
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        padding: 10px;
+      }
+      .main-content {
+        margin-left: 0;
+      }
+    }
+
+
+    .text-orange {
+  color: var(--orange);
+}
+
+.bg-orange {
+  background-color: var(--orange) !important;
+}
+
+.border-orange {
+  border-color: var(--orange) !important;
+}
+
+.card-custom h5 {
+  font-weight: bold;
+  color: var(--orange);
+}
+
+.status-toggle {
+  position: relative;
+  user-select: none;
+}
+
+.status-toggle input[type="checkbox"] {
+  display: none;
+}
+
+.status-toggle label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ddd;
+  border-radius: 25px;
+  width: 130px;
+  height: 44px;
+  padding: 0 12px;
+  cursor: pointer;
+  position: relative;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+  transition: background-color 0.4s ease-in-out;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+
+.status-toggle .status-text {
+  z-index: 2;
+  transition: color 0.3s ease;
+}
+
+.status-toggle .slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 36px;
+  height: 36px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.status-toggle input:checked + label {
+  background-color: var(--orange);
+  color: #fff;
+}
+
+.status-toggle input:checked + label .slider {
+  transform: translateX(86px);
+}
+
+.status-toggle input:checked + label .status-text {
+  color: #fff;
+}
+
+.location-container {
+  max-width: 600px;
+  border-left: 4px solid var(--orange);
+  /* No background or shadow */
+  font-size: 0.95rem;
+  /* Optional: add some subtle padding if needed */
+  /* background-color: transparent; */
+}
+
+.btn-outline-orange {
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 0 6px 6px 0;
+  transition: all 0.3s ease;
+  background-color: #fff;
+  color: var(--orange);
+  border: 2px solid var(--orange);
+}
+
+.btn-outline-orange:hover {
+  background-color: var(--orange);
+  color: #fff;
+}
+
+#locationInput {
+  font-size: 0.95rem;
+  border-radius: 6px 0 0 6px;
+}
+
+#locationSpinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Container adjustments */
+.location-container {
+  border-left: 4px solid var(--orange);
+  /* Remove padding-bottom margin to fit better */
+  padding-bottom: 1rem;
+}
+
+/* Ensure input group and button stay aligned */
+.input-group {
+  max-width: 100%;
+}
+
+/* Toggle switch styling */
+.status-toggle {
+  position: relative;
+}
+
+/* Hide the checkbox but keep it accessible */
+.status-toggle input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The label styles (acts like the toggle switch) */
+#toggleLabel {
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 20px;
+  width: 56px;
+  height: 28px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+/* The sliding circle */
+#toggleLabel .slider {
+  background-color: white;
+  border-radius: 50%;
+  height: 22px;
+  width: 22px;
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  transition: transform 0.3s ease;
+}
+
+/* When checked, move slider right and change background */
+.status-toggle input:checked + #toggleLabel {
+  background-color: var(--orange);
+}
+
+.status-toggle input:checked + #toggleLabel .slider {
+  transform: translateX(28px);
+}
+
+/* Text left of slider */
+.status-text {
+  font-weight: 600;
+  color: var(--text-dark);
+  user-select: none;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+/* Change text color and content dynamically (JS needed) */
+.status-toggle input:checked + #toggleLabel .status-text {
+  color: var(--orange);
+}
+#toggleLabel {
+  width: 84px;
+  height: 42px;
+  padding: 0 10px;
+  border-radius: 30px;
+  background-color: #ccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+#toggleLabel .slider {
+  height: 34px;
+  width: 34px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  transition: transform 0.3s ease;
+}
+
+.status-toggle input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.status-toggle input:checked + #toggleLabel {
+  background-color: var(--orange);
+}
+
+.status-toggle input:checked + #toggleLabel .slider {
+  transform: translateX(42px);
+}
+
+/* Offline text */
+.status-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-right: 10px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Online text (white) */
+.status-toggle input:checked + #toggleLabel .status-text {
+  color: #fff;
+}
+#toggleLabel {
+  width: 120px;  /* increased width */
+  /* keep height as is */
+  height: 42px;
+  padding: 0 10px;
+  border-radius: 30px;
+}
+
+.status-toggle input:checked + #toggleLabel .slider {
+  transform: translateX(76px); /* move slider right accordingly (120 - 42 - 2*4 = ~70-76) */
+}
+
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+:root {
+  --swiggy-orange: #fc8019;
+  --green: #28a745;
+  --green-light: #d4f4dd;
+  --progress-bg: #f0f0f0;
+}
+
+.banner-section.updated {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  max-width: 500px;
+  height: 130px;
+}
+
+.swiggy-orange {
+  color: var(--swiggy-orange);
+}
+
+.text-green {
+  color: var(--green);
+}
+
+.fw-semibold {
+  font-weight: 600;
+}
+
+.fw-medium {
+  font-weight: 500;
+}
+
+/* Progress bar background */
+.progress-container {
+  width: 100%;
+  height: 20px;
+  position: relative;
+  background: transparent;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background-color: var(--progress-bg);
+  border-radius: 9999px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+/* Bike icon styling */
+.bike-icon {
+  font-size: 28px;
+  color: var(--green);
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0;
+  transition: left 0.6s ease;
+  z-index: 10;
+}
+
+  </style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <img src="https://i.pravatar.cc/100?img=11" alt="Profile Image"/>
+  <div class="user-id">DLR12345</div>
+  <a href="{% url 'delivery_dashboard' %}" class="nav-link active"><i class="bi bi-speedometer2"></i>Dashboard</a>
+  <a href="{% url 'delivery_myorders' %}" class="nav-link"><i class="bi bi-box-seam"></i>My Orders</a>
+  <a href="{% url 'delivery_myearnings' %}" class="nav-link"><i class="bi bi-wallet2"></i>Earnings</a>
+  <a href="#" class="nav-link"><i class="bi bi-star-fill"></i>Ratings</a>
+  <a href="{% url 'delivery_profile' %}" class="nav-link"><i class="bi bi-person-circle"></i>Profile</a>
+  <a href="#" class="nav-link"><i class="bi bi-box-arrow-right"></i>Logout</a>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+<!-- Wrap both in a flex container -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <!-- Left side: location -->
+  <div id="location" class="location-container p-3 flex-grow-1" style="min-width: 300px;">
+    <div class="d-flex align-items-center mb-2">
+      <i class="bi bi-geo-alt-fill text-orange me-2" style="font-size: 1.2rem;"></i>
+      <h5 class="text-orange mb-0 flex-grow-1">Your Location</h5>
+      <div id="locationSpinner" class="spinner-border spinner-border-sm text-orange ms-2 d-none" role="status" aria-live="polite" aria-label="Loading location">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div class="input-group">
+      <input type="text" id="locationInput" class="form-control" placeholder="Location will appear here" readonly>
+      <button id="locationBtn" class="btn btn-outline-orange d-flex align-items-center" onclick="toggleLocation()">
+        <i id="locationIcon" class="bi bi-crosshair me-2" style="font-size: 1.1rem;"></i>
+        Use My Location
+      </button>
+    </div>
+    <small id="locationStatus" class="text-muted mt-2 d-block">We use your browser's GPS to fetch your current location.</small>
+  </div>
+
+  <!-- Right side: toggle button -->
+  <div class="status-toggle d-flex align-items-center">
+    <input type="checkbox" id="toggleStatus" />
+    <label for="toggleStatus" id="toggleLabel" class="d-flex align-items-center">
+      <span class="status-text me-2">Offline</span>
+      <span class="slider"></span>
+    </label>
+  </div>
+</div>
+
+
+<!-- Updated Banner with Bike Icon Progress -->
+<section class="banner-section updated p-3 mb-4 rounded shadow-sm border-start border-4 border-swiggy-orange bg-white d-flex align-items-center gap-4">
+
+  <!-- Info -->
+  <div class="flex-grow-1">
+    <h6 class="mb-2 swiggy-orange fw-semibold fs-5">Offers & Bonus</h6>
+    <p class="mb-3 text-muted fw-medium fs-6">
+      No kitchen charges • Bonus on 10+ weekly orders
+    </p>
+
+    <!-- Progress Container -->
+    <div class="progress-container position-relative" aria-label="Bonus Progress" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="7">
+      <div class="progress-bar-bg rounded-pill"></div>
+      
+      <!-- Bike icon moving -->
+      <i class="bi bi-bicycle-fill bike-icon position-absolute"></i>
+    </div>
+
+    <!-- Orders Info -->
+    <div class="d-flex justify-content-between mt-2">
+      <span class="text-green fw-semibold fs-6">7 / 10 Orders Completed</span>
+      <small class="text-muted fw-medium fs-7">Complete 3 more to earn bonus</small>
+    </div>
+  </div>
+
+</section>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function getMyLocation() {
+  const input = document.getElementById('locationInput');
+  const spinner = document.getElementById('locationSpinner');
+
+  if (navigator.geolocation) {
+    spinner.classList.remove('d-none'); // Show loading spinner
+    input.value = 'Fetching location...';
+
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const lat = pos.coords.latitude.toFixed(4);
+        const lon = pos.coords.longitude.toFixed(4);
+        input.value = `Lat: ${lat}, Lon: ${lon}`;
+        spinner.classList.add('d-none'); // Hide spinner
+      },
+      () => {
+        input.value = 'Unable to retrieve location';
+        spinner.classList.add('d-none');
+      }
+    );
+  } else {
+    input.value = 'Geolocation not supported';
+  }
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const toggleCheckbox = document.getElementById("toggleStatus");
+  const toggleLabelText = document.querySelector(".status-text");
+
+  // Load saved status from localStorage
+  const savedStatus = localStorage.getItem("deliveryStatus");
+  if (savedStatus === "online") {
+    toggleCheckbox.checked = true;
+    toggleLabelText.textContent = "Online";
+  } else {
+    toggleCheckbox.checked = false;
+    toggleLabelText.textContent = "Offline";
+  }
+
+  toggleCheckbox.addEventListener("change", function () {
+    if (this.checked) {
+      toggleLabelText.textContent = "Online";
+      localStorage.setItem("deliveryStatus", "online");
+    } else {
+      toggleLabelText.textContent = "Offline";
+      localStorage.setItem("deliveryStatus", "offline");
+    }
+  });
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoKitchen | Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <!-- Bootstrap Icons CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<!-- Google Font: Poppins -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #fffdf7;
+      color: #333;
+    }
+
+    header.hero {
+      background:url("{% static 'images/h1.jpg' %}") center/cover no-repeat;
+      padding: 120px 20px;
+      text-align: center;
+      color: white;
+      animation: fadeIn 2s ease-in;
+    }
+
+    header.hero h1 {
+      font-size: 3.5em;
+      margin-bottom: 15px;
+      color: #ffc107;
+    }
+
+    header.hero p {
+      font-size: 1.3em;
+      max-width: 700px;
+      margin: 0 auto 25px;
+    }
+
+    .cta-btn {
+      padding: 14px 30px;
+      font-size: 1em;
+      background-color: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .cta-btn:hover {
+      background-color: #e64a19;
+    }
+
+    section {
+      padding: 80px 30px;
+      text-align: center;
+    }
+
+    .steps-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      margin-top: 30px;
+    }
+
+    .step {
+      flex: 1 1 200px;
+      max-width: 240px;
+      margin: 20px;
+      font-size: 1.1em;
+      color: #444;
+      transition: transform 0.3s;
+    }
+
+    .step i {
+      font-size: 2.5em;
+      color: #ff7043;
+      margin-bottom: 15px;
+    }
+
+    .step:hover {
+      transform: scale(1.05);
+    }
+
+    .section-title {
+      font-size: 2.5em;
+      color: #d84315;
+      margin-bottom: 20px;
+    }
+
+    .plans-section {
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    }
+
+    .plans-section h2 {
+      color: #bf360c;
+    }
+
+    .plan-boxes {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 30px;
+    }
+
+    .plan {
+      background: #ffffff;
+      padding: 40px 30px;
+      margin: 20px;
+      border-radius: 20px;
+      width: 260px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .plan:hover {
+      transform: translateY(-5px);
+    }
+
+    .plan h3 {
+      font-size: 1.6em;
+      margin-bottom: 10px;
+      color: #ff5722;
+    }
+
+    .plan p {
+      color: #444;
+    }
+
+    .plan-price {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #e65100;
+      margin: 15px 0;
+    }
+
+    .partner-section {
+      background-color: #fce4ec;
+    }
+
+    .meal-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+      margin-top: 40px;
+    }
+
+    .meal-gallery img {
+      width: 100%;
+      border-radius: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .meal-gallery img:hover {
+      transform: scale(1.05);
+    }
+
+    .testimonials {
+      background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+      padding-bottom: 60px;
+    }
+
+    .testimonial {
+      max-width: 500px;
+      margin: 20px auto;
+      font-size: 1.1em;
+      color: #444;
+    }
+
+    .testimonial strong {
+      display: block;
+      margin-top: 15px;
+      color: #6a1b9a;
+    }
+
+    footer {
+      background: #333;
+      color: white;
+      padding: 30px 10px;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(40px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .how-it-works-bootstrap {
+  padding: 4rem 1rem;
+  background: #f4f6f9;
+  text-align: center;
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 3rem;
+  }
+
+  .steps-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  .step {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    width: 260px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    .icon {
+      font-size: 3rem;
+      color: #ff6b6b;
+      margin-bottom: 1rem;
+      animation: zoomIn 0.5s ease-in;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #555;
+    }
+  }
+}
+
+@keyframes zoomIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+.healthy-section {
+  background: #fff;
+  padding: 80px 5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.healthy-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: 1400px;
+  margin: auto;
+}
+
+.text-column {
+  flex: 1 1 50%;
+  padding: 20px;
+}
+
+.text-column h1 {
+  font-size: 3rem;
+  color: #4e1f28;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.text-column p {
+  font-size: 1.1rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.image-column {
+  flex: 1 1 50%;
+  text-align: right;
+  padding: 20px;
+}
+
+.image-column img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.delivery-hero {
+  background: #fff8f1;
+  padding: 90px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.delivery-hero .delivery-container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.delivery-hero .delivery-text {
+  flex: 1 1 50%;
+  padding-right: 40px;
+}
+
+.delivery-hero .delivery-text h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #222;
+  margin-bottom: 20px;
+}
+
+.delivery-hero .delivery-text .lead {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 30px;
+  line-height: 1.8;
+}
+
+.delivery-hero .delivery-text .lead strong {
+  color: #ff6f00;
+}
+
+.delivery-hero .benefits-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 35px;
+}
+
+.delivery-hero .benefits-list li {
+  font-size: 1rem;
+  color: #222;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.delivery-hero .benefits-list li i {
+  color: #ff6f00;
+  margin-right: 10px;
+  font-size: 1.2rem;
+}
+
+.delivery-hero .btn-join {
+  background-color: #ff6f00;
+  color: #fff;
+  padding: 12px 28px;
+  font-weight: 600;
+  border-radius: 8px;
+  font-size: 1rem;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(255, 111, 0, 0.3);
+  transition: 0.3s ease-in-out;
+}
+
+.delivery-hero .btn-join:hover {
+  background-color: #e65100;
+  box-shadow: 0 6px 18px rgba(230, 81, 0, 0.4);
+}
+
+.delivery-hero .delivery-image {
+  flex: 1 1 45%;
+  text-align: center;
+}
+
+.delivery-hero .delivery-image img {
+  max-width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  animation: fadeInRight 1.2s ease-in-out;
+}
+
+/* Animation for image */
+@keyframes fadeInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .delivery-hero .delivery-container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .delivery-hero .delivery-text {
+    padding-right: 0;
+  }
+
+  .delivery-hero .delivery-text h1 {
+    font-size: 2rem;
+  }
+
+  .delivery-hero .btn-join {
+    margin-top: 20px;
+  }
+
+  .delivery-hero .benefits-list li {
+    justify-content: center;
+  }
+}
+
+
+.meal-section {
+  background-color: #ede4d4;
+  text-align: center;
+  padding: 80px 5% 100px;
+}
+
+.section-title {
+  font-size: 2.8rem;
+  color: #2d2d2d;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.meal-subtitle {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 50px;
+}
+
+.meal-gallery {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.meal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.meal-item img {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.meal-item span {
+  margin-top: 15px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #444;
+}
+
+.meal-item:hover img {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+.testimonials-section {
+  padding: 80px 10% 100px;
+  background-color: #f9f9f9;
+  text-align: center;
+}
+
+.testimonials-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 40px;
+}
+
+.testimonial-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.testimonial-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  max-width: 400px;
+  text-align: left;
+  transition: transform 0.3s ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-5px);
+}
+
+.testimonial-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.testimonial-author img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ff5722;
+}
+
+.testimonial-author strong {
+  font-size: 1rem;
+  color: #222;
+}
+
+.testimonial-author span {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.special-orders {
+  background: linear-gradient(to bottom right, #fffaf5, #fff);
+  padding: 80px 10% 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.special-orders::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #ffe0b2 0%, transparent 70%);
+  z-index: 0;
+  animation: float-glow 10s ease-in-out infinite alternate;
+}
+
+.special-orders .section-title {
+  font-size: 3rem;
+  color: #2d2d2d;
+  font-weight: 700;
+  margin-bottom: 10px;
+  z-index: 2;
+  position: relative;
+  animation: fadeInDown 1s ease forwards;
+}
+
+.special-subtitle {
+  font-size: 1.2rem;
+  color: #555;
+  max-width: 720px;
+  margin: 0 auto 30px;
+  line-height: 1.6;
+  z-index: 2;
+  position: relative;
+  animation: fadeInUp 1s ease 0.3s forwards;
+}
+
+.special-grid {
+  display: flex;
+  justify-content: center;
+  gap: 35px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+  z-index: 2;
+  position: relative;
+}
+
+.special-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  max-width: 320px;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+  animation: zoomIn 0.5s ease forwards;
+}
+
+.special-card:hover {
+  transform: scale(1.05) translateY(-8px);
+  box-shadow: 0 12px 28px rgba(255, 87, 34, 0.25);
+}
+
+.special-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.special-card:hover img {
+  transform: scale(1.08);
+}
+
+.card-info {
+  padding: 22px;
+  text-align: left;
+}
+
+.card-info i {
+  font-size: 1.9rem;
+  color: #ff5722;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.card-info h4 {
+  font-size: 1.3rem;
+  color: #222;
+  font-weight: 600;
+  margin: 10px 0 5px;
+}
+
+.card-info p {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.special-cta-btn {
+  display: inline-block;
+  margin-top: 50px;
+  background: linear-gradient(to right, #ff5722, #ff7043);
+  color: rgb(213, 210, 210);
+  padding: 15px 35px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(255, 87, 34, 0.3);
+  transition: transform 0.3s, background 0.3s;
+  animation: fadeInUp 0.5s ease 0.5s forwards;
+}
+
+.special-cta-btn:hover {
+  background: #e64a19;
+  transform: scale(1.05);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes float-glow {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(50px, 50px) scale(1.2);
+    opacity: 0.6;
+  }
+}
+.kitchen-subscription-section {
+  padding: 90px 0;
+  background: linear-gradient(to right, #ffffff, #f7faf9);
+  font-family: 'Poppins', sans-serif;
+}
+.kitchen-subscription-section .container {
+  max-width: 1200px;
+  margin: auto;
+}
+.kitchen-subscription-section .text-content {
+  padding-right: 30px;
+}
+.kitchen-subscription-section .text-content .headline {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e3f3d;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+.kitchen-subscription-section .text-content .subtext {
+  font-size: 1.1rem;
+  color: #4b5554;
+  margin-bottom: 30px;
+  line-height: 1.7;
+}
+.kitchen-subscription-section .text-content .features-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 40px;
+}
+.kitchen-subscription-section .text-content .features-list li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  color: #1e3f3d;
+  font-weight: 500;
+  font-size: 1rem;
+}
+.kitchen-subscription-section .text-content .features-list li i {
+  color: #0f9d58;
+  font-size: 1.2rem;
+  margin-right: 10px;
+}
+.kitchen-subscription-section .text-content .explore-btn {
+  background: #0f9d58;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 18px rgba(15, 157, 88, 0.25);
+}
+.kitchen-subscription-section .text-content .explore-btn:hover {
+  background: #0b7743;
+  box-shadow: 0 8px 24px rgba(15, 157, 88, 0.35);
+}
+.kitchen-subscription-section .image-content {
+  text-align: center;
+}
+.kitchen-subscription-section .image-content img {
+  max-width: 100%;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.kitchen-subscription-section .image-content img:hover {
+  transform: scale(1.03);
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.12);
+}
+@media (max-width: 768px) {
+  .kitchen-subscription-section .text-content {
+    padding-right: 0;
+    text-align: center;
+  }
+  .kitchen-subscription-section .headline {
+    font-size: 2rem;
+  }
+  .kitchen-subscription-section .features-list li {
+    justify-content: center;
+  }
+  .kitchen-subscription-section .explore-btn {
+    margin-top: 20px;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <header class="hero">
+    <h1>NoKitchen</h1>
+    <p>Say goodbye to cooking. Welcome curated daily meals delivered hot to your doorstep.</p>
+    <a href="#plans"><button class="cta-btn">View Subscription Plans</button></a>
+  </header>
+
+  <section class="healthy-section">
+  <div class="healthy-content">
+    <div class="text-column">
+      <h1>Good food choices<br>are good investments.</h1>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>
+        Etiam eget ligula eu lectus lobortis condimentum.</p>
+    </div>
+    <div class="image-column">
+      <img src="{% static 'images/1.jpg' %}" alt="Healthy Food">
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS - Bootstrap Icons Version -->
+<section id="how-it-works" class="how-it-works-bootstrap">
+  <h2 class="section-title">How It Works</h2>
+  <div class="steps-container">
+    <div class="step">
+      <i class="bi bi-person-plus-fill icon"></i>
+      <h3>Sign Up</h3>
+      <p>Create your NoKitchen account in minutes.</p>
+    </div>
+    <div class="step">
+      <i class="bi bi-list-ul icon"></i>
+      <h3>Choose Menu</h3>
+      <p>Pick your daily, weekly, or monthly meals.</p>
+    </div>
+    <div class="step">
+      <i class="bi bi-bell-fill icon"></i>
+      <h3>Kitchen Alert</h3>
+      <p>Partner restaurants receive your order instantly.</p>
+    </div>
+    <div class="step">
+      <i class="bi bi-truck icon"></i>
+      <h3>Get Your Meal</h3>
+      <p>Your fresh meal is delivered right to your door.</p>
+    </div>
+  </div>
+</section>
+
+  <!-- SUBSCRIPTION PLANS -->
+  <section id="plans" class="plans-section">
+    <h2 class="section-title">Choose Your Subscription</h2>
+    <div class="plan-boxes">
+      <div class="plan">
+        <h3>Daily Plan</h3>
+        <p>Try NoKitchen for a day.</p>
+        
+      </div>
+      <div class="plan">
+        <h3>Weekly Plan</h3>
+        <p>Great for office-goers & students.</p>
+        
+      </div>
+      <div class="plan">
+        <h3>Monthly Plan</h3>
+        <p>Get full month meals.</p>
+     
+      </div>
+    </div>
+  </section>
+
+<section class="kitchen-subscription-section">
+  <div class="container">
+    <div class="row align-items-center">
+      
+      <!-- Left Content -->
+      <div class="col-lg-6 text-content">
+        <h2 class="headline">Own Kitchen. Real Food. Daily Delivery.</h2>
+        <p class="subtext">
+          Subscribe to fresh, home-style meals directly from our in-house chefs. 
+          No third-party kitchens, no compromises. Taste the quality of a kitchen built just for you.
+        </p>
+
+        <ul class="features-list">
+          <li><i class="fas fa-check-circle"></i><span>Pure & Hygienic In-House Preparation</span></li>
+          <li><i class="fas fa-check-circle"></i><span>Flexible Daily, Weekly & Monthly Plans</span></li>
+          <li><i class="fas fa-check-circle"></i><span>Scheduled Delivery by Our Fleet</span></li>
+          <li><i class="fas fa-check-circle"></i><span>Live Subscription Tracking</span></li>
+        </ul>
+
+        
+      </div>
+
+      <!-- Right Image -->
+      <div class="col-lg-6 image-content">
+        <img src="{% static 'images/R1.jpg' %}" alt="Kitchen Meal Box" class="img-fluid animate-img">
+      </div>
+    </div>
+    <a href="{% url 'register' %}" class="explore-btn">View Subscription Plans</a>
+  </div>
+</section>
+
+
+<!-- MEAL GALLERY -->
+<section class="meal-section">
+  <h2 class="section-title">What We Serve</h2>
+  <p class="meal-subtitle">Delicious homemade meals prepared with love and delivered fresh to your door.</p>
+  
+  <div class="meal-gallery">
+    <div class="meal-item">
+      <img src="{% static 'images/1.jpg' %}" alt="Meal 1">
+      <span>Veg Thali</span>
+    </div>
+    <div class="meal-item">
+      <img src="{% static 'images/2.jpg' %}" alt="Meal 2">
+      <span>South Indian</span>
+    </div>
+    <div class="meal-item">
+      <img src="{% static 'images/3.jpg' %}" alt="Meal 3">
+      <span>North Indian</span>
+    </div>
+    <div class="meal-item">
+      <img src="{% static 'images/4.jpg' %}" alt="Meal 4">
+      <span>Tiffin Combo</span>
+    </div>
+  </div>
+</section>
+
+
+<section class="delivery-hero">
+  <div class="delivery-container">
+    <div class="delivery-text">
+      <h1>Drive with Purpose.<br>Deliver with Pride.</h1>
+      <p class="lead">At <strong>NoKitchen</strong>, our delivery partners are the true heroes who bring fresh, homemade food to our customers' doorsteps. Whether you're looking for full-time or part-time opportunities, we offer unmatched flexibility and support to grow with us.</p>
+      
+      <ul class="benefits-list">
+        <li><i class="fas fa-clock"></i> Flexible working hours — your schedule, your choice</li>
+        <li><i class="fas fa-rupee-sign"></i> Transparent weekly payments and incentives</li>
+        <li><i class="fas fa-map-marker-alt"></i> Deliver within your preferred zone</li>
+        <li><i class="fas fa-star"></i> Earn performance bonuses & recognition</li>
+      </ul>
+      
+      <a href="{% url 'delivery_register' %}" class="btn-join">Become a Delivery Partner</a>
+    </div>
+    <div class="delivery-image">
+      <img src="{% static 'images/d1.png' %}" alt="Delivery Partner">
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <h2 class="section-title">Loved By Customers</h2>
+  <p class="testimonials-subtitle">Hear what our happy users have to say about their NoKitchen experience.</p>
+
+  <div class="testimonial-grid">
+    <div class="testimonial-card">
+      <p class="testimonial-text">“NoKitchen made my life easy. No stress of cooking or ordering daily.”</p>
+      <div class="testimonial-author">
+        <img src="{% static 'images/user1.jpg' %}" alt="Ria" />
+        <div>
+          <strong>Ria</strong><br><span>Software Engineer</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="testimonial-card">
+      <p class="testimonial-text">“Good quality, timely delivery, and tasty food.”</p>
+      <div class="testimonial-author">
+        <img src="{% static 'images/user2.jpg' %}" alt="Aditya" />
+        <div>
+          <strong>Aditya</strong><br><span>Lawyer</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; 2025 NoKitchen | All Rights Reserved.
+  </footer>
+
+</body>
+</html>
