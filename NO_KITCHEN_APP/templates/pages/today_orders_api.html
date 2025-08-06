@@ -172,13 +172,13 @@
   }
 }
 .total-orders-card {
-  background-color: #fc8019; /* Light blue */
+  background-color: #5bc0de; /* Light blue */
   border: 2px solid #fcfcfc;
 }
 
 .preparing-orders-card {
-  background-color: #fff3cd; /* Light yellow */
-  border: 2px solid #ffc107;
+  background-color: #FFC107; /* Light yellow */
+  border: 2px solid #f7f5f6;
 }
 
 .ready-orders-card {
@@ -187,8 +187,8 @@
 }
 
 .dispatched-orders-card {
-  background-color: #d4edda; /* Light green */
-  border: 2px solid #28a745;
+  background-color: #6f42c1; /* Light green */
+  border: 2px solid #f8faf8;
 }
 .summary-card:hover {
   transform: translateY(-3px);
@@ -197,28 +197,34 @@
 
 </style>
 
+
+
+ 
+
+  <!-- 🔹 Orders Table -->
+  
 <div class="container">
   <h2 class="text-center">Today's Orders</h2>
-  <!-- 🔹 Summary Cards Horizontal Section -->
 
+  <!-- 🔹 Summary Cards -->
   <div class="summary-section mb-4">
-  <div class="summary-card total-orders-card p-3 text-center">
-    <h5>Total Orders</h5>
-    <h3 id="total-orders">0</h3>
+    <div class="summary-card total-orders-card p-3 text-center">
+      <h5>Total Orders</h5>
+      <h3 id="total-orders">0</h3>
+    </div>
+    <div class="summary-card preparing-orders-card p-3 text-center">
+      <h5>Being Prepared</h5>
+      <h3 id="preparing-orders">0</h3>
+    </div>
+    <div class="summary-card ready-orders-card p-3 text-center">
+      <h5>Ready for Dispatch</h5>
+      <h3 id="ready-orders">0</h3>
+    </div>
+    <div class="summary-card dispatched-orders-card p-3 text-center">
+      <h5>Dispatched</h5>
+      <h3 id="dispatched-orders">0</h3>
+    </div>
   </div>
-  <div class="summary-card preparing-orders-card p-3 text-center">
-    <h5>Being Prepared</h5>
-    <h3 id="preparing-orders">0</h3>
-  </div>
-  <div class="summary-card ready-orders-card p-3 text-center">
-    <h5>Ready for Dispatch</h5>
-    <h3 id="ready-orders">0</h3>
-  </div>
-  <div class="summary-card dispatched-orders-card p-3 text-center">
-    <h5>Dispatched</h5>
-    <h3 id="dispatched-orders">0</h3>
-  </div>
-</div>
 
   <!-- 🔹 Orders Table -->
   <div id="orders-container"></div>
@@ -226,183 +232,170 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  fetch('/nokitchen/api/today-meals/')
-    .then(response => {
-      if (!response.ok) throw new Error('Network error');
-      return response.json();
-    })
-    .then(data => {
-      const container = document.getElementById('orders-container');
-      const mealTitles = {
-        breakfast: '🍳 Breakfast',
-        lunch: '🥗 Lunch',
-        dinner: '🍽️ Dinner'
-      };
+  loadOrders();
 
-      function formatTime(timeString) {
-        if (!timeString || timeString === "N/A") return "N/A";
-        const [hour, minute] = timeString.split(":");
-        const h = parseInt(hour, 10);
-        const m = parseInt(minute, 10);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const formattedHour = h % 12 === 0 ? 12 : h % 12;
-        return `${formattedHour}:${m.toString().padStart(2, '0')} ${ampm}`;
-      }
+  function loadOrders() {
+    fetch('/nokitchen/api/today-meals/')
+      .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+      })
+      .then(data => {
+        const container = document.getElementById('orders-container');
+        container.innerHTML = ''; // Clear previous
 
-      // Count tracker
-      let totalOrders = 0;
-      let preparingOrders = 0;
-      let readyOrders = 0;
-      let dispatchedOrders = 0;
+        const mealTitles = {
+          breakfast: '🍳 Breakfast',
+          lunch: '🥗 Lunch',
+          dinner: '🍽️ Dinner'
+        };
 
-      function applyStatusClass(selectEl, status) {
-        selectEl.className = 'status-select'; // Reset
-        selectEl.classList.add(`status-${status}`);
-      }
-
-      function updateSummaryCards() {
-        const allStatuses = Array.from(document.querySelectorAll('.status-select'));
-        preparingOrders = allStatuses.filter(el => el.value === 'preparing').length;
-        readyOrders = allStatuses.filter(el => el.value === 'ready').length;
-        dispatchedOrders = allStatuses.filter(el => el.value === 'dispatched').length;
-        const queuedOrders = allStatuses.filter(el => el.value === 'queued').length;
-
-        totalOrders = allStatuses.length;
-
-            document.getElementById('total-orders').textContent = totalOrders;
-            document.getElementById('preparing-orders').textContent = preparingOrders;
-            document.getElementById('ready-orders').textContent = readyOrders;
-            document.getElementById('dispatched-orders').textContent = dispatchedOrders;
-            }
-
-
-      function updateStatus(selectEl, source, orderId, mealType) {
-        const newStatus = selectEl.value;
-
-        fetch('/nokitchen/api/update-status/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-          },
-          body: JSON.stringify({
-            order_id: orderId,
-            source: source,
-            meal_type: mealType,
-            status: newStatus,
-          }),
-        })
-        .then(res => res.json())
-        .then(response => {
-          if (response.success) {
-            applyStatusClass(selectEl, newStatus);
-
-            // Recount status cards
-            preparingOrders = document.querySelectorAll('.status-select.status-preparing').length;
-            readyOrders = document.querySelectorAll('.status-select.status-ready').length;
-            dispatchedOrders = document.querySelectorAll('.status-select.status-dispatched').length;
-
-            updateSummaryCards();
-          } else {
-            alert("Failed to update status.");
-          }
-        })
-        .catch(err => {
-          console.error("Error updating status:", err);
-          alert("Error occurred while updating status.");
-        });
-      }
-
-      function getCSRFToken() {
-        const name = 'csrftoken';
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-          const c = cookies[i].trim();
-          if (c.startsWith(name + '=')) {
-            return decodeURIComponent(c.substring(name.length + 1));
-          }
+        function formatTime(timeString) {
+          if (!timeString || timeString === "N/A") return "N/A";
+          const [hour, minute] = timeString.split(":");
+          const h = parseInt(hour, 10);
+          const m = parseInt(minute, 10);
+          const ampm = h >= 12 ? 'PM' : 'AM';
+          const formattedHour = h % 12 === 0 ? 12 : h % 12;
+          return `${formattedHour}:${m.toString().padStart(2, '0')} ${ampm}`;
         }
-        return '';
-      }
 
-      for (const mealType in data) {
-        const orders = data[mealType];
-        totalOrders += orders.length;
+        for (const mealType in data) {
+          const orders = data[mealType];
+          const section = document.createElement('div');
+          section.className = 'order-section';
+          const header = `<div class="card-header">${mealTitles[mealType] || mealType}</div>`;
+          let body = '';
 
-        const section = document.createElement('div');
-        section.className = 'order-section';
-
-        const header = `<div class="card-header">${mealTitles[mealType] || mealType}</div>`;
-        let body = '';
-
-        if (orders.length > 0) {
-          body += `
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>User</th>
-                  <th>Order ID</th>
-                  <th>Day</th>
-                  <th>Source</th>
-                  <th>Meal Description</th>
-                  <th>Items Count</th>
-                  <th>Delivery Time</th>
-                  <th>Address</th>
-                  <th>Price (₹)</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-
-          orders.forEach(order => {
-            const defaultStatus = "queued";
-            if (defaultStatus === 'preparing') preparingOrders++;
-            else if (defaultStatus === 'ready') readyOrders++;
-            else if (defaultStatus === 'dispatched') dispatchedOrders++;
-
+          if (orders.length > 0) {
             body += `
-              <tr>
-                <td>${order.user || '-'}</td>
-                <td>${order.order_id || '-'}</td>
-                <td>${order.day || '-'}</td>
-                <td><span class="badge bg-secondary">${order.source || '-'}</span></td>
-                <td>${order.meal_description || '-'}</td>
-                <td>${order.items_count ?? '-'}</td>
-                <td>${formatTime(order.delivery_time)}</td>
-                <td>${order.address || '-'}</td>
-                <td>₹${Number(order.price || 0).toFixed(2)}</td>
-                <td>
-                  <select class="status-select status-${defaultStatus}" onchange="updateStatus(this, '${order.source}', '${order.order_id}', '${mealType}')">
-                    <option value="queued" ${defaultStatus === 'queued' ? 'selected' : ''}>Queued</option>
-                    <option value="preparing">Being Prepared</option>
-                    <option value="ready">Ready for Dispatch</option>
-                    <option value="dispatched">Dispatched</option>
-                  </select>
-                </td>
-              </tr>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Order ID</th>
+                    <th>Day</th>
+                    <th>Source</th>
+                    <th>Meal Description</th>
+                    <th>Items Count</th>
+                    <th>Delivery Time</th>
+                    <th>Address</th>
+                    <th>Price (₹)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
             `;
-          });
 
-          body += `</tbody></table>`;
-        } else {
-          body += `<p class="text-muted">No ${mealType} orders found for today.</p>`;
+            orders.forEach(order => {
+              const defaultStatus = order.status || "queued";
+
+              body += `
+                <tr>
+                  <td>${order.user || '-'}</td>
+                  <td>${order.order_id || '-'}</td>
+                  <td>${order.day || '-'}</td>
+                  <td><span class="badge bg-secondary">${order.source || '-'}</span></td>
+                  <td>${order.meal_description || '-'}</td>
+                  <td>${order.items_count ?? '-'}</td>
+                  <td>${formatTime(order.delivery_time)}</td>
+                  <td>${order.address || '-'}</td>
+                  <td>₹${Number(order.price || 0).toFixed(2)}</td>
+                  <td>
+                    <select class="status-select status-${defaultStatus}" onchange="updateStatus(this, '${order.source}', '${order.order_id}', '${mealType}')">
+                      <option value="queued" ${defaultStatus === 'queued' ? 'selected' : ''}>Queued</option>
+                      <option value="preparing" ${defaultStatus === 'preparing' ? 'selected' : ''}>Being Prepared</option>
+                      <option value="ready" ${defaultStatus === 'ready' ? 'selected' : ''}>Ready for Dispatch</option>
+                      <option value="dispatched" ${defaultStatus === 'dispatched' ? 'selected' : ''}>Dispatched</option>
+                    </select>
+                  </td>
+                </tr>
+              `;
+            });
+
+            body += `</tbody></table>`;
+          } else {
+            body += `<p class="text-muted">No ${mealType} orders found for today.</p>`;
+          }
+
+          section.innerHTML = header + body;
+          container.appendChild(section);
         }
 
-        section.innerHTML = header + body;
-        container.appendChild(section);
-      }
+        // ✅ Dynamically calculate and update summary counts
+        let total = 0, preparing = 0, ready = 0, dispatched = 0;
+        for (const mealType in data) {
+          const orders = data[mealType];
+          total += orders.length;
+          orders.forEach(order => {
+            const status = order.status || 'queued';
+            if (status === 'preparing') preparing++;
+            else if (status === 'ready') ready++;
+            else if (status === 'dispatched') dispatched++;
+          });
+        }
+        document.getElementById('total-orders').textContent = total;
+        document.getElementById('preparing-orders').textContent = preparing;
+        document.getElementById('ready-orders').textContent = ready;
+        document.getElementById('dispatched-orders').textContent = dispatched;
+      })
+      .catch(error => {
+        document.getElementById('orders-container').innerHTML = `
+          <div class="alert alert-danger">Failed to load orders. Please try again later.</div>
+        `;
+        console.error("Error:", error);
+      });
+  }
 
-      updateSummaryCards();
-    })
-    .catch(error => {
-      document.getElementById('orders-container').innerHTML = `
-        <div class="alert alert-danger">Failed to load orders. Please try again later.</div>
-      `;
-      console.error("Error:", error);
-    });
+  window.updateStatus = function(selectEl, source, orderId, mealType) {
+  const newStatus = selectEl.value;
+
+  fetch('/nokitchen/api/update-status/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCSRFToken(),
+    },
+    body: JSON.stringify({
+      order_id: orderId,
+      source: source,
+      meal_type: mealType,
+      status: newStatus,
+    }),
+  })
+  .then(res => res.json())
+  .then(response => {
+    if (response.success) {
+      selectEl.value = newStatus;
+      applyStatusClass(selectEl, newStatus);
+      setTimeout(() => loadOrders(), 200); // ✅ fixed: delayed refresh
+    } else {
+      alert("Failed to update status.");
+    }
+  })
+  .catch(err => {
+    console.error("Error updating status:", err);
+    alert("Error occurred while updating status.");
+  });
+};
+
+  function applyStatusClass(selectEl, status) {
+    selectEl.className = 'status-select'; // Reset
+    selectEl.classList.add(`status-${status}`);
+  }
+
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const c = cookies[i].trim();
+      if (c.startsWith(name + '=')) {
+        return decodeURIComponent(c.substring(name.length + 1));
+      }
+    }
+    return '';
+  }
 });
 </script>
-
 
 {% endblock %}

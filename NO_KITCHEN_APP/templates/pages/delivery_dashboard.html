@@ -425,10 +425,14 @@
 
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar">
-  <img src="https://i.pravatar.cc/100?img=11" alt="Profile Image"/>
-  <div class="user-id">DLR12345</div>
+  <img src="{{ partner.selfie.url }}" alt="Profile Image" onerror="this.src='https://i.pravatar.cc/100?u={{ partner.mobile }}'" />
+  <div class="user-id">
+    {{ partner.first_name }} {{ partner.last_name }}
+    <div style="font-size: 12px; color: #ccc;">
+      ID: {{ partner.agent_code }}
+    </div>
+  </div>
   <a href="{% url 'delivery_dashboard' %}" class="nav-link active"><i class="bi bi-speedometer2"></i>Dashboard</a>
   <a href="{% url 'delivery_myorders' %}" class="nav-link"><i class="bi bi-box-seam"></i>My Orders</a>
   <a href="{% url 'delivery_myearnings' %}" class="nav-link"><i class="bi bi-wallet2"></i>Earnings</a>
@@ -436,6 +440,7 @@
   <a href="{% url 'delivery_profile' %}" class="nav-link"><i class="bi bi-person-circle"></i>Profile</a>
   <a href="#" class="nav-link"><i class="bi bi-box-arrow-right"></i>Logout</a>
 </div>
+
 
 <!-- Main Content -->
 <div class="main-content">
@@ -470,31 +475,6 @@
   </div>
 </div>
 
-
-<!-- Updated Banner with Bike Icon Progress -->
-<section class="banner-section updated p-3 mb-4 rounded shadow-sm border-start border-4 border-swiggy-orange bg-white d-flex align-items-center gap-4">
-
-  <!-- Info -->
-  <div class="flex-grow-1">
-    <h6 class="mb-2 swiggy-orange fw-semibold fs-5">Offers & Bonus</h6>
-    <p class="mb-3 text-muted fw-medium fs-6">
-      No kitchen charges • Bonus on 10+ weekly orders
-    </p>
-
-    <!-- Progress Container -->
-    <div class="progress-container position-relative" aria-label="Bonus Progress" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="7">
-      <div class="progress-bar-bg rounded-pill"></div>
-      
-      <!-- Bike icon moving -->
-      <i class="bi bi-bicycle-fill bike-icon position-absolute"></i>
-    </div>
-
-    <!-- Orders Info -->
-    <div class="d-flex justify-content-between mt-2">
-      <span class="text-green fw-semibold fs-6">7 / 10 Orders Completed</span>
-      <small class="text-muted fw-medium fs-7">Complete 3 more to earn bonus</small>
-    </div>
-  </div>
 
 </section>
 

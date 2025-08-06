@@ -883,12 +883,16 @@ class StoreAdmin(models.Model):
 # Delivery Person 
 
 from django.db import models
+import uuid
 
 class DeliveryPartner(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     mobile = models.CharField(max_length=15, unique=True)
+
+    # ✅ Add this field
+    agent_code = models.CharField(max_length=20, unique=True, blank=True, null=True)
 
     # Document fields
     pan_number = models.CharField(max_length=20, blank=True, null=True)
@@ -908,6 +912,12 @@ class DeliveryPartner(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.mobile})"
 
+    def save(self, *args, **kwargs):
+        if not self.agent_code:
+            base_code = "DLR"
+            unique_id = uuid.uuid4().hex[:6].upper()
+            self.agent_code = f"{base_code}{unique_id}"
+        super().save(*args, **kwargs)
 
 
 
@@ -982,7 +992,8 @@ class PreparationStatus(models.Model):
 
     meal_type = models.CharField(max_length=20)  # breakfast/lunch/dinner
     date = models.DateField()
-    time = models.TimeField()
+    time = models.TimeField(null=True, blank=True)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='queued')
     updated_at = models.DateTimeField(auto_now=True)
 

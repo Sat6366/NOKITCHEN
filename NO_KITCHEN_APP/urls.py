@@ -100,4 +100,6 @@ urlpatterns = [
     path('today-orders/', views.today_orders_api_template, name='today-orders'),  
     path('api/update-status/',views.update_order_status, name='update_order_status'),
     path('api/live-summary/',views.live_summary, name='live_summary'),
+    path('delivery/send-otp/', views.send_otp, name='send_otp'),
+    path('delivery/verify-otp/', views.verify_otp, name='verify_otp'),
 ]

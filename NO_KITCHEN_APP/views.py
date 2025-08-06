@@ -2402,10 +2402,15 @@ from datetime import date
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from datetime import date
-from .models import WeeklyMealSelection, WeeklyMenuPlan, CustomMealPlan, FinalMealOrder, DeliveryAddress
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.contrib.contenttypes.models import ContentType
 from datetime import date
+
+from .models import (
+    WeeklyMealSelection, WeeklyMenuPlan, CustomMealPlan, FinalMealOrder,
+    PreparationStatus, DeliveryAddress
+)
 
 @api_view(['GET'])
 def today_meals_api(request):
@@ -2414,7 +2419,6 @@ def today_meals_api(request):
     meal_types = ['breakfast', 'lunch', 'dinner']
     data = {meal: [] for meal in meal_types}
 
-    # Helper to get delivery info
     def get_delivery_info(user, meal_type):
         try:
             delivery = DeliveryAddress.objects.filter(user=user).latest('id')
@@ -2424,7 +2428,19 @@ def today_meals_api(request):
         except DeliveryAddress.DoesNotExist:
             return ('N/A', 'N/A')
 
-    # WeeklyMealSelection: fetch for ALL users where today is within date range and day matches
+    def get_order_status(model_name, obj_id, meal_type):
+        try:
+            content_type = ContentType.objects.get(model=model_name.lower())
+            status_obj = PreparationStatus.objects.get(
+                content_type=content_type,
+                object_id=obj_id,
+                meal_type=meal_type,
+                date=today
+            )
+            return status_obj.status
+        except PreparationStatus.DoesNotExist:
+            return "queued"
+
     selections = WeeklyMealSelection.objects.filter(from_date__lte=today, to_date__gte=today, day=today_day)
     for sel in selections:
         selected_items = ', '.join([item.item_name for item in sel.selected_items.all()])
@@ -2439,9 +2455,9 @@ def today_meals_api(request):
             'delivery_time': time,
             'address': address,
             'price': float(sel.total_price),
+            'status': get_order_status('WeeklyMealSelection', sel.id, sel.meal_type),
         })
 
-    # WeeklyMenuPlan: for all users where today is within date range and day matches
     plans = WeeklyMenuPlan.objects.filter(from_date__lte=today, to_date__gte=today, day=today_day)
     for plan in plans:
         for meal_type in meal_types:
@@ -2459,9 +2475,9 @@ def today_meals_api(request):
                     'delivery_time': time,
                     'address': address,
                     'price': float(plan.total_price or 0),
+                    'status': get_order_status('WeeklyMenuPlan', plan.id, meal_type),
                 })
 
-    # CustomMealPlan: for all users where today in range, and meal contains today_day string
     customs = CustomMealPlan.objects.filter(start_date__lte=today, end_date__gte=today)
     for custom in customs:
         for meal_type in meal_types:
@@ -2478,9 +2494,9 @@ def today_meals_api(request):
                     'delivery_time': time,
                     'address': address,
                     'price': float(custom.total_price),
+                    'status': get_order_status('CustomMealPlan', custom.id, meal_type),
                 })
 
-    # FinalMealOrder: for all users where today is within range
     finals = FinalMealOrder.objects.filter(start_date__lte=today, end_date__gte=today)
     for order in finals:
         for meal_type in meal_types:
@@ -2500,10 +2516,10 @@ def today_meals_api(request):
                 'delivery_time': str(delivery_time) if delivery_time else 'N/A',
                 'address': address,
                 'price': float(order.total_amount),
+                'status': get_order_status('FinalMealOrder', order.id, meal_type),
             })
 
     return Response(data)
-
 
 
 # Template view
@@ -2513,51 +2529,64 @@ def today_orders_api_template(request):
     return render(request, 'pages/today_orders_api.html')
 
 
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.contenttypes.models import ContentType
-from datetime import date
-from .models import PreparationStatus
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.contrib.contenttypes.models import ContentType
+from datetime import date, datetime
+from .models import (
+    WeeklyMealSelection, WeeklyMenuPlan, CustomMealPlan, FinalMealOrder,
+    PreparationStatus
+)
 
 @api_view(['POST'])
 def update_order_status(request):
     data = request.data
-    model_name = data.get('source')  # e.g., 'WeeklyMealSelection'
+    model_name = data.get('source')
     order_id = data.get('order_id')
     meal_type = data.get('meal_type')
     status = data.get('status')
 
-    try:
-        # Get content type
-        content_type = ContentType.objects.get(model=model_name.lower())
+    print("🟡 Received data:", data)
 
-        # Match order_id field by model
+    try:
+        if not all([model_name, order_id, meal_type, status]):
+            return Response({'success': False, 'error': 'Missing data'})
+
+        # Get the object based on model name
         if model_name == 'WeeklyMealSelection':
-            obj = content_type.get_object_for_this_type(custom_order_id=order_id)
+            obj = WeeklyMealSelection.objects.get(custom_order_id=order_id)
         elif model_name == 'WeeklyMenuPlan':
-            obj = content_type.get_object_for_this_type(plan_order_id=order_id)
+            obj = WeeklyMenuPlan.objects.get(plan_order_id=order_id)
         elif model_name == 'CustomMealPlan':
-            obj = content_type.get_object_for_this_type(custom_order_id=order_id)
+            obj = CustomMealPlan.objects.get(custom_order_id=order_id)
         elif model_name == 'FinalMealOrder':
-            obj = content_type.get_object_for_this_type(order_id=order_id)
+            obj = FinalMealOrder.objects.get(order_id=order_id)
         else:
             return Response({'success': False, 'error': 'Invalid model name'})
 
-        # Create or update preparation status
-        preparation, created = PreparationStatus.objects.update_or_create(
+        content_type = ContentType.objects.get_for_model(obj.__class__)
+
+        # ✅ Now add 'time' explicitly to satisfy model constraint
+        PreparationStatus.objects.update_or_create(
             content_type=content_type,
             object_id=obj.id,
             meal_type=meal_type,
             date=date.today(),
-            defaults={'status': status}
+            defaults={
+                'status': status,
+                'time': datetime.now().time(),  # ✅ FIX: time is required
+            }
         )
 
+        print("✅ Status updated successfully.")
         return Response({'success': True, 'message': 'Status updated'})
+
     except Exception as e:
+        print("❌ Backend exception:", str(e))
         return Response({'success': False, 'error': str(e)})
-
-
 
 
 
@@ -2646,16 +2675,116 @@ def delivery_agentstep1(request):
     return render(request, 'pages/delivery_agentstep1.html')
 
 
+from django.shortcuts import render
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.conf import settings
+from django.core.cache import cache
+import requests
+
+from .models import DeliveryPartner
+
 def delivery_agentstep2(request):
     return render(request, 'pages/delivery_agentstep2.html')
 
 
 
+
 # views.py
-from django.shortcuts import render
+import requests
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.core.cache import cache  # ✅ add this at top if not already imported
+
+@csrf_exempt
+def send_otp(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        mobile = data.get("mobile")
+
+        if not mobile:
+            return JsonResponse({"success": False, "message": "Mobile number is required."})
+
+        if not DeliveryPartner.objects.filter(mobile=mobile).exists():
+            return JsonResponse({"success": False, "message": "Mobile number not registered."})
+
+        api_key = settings.TWO_FACTOR_API_KEY
+        url = f"https://2factor.in/API/V1/{api_key}/SMS/{mobile}/AUTOGEN"
+
+        try:
+            response = requests.get(url)
+            result = response.json()
+
+            if result.get("Status") == "Success":
+                session_id = result.get("Details")
+
+                # ✅ Store mobile number in cache against session_id for 5 mins
+                cache.set(session_id, mobile, timeout=300)  # 5 minutes
+
+                return JsonResponse({"success": True, "session_id": session_id})
+            else:
+                return JsonResponse({"success": False, "message": result.get("Details", "Failed to send OTP")})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+
+@csrf_exempt
+def verify_otp(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        session_id = data.get("session_id")
+        otp_entered = data.get("otp")
+
+        if not session_id or not otp_entered:
+            return JsonResponse({"success": False, "message": "Session ID and OTP are required."})
+
+        api_key = settings.TWO_FACTOR_API_KEY
+        url = f"https://2factor.in/API/V1/{api_key}/SMS/VERIFY/{session_id}/{otp_entered}"
+
+        try:
+            response = requests.get(url)
+            result = response.json()
+
+            if result.get("Status") == "Success":
+                # ✅ Save delivery partner in session
+                mobile = cache.get(session_id)
+                if not mobile:
+                    return JsonResponse({"success": False, "message": "Session expired."})
+
+                try:
+                    partner = DeliveryPartner.objects.get(mobile=mobile)
+                    request.session['delivery_partner_id'] = partner.id
+                    return JsonResponse({"success": True, "message": "OTP verified and login successful!"})
+                except DeliveryPartner.DoesNotExist:
+                    return JsonResponse({"success": False, "message": "Partner not found."})
+
+            return JsonResponse({"success": False, "message": "Invalid OTP"})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+
+
+
+# views.py
+from django.shortcuts import render, redirect
+from .models import DeliveryPartner
 
 def delivery_dashboard(request):
-    return render(request, 'pages/delivery_dashboard.html')
+    partner_id = request.session.get('delivery_partner_id')
+
+    if not partner_id:
+        return redirect('delivery_agentstep2')  # or your login page
+
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return redirect('delivery_agentstep2')
+
+    return render(request, 'pages/delivery_dashboard.html', {
+        'partner': partner
+    })
 
 
 from django.shortcuts import render

@@ -127,7 +127,8 @@
 </head>
 <body>
 
-<div class="login-container">
+
+  <div class="login-container">
   <div class="login-icon">
     <i class="bi bi-box-seam-fill"></i>
   </div>
@@ -145,8 +146,8 @@
     <button class="btn btn-outline-orange" onclick="getOTP()">Get OTP</button>
   </div>
 
-  <!-- OTP Input -->
-  <div class="input-with-icon">
+  <!-- OTP Input (hidden initially) -->
+  <div id="otp-section" class="input-with-icon" style="display: none;">
     <i class="bi bi-shield-lock-fill"></i>
     <input type="text" class="form-control" id="otp" placeholder="Enter 6-digit OTP" maxlength="6">
   </div>
@@ -156,32 +157,89 @@
 
   <!-- Footer -->
   <div class="login-footer">
-   <p>Not registered? <a href="{% url 'delivery_register' %}">Join as Partner</a></p>
-
+    <p>Not registered? <a href="{% url 'delivery_register' %}">Join as Partner</a></p>
   </div>
 </div>
 
+
+
 <script>
+  let sessionId = "";
+
   function getOTP() {
-    const mobile = document.getElementById('mobile').value;
-    if (mobile.length === 10) {
-      alert("OTP sent to " + mobile);
+    const mobile = document.getElementById('mobile').value.trim();
+    if (mobile.length === 10 && /^[0-9]{10}$/.test(mobile)) {
+      fetch('/nokitchen/delivery/send-otp/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ mobile: mobile })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          sessionId = data.session_id;
+          alert("OTP sent to " + mobile);
+          document.getElementById("otp-section").style.display = "block";  // ✅ Show OTP input
+        } else {
+          alert("Error: " + data.message);
+        }
+      })
+      .catch(error => {
+        alert("Network error: " + error);
+      });
     } else {
       alert("Please enter a valid 10-digit mobile number.");
     }
   }
 
   function login() {
-    const otp = document.getElementById('otp').value;
-    if (otp.length === 6) {
-      alert("Logged in successfully!");
-      // Simulate redirect
-      window.location.href = "delivery_agentstep2.html";
+    const otp = document.getElementById('otp').value.trim();
+    if (otp.length === 6 && sessionId) {
+      fetch('/nokitchen/delivery/verify-otp/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          otp: otp,
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("Logged in successfully!");
+          window.location.href = "/nokitchen/delivery_dashboard/";
+        } else {
+          alert("OTP verification failed: " + data.message);
+        }
+      })
+      .catch(error => {
+        alert("Network error: " + error);
+      });
     } else {
-      alert("Invalid OTP");
+      alert("Enter valid OTP and request OTP first.");
     }
   }
+
+  // CSRF Token helper
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const c = cookies[i].trim();
+      if (c.startsWith(name + '=')) {
+        return decodeURIComponent(c.substring(name.length + 1));
+      }
+    }
+    return '';
+  }
 </script>
+
 
 </body>
 </html>
