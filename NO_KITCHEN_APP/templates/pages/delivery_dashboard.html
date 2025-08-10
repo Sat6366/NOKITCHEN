@@ -425,6 +425,7 @@
 
 <body>
 
+
 <div class="sidebar">
   <img src="{{ partner.selfie.url }}" alt="Profile Image" onerror="this.src='https://i.pravatar.cc/100?u={{ partner.mobile }}'" />
   <div class="user-id">
@@ -444,26 +445,8 @@
 
 <!-- Main Content -->
 <div class="main-content">
+  
 <!-- Wrap both in a flex container -->
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-  <!-- Left side: location -->
-  <div id="location" class="location-container p-3 flex-grow-1" style="min-width: 300px;">
-    <div class="d-flex align-items-center mb-2">
-      <i class="bi bi-geo-alt-fill text-orange me-2" style="font-size: 1.2rem;"></i>
-      <h5 class="text-orange mb-0 flex-grow-1">Your Location</h5>
-      <div id="locationSpinner" class="spinner-border spinner-border-sm text-orange ms-2 d-none" role="status" aria-live="polite" aria-label="Loading location">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <input type="text" id="locationInput" class="form-control" placeholder="Location will appear here" readonly>
-      <button id="locationBtn" class="btn btn-outline-orange d-flex align-items-center" onclick="toggleLocation()">
-        <i id="locationIcon" class="bi bi-crosshair me-2" style="font-size: 1.1rem;"></i>
-        Use My Location
-      </button>
-    </div>
-    <small id="locationStatus" class="text-muted mt-2 d-block">We use your browser's GPS to fetch your current location.</small>
-  </div>
 
   <!-- Right side: toggle button -->
   <div class="status-toggle d-flex align-items-center">
@@ -479,60 +462,59 @@
 </section>
 
 
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function getMyLocation() {
-  const input = document.getElementById('locationInput');
-  const spinner = document.getElementById('locationSpinner');
-
-  if (navigator.geolocation) {
-    spinner.classList.remove('d-none'); // Show loading spinner
-    input.value = 'Fetching location...';
-
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const lat = pos.coords.latitude.toFixed(4);
-        const lon = pos.coords.longitude.toFixed(4);
-        input.value = `Lat: ${lat}, Lon: ${lon}`;
-        spinner.classList.add('d-none'); // Hide spinner
-      },
-      () => {
-        input.value = 'Unable to retrieve location';
-        spinner.classList.add('d-none');
-      }
-    );
-  } else {
-    input.value = 'Geolocation not supported';
-  }
-}
-
-
 document.addEventListener("DOMContentLoaded", function () {
   const toggleCheckbox = document.getElementById("toggleStatus");
   const toggleLabelText = document.querySelector(".status-text");
 
-  // Load saved status from localStorage
+  // Load saved status
   const savedStatus = localStorage.getItem("deliveryStatus");
-  if (savedStatus === "online") {
-    toggleCheckbox.checked = true;
-    toggleLabelText.textContent = "Online";
-  } else {
-    toggleCheckbox.checked = false;
-    toggleLabelText.textContent = "Offline";
-  }
+  toggleCheckbox.checked = savedStatus === "online";
+  toggleLabelText.textContent = savedStatus === "online" ? "Online" : "Offline";
 
   toggleCheckbox.addEventListener("change", function () {
     if (this.checked) {
-      toggleLabelText.textContent = "Online";
-      localStorage.setItem("deliveryStatus", "online");
+      // Try geolocation
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          fetch("{% url 'check_nearby_store' %}", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: JSON.stringify({ latitude: lat, longitude: lon }),
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.allowed) {
+                toggleLabelText.textContent = "Online";
+                localStorage.setItem("deliveryStatus", "online");
+              } else {
+                alert(data.message);
+                toggleCheckbox.checked = false;
+                toggleLabelText.textContent = "Offline";
+                localStorage.setItem("deliveryStatus", "offline");
+              }
+            });
+        }, function (error) {
+          alert("Location access denied.");
+          toggleCheckbox.checked = false;
+        });
+      } else {
+        alert("Geolocation not supported by this browser.");
+        toggleCheckbox.checked = false;
+      }
     } else {
       toggleLabelText.textContent = "Offline";
       localStorage.setItem("deliveryStatus", "offline");
     }
   });
 });
-
 </script>
+
 </body>
 </html>

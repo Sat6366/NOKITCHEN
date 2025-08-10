@@ -2766,10 +2766,10 @@ def verify_otp(request):
 
 
 
-
-# views.py
 from django.shortcuts import render, redirect
-from .models import DeliveryPartner
+from .models import DeliveryPartner, StoreLocation
+from geopy.distance import geodesic
+
 
 def delivery_dashboard(request):
     partner_id = request.session.get('delivery_partner_id')
@@ -2782,13 +2782,79 @@ def delivery_dashboard(request):
     except DeliveryPartner.DoesNotExist:
         return redirect('delivery_agentstep2')
 
+    # Default: no nearby stores
+    nearby_stores = []
+
+    # Check if location data is sent via POST or GET
+    lat = request.POST.get('latitude') or request.GET.get('latitude')
+    lon = request.POST.get('longitude') or request.GET.get('longitude')
+
+    if lat and lon:
+        try:
+            current_location = (float(lat), float(lon))
+
+            for store in StoreLocation.objects.filter(is_active=True):
+                store_location = (store.latitude, store.longitude)
+                distance = geodesic(current_location, store_location).km
+
+                if distance <= 5:
+                    nearby_stores.append({
+                        'store_id': store.id,
+                        'name': store.name,
+                        'latitude': store.latitude,
+                        'longitude': store.longitude,
+                        'distance_km': round(distance, 2)
+                    })
+        except Exception as e:
+            print("Error calculating distance:", e)
+
     return render(request, 'pages/delivery_dashboard.html', {
-        'partner': partner
+        'partner': partner,
+        'nearby_stores': nearby_stores
     })
 
 
 from django.shortcuts import render
 
+
+from geopy.distance import geodesic
+from .models import StoreLocation, DeliveryPartner, DetectedLocation
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def check_nearby_store(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        lat = data.get("latitude")
+        lon = data.get("longitude")
+        partner_id = request.session.get("delivery_partner_id")
+
+        if not (lat and lon and partner_id):
+            return JsonResponse({"allowed": False, "message": "Missing location or session."})
+
+        try:
+            partner = DeliveryPartner.objects.get(id=partner_id)
+        except DeliveryPartner.DoesNotExist:
+            return JsonResponse({"allowed": False, "message": "Invalid user."})
+
+        # Save detected location
+        DetectedLocation.objects.create(
+            delivery_partner=partner,
+            latitude=lat,
+            longitude=lon
+        )
+
+        # Check proximity to active stores
+        current = (float(lat), float(lon))
+        for store in StoreLocation.objects.filter(is_active=True):
+            distance = geodesic(current, (store.latitude, store.longitude)).meters
+            if distance <= 50:  # ✅ 50 meters
+                return JsonResponse({"allowed": True, "message": f"Within {round(distance, 2)}m of {store.name}"})
+
+        return JsonResponse({"allowed": False, "message": "No nearby stores within 50 meters."})
 
 
 def delivery_myearnings(request):

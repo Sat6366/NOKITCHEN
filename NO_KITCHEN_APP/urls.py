@@ -102,4 +102,5 @@ urlpatterns = [
     path('api/live-summary/',views.live_summary, name='live_summary'),
     path('delivery/send-otp/', views.send_otp, name='send_otp'),
     path('delivery/verify-otp/', views.verify_otp, name='verify_otp'),
+    path('api/check-nearby-store/',views .check_nearby_store, name='check_nearby_store'),
 ]

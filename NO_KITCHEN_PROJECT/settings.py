@@ -142,3 +142,8 @@ API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjIzOTNkMjI4Mjg1M
 # settings.py delivery persons
 
 TWO_FACTOR_API_KEY = "e934929b-7284-11f0-a562-0200cd936042"
+
+
+# settings.py
+
+IPINFO_API_TOKEN = 'ecddb6ab13db33'

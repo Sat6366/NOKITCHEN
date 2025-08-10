@@ -921,6 +921,14 @@ class DeliveryPartner(models.Model):
 
 
 
+class DetectedLocation(models.Model):
+    delivery_partner = models.ForeignKey(DeliveryPartner, on_delete=models.CASCADE)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.delivery_partner} at ({self.latitude}, {self.longitude})"
 
 
 
