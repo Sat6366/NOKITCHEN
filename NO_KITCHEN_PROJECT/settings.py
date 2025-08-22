@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-+9n9y_&5y8)ih+3cfr_)gzb!7_%$*9w&#sbsc#k*i&h!&u@_z0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.0.10', 'localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -37,9 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'NO_KITCHEN_APP',
     'phonenumber_field',
+    "rest_framework",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -99,6 +102,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # Optionally also allow Django session auth while developing:
+        # "rest_framework.authentication.SessionAuthentication",
+    ),
+    # Leave permissions per view, or temporarily:
+    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",)
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 LANGUAGE_CODE = 'en-us'
@@ -142,3 +157,20 @@ API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjIzOTNkMjI4Mjg1M
 # settings.py delivery persons
 
 TWO_FACTOR_API_KEY = "e934929b-7284-11f0-a562-0200cd936042"
+
+
+
+
+# settings.py
+POSITIONSTACK_API_KEY = '885977b652c64cf5ad940b7492fa64a7'
+
+
+IPSTACK_API_KEY = '1a15f39095bf53df01c3d75f50ddb3d7'
+CORS_ALLOW_ALL_ORIGINS = True
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+}

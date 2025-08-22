@@ -16,3 +16,16 @@ def create_preparation_status(order_instance, meal_type, delivery_date, delivery
         time=delivery_time,
         status='queued'
     )
+
+
+
+
+
+from django.conf import settings
+import requests
+
+def get_location_info(ip_address):
+    token = settings.IPINFO_TOKEN
+    url = f"https://ipinfo.io/{ip_address}?token={token}"
+    response = requests.get(url)
+    return response.json()

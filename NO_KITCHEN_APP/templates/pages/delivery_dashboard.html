@@ -419,11 +419,98 @@
   transition: left 0.6s ease;
   z-index: 10;
 }
+.toast-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+.toast-success {
+  background-color: #28a745;
+}
+.toast-error {
+  background-color: #e86975ff;
+}
+.toast-warning {
+  background-color: #ffc107;
+  color: #000;
+}
 
-  </style>
+
+
+
+
+
+
+
+ /* Modal backdrop */
+  #offlineConfirmModal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 9999;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background-color: rgba(250, 250, 247, 0.5);
+    align-items: center; justify-content: center;
+  }
+
+  /* Modal content box */
+  #offlineConfirmModal .modal-content {
+    background: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    max-width: 400px;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    color: #333;
+  }
+
+  /* Buttons container */
+  #offlineConfirmModal .modal-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  /* Button styles */
+  #offlineConfirmModal button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    transition: background-color 0.3s ease;
+  }
+
+  #offlineConfirmModal .btn-confirm {
+    background-color: rgba(1, 145, 9, 1);
+    color: white;
+  }
+  #offlineConfirmModal .btn-confirm:hover {
+    background-color: #f6f0ebff;
+  }
+
+  #offlineConfirmModal .btn-cancel {
+    background-color: #ccc;
+  }
+  #offlineConfirmModal .btn-cancel:hover {
+    background-color: #999;
+  }
+</style>
+
+  
 </head>
 
 <body>
+
 
 <div class="sidebar">
   <img src="{{ partner.selfie.url }}" alt="Profile Image" onerror="this.src='https://i.pravatar.cc/100?u={{ partner.mobile }}'" />
@@ -444,26 +531,8 @@
 
 <!-- Main Content -->
 <div class="main-content">
+  
 <!-- Wrap both in a flex container -->
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-  <!-- Left side: location -->
-  <div id="location" class="location-container p-3 flex-grow-1" style="min-width: 300px;">
-    <div class="d-flex align-items-center mb-2">
-      <i class="bi bi-geo-alt-fill text-orange me-2" style="font-size: 1.2rem;"></i>
-      <h5 class="text-orange mb-0 flex-grow-1">Your Location</h5>
-      <div id="locationSpinner" class="spinner-border spinner-border-sm text-orange ms-2 d-none" role="status" aria-live="polite" aria-label="Loading location">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <input type="text" id="locationInput" class="form-control" placeholder="Location will appear here" readonly>
-      <button id="locationBtn" class="btn btn-outline-orange d-flex align-items-center" onclick="toggleLocation()">
-        <i id="locationIcon" class="bi bi-crosshair me-2" style="font-size: 1.1rem;"></i>
-        Use My Location
-      </button>
-    </div>
-    <small id="locationStatus" class="text-muted mt-2 d-block">We use your browser's GPS to fetch your current location.</small>
-  </div>
 
   <!-- Right side: toggle button -->
   <div class="status-toggle d-flex align-items-center">
@@ -475,64 +544,120 @@
   </div>
 </div>
 
+<div id="offlineConfirmModal">
+  <div class="modal-content">
+    <h3>Are you sure you want to go offline?</h3>
+    <p> You may lose extra bonus opportunities.</p>
+    <div class="modal-buttons">
+      <button class="btn-confirm">Continue</button>
+      <button class="btn-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
 
 </section>
 
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  function getMyLocation() {
-  const input = document.getElementById('locationInput');
-  const spinner = document.getElementById('locationSpinner');
-
-  if (navigator.geolocation) {
-    spinner.classList.remove('d-none'); // Show loading spinner
-    input.value = 'Fetching location...';
-
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const lat = pos.coords.latitude.toFixed(4);
-        const lon = pos.coords.longitude.toFixed(4);
-        input.value = `Lat: ${lat}, Lon: ${lon}`;
-        spinner.classList.add('d-none'); // Hide spinner
-      },
-      () => {
-        input.value = 'Unable to retrieve location';
-        spinner.classList.add('d-none');
-      }
-    );
-  } else {
-    input.value = 'Geolocation not supported';
-  }
-}
-
-
-document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function () {
   const toggleCheckbox = document.getElementById("toggleStatus");
   const toggleLabelText = document.querySelector(".status-text");
+  const offlineModal = document.getElementById("offlineConfirmModal");
+  const btnConfirm = offlineModal.querySelector(".btn-confirm");
+  const btnCancel = offlineModal.querySelector(".btn-cancel");
 
   // Load saved status from localStorage
   const savedStatus = localStorage.getItem("deliveryStatus");
-  if (savedStatus === "online") {
-    toggleCheckbox.checked = true;
-    toggleLabelText.textContent = "Online";
-  } else {
-    toggleCheckbox.checked = false;
-    toggleLabelText.textContent = "Offline";
-  }
+  toggleCheckbox.checked = savedStatus === "online";
+  toggleLabelText.textContent = savedStatus === "online" ? "Online" : "Offline";
 
   toggleCheckbox.addEventListener("change", function () {
     if (this.checked) {
-      toggleLabelText.textContent = "Online";
-      localStorage.setItem("deliveryStatus", "online");
+      // Going online (use your existing logic here)
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          sendLocation(position.coords.latitude, position.coords.longitude);
+        }, function (error) {
+          sendLocation(null, null);
+        }, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      } else {
+        sendLocation(null, null);
+      }
     } else {
-      toggleLabelText.textContent = "Offline";
-      localStorage.setItem("deliveryStatus", "offline");
+      // Going offline - show confirmation modal
+      // Temporarily revert toggle to ON until confirmation
+      toggleCheckbox.checked = true;
+
+      offlineModal.style.display = "flex";
+
+      btnConfirm.onclick = function () {
+        // User confirmed going offline
+        offlineModal.style.display = "none";
+        toggleCheckbox.checked = false;
+        toggleLabelText.textContent = "Offline";
+        localStorage.setItem("deliveryStatus", "offline");
+        showToast("You're now offline.", "warning");
+      };
+
+      btnCancel.onclick = function () {
+        // User cancelled - keep toggle ON
+        offlineModal.style.display = "none";
+        toggleCheckbox.checked = true;
+      };
     }
   });
-});
 
+  function sendLocation(lat, lon) {
+    fetch("{% url 'check_nearby_store' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ latitude: lat, longitude: lon })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.allowed) {
+        toggleLabelText.textContent = "Online";
+        localStorage.setItem("deliveryStatus", "online");
+        showToast(data.message, "success");
+      } else {
+        toggleCheckbox.checked = false;
+        toggleLabelText.textContent = "Offline";
+        localStorage.setItem("deliveryStatus", "offline");
+        showToast(data.message, "error");
+      }
+    })
+    .catch(() => {
+      toggleCheckbox.checked = false;
+      toggleLabelText.textContent = "Offline";
+      localStorage.setItem("deliveryStatus", "offline");
+      showToast("Error checking location.", "error");
+    });
+  }
+
+  function showToast(message, type = "success") {
+    const toast = document.createElement("div");
+    toast.classList.add("toast-message");
+
+    if (type === "success") toast.classList.add("toast-success");
+    else if (type === "error") toast.classList.add("toast-error");
+    else toast.classList.add("toast-warning");
+
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      setTimeout(() => toast.remove(), 500);
+    }, 4000);
+  }
+});
 </script>
+
 </body>
 </html>

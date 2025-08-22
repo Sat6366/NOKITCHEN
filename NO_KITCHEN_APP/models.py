@@ -855,28 +855,72 @@ class FinalMealOrder(models.Model):
 
 
 # models.py
+
 from django.db import models
 
-class StoreAdmin(models.Model):
+#
+
+from django.db import models
+from django.conf import settings
+import requests
+
+class StoreLocation(models.Model):
     name = models.CharField(max_length=100)
-    mobile = models.CharField(max_length=15, unique=True)
-    email = models.EmailField(unique=True)
-    is_approved = models.BooleanField(default=False)  # External admin approval required
-    is_active = models.BooleanField(default=True)      # Set to False to deactivate access
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    city = models.CharField(max_length=100, blank=True, null=True)  # Auto-filled
+    status = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def status(self):
-        if not self.is_active:
-            return "Deactivated"
-        elif not self.is_approved:
-            return "Pending Approval"
-        return "Active"
+    def fetch_city_name(self):
+        """
+        Automatically fetch city name from latitude & longitude using OpenCage API.
+        """
+        try:
+            # Use API key from settings or fallback to hardcoded one (for now)
+            api_key = getattr(settings, "OPENCAGE_API_KEY", "885977b652c64cf5ad940b7492fa64a7")
+            if not api_key:
+                print("[StoreLocation] Missing OPENCAGE_API_KEY in settings.")
+                return "Unknown"
+
+            url = "https://api.opencagedata.com/geocode/v1/json"
+            params = {
+                "q": f"{self.latitude},{self.longitude}",
+                "key": api_key
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("results"):
+                components = data["results"][0].get("components", {})
+                city_name = (
+                    components.get("city")
+                    or components.get("town")
+                    or components.get("village")
+                    or components.get("state_district")
+                    or components.get("state")
+                    or "Unknown"
+                )
+                return city_name.strip() if city_name else "Unknown"
+
+            return "Unknown"
+        except Exception as e:
+            print(f"[StoreLocation] Error fetching city name: {e}")
+            return "Unknown"
+
+    def save(self, *args, **kwargs):
+        """
+        Override save method to ensure city is auto-fetched from coordinates.
+        """
+        if self.latitude and self.longitude:
+            if not self.city or self.city.lower() in ["unknown", ""]:
+                self.city = self.fetch_city_name()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} ({self.status()})"
-
-
-
+        return f"{self.name} - {self.city if self.city else 'No City'}"
 
 
 
@@ -902,6 +946,7 @@ class DeliveryPartner(models.Model):
 
     # Extra fields
     location = models.CharField(max_length=255, blank=True, null=True)
+    selected_store = models.ForeignKey(StoreLocation, on_delete=models.SET_NULL, null=True, blank=True)
     selfie = models.ImageField(upload_to='delivery_docs/', blank=True, null=True)
 
     # Timestamps
@@ -921,10 +966,38 @@ class DeliveryPartner(models.Model):
 
 
 
+class DetectedLocation(models.Model):
+    delivery_partner = models.ForeignKey(DeliveryPartner, on_delete=models.CASCADE)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.delivery_partner} at ({self.latitude}, {self.longitude})"
 
 
 
 
+class StoreAdmin(models.Model):
+    store = models.ForeignKey(StoreLocation, on_delete=models.CASCADE, related_name="admins", default=9)
+
+    name = models.CharField(max_length=100)
+    mobile = models.CharField(max_length=15, unique=True)
+    email = models.EmailField(unique=True)
+    
+    is_approved = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def status(self):
+        if not self.is_active:
+            return "Deactivated"
+        elif not self.is_approved:
+            return "Pending Approval"
+        return "Active"
+
+    def __str__(self):
+        return f"{self.name} - {self.store.name} ({self.status()})"
 
 
 
@@ -955,17 +1028,7 @@ class DeliveryConfig(models.Model):
 
 # models.py
 
-class StoreLocation(models.Model):
-    name = models.CharField(max_length=100)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    is_active = models.BooleanField(default=True)  # Toggle for open/close
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.name} ({'Active' if self.is_active else 'Closed'})"
-
-
+# models.py
 
 
 

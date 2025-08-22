@@ -1696,27 +1696,51 @@ def thank_you(request):
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Profile, StoreAdmin
+from .models import Profile, StoreLocation
 
 def adminhome(request):
     profiles = Profile.objects.select_related('user').all()
-    return render(request, 'pages/adminhome.html', {'profiles': profiles})
+    stores = StoreLocation.objects.filter(is_active=True)  # ✅ fetch all active stores
+    return render(request, 'pages/adminhome.html', {
+        'profiles': profiles,
+        'stores': stores  # ✅ pass to template
+    })
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import StoreAdmin, StoreLocation
 
 def add_storeadmin_backend(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         mobile = request.POST.get('mobile')
         email = request.POST.get('email')
+        store_id = request.POST.get('store_id')
 
-        # Check for duplicates
+        try:
+            store = StoreLocation.objects.get(id=store_id)
+        except StoreLocation.DoesNotExist:
+            messages.error(request, "Invalid store selected.")
+            return redirect('adminhome')
+
         if StoreAdmin.objects.filter(email=email).exists():
             messages.error(request, "Email already exists.")
         elif StoreAdmin.objects.filter(mobile=mobile).exists():
             messages.error(request, "Mobile number already exists.")
         else:
-            StoreAdmin.objects.create(name=name, mobile=mobile, email=email)
-            messages.success(request, "Store Admin added successfully!")
+            StoreAdmin.objects.create(
+                name=name,
+                mobile=mobile,
+                email=email,
+                store=store
+            )
+            messages.success(request, f"Store Admin for {store.name} added successfully!")
 
-    return redirect('adminhome')
+        return redirect('adminhome')
+
+    # Send list of stores for dropdown
+    stores = StoreLocation.objects.filter(is_active=True)
+    return render(request, 'adminhome.html', {'stores': stores})
 
 
 
@@ -2636,15 +2660,17 @@ def delivery_register(request):
     return render(request, 'pages/delivery_register.html')
 
 
-# views.py
-from django.shortcuts import render
-
-from django.core.files.storage import FileSystemStorage
-from .models import DeliveryPartner
 from django.shortcuts import render, redirect
-from .models import DeliveryPartner
+from django.conf import settings
+from django.contrib import messages
+from django.http import JsonResponse
+import requests
+from .models import DeliveryPartner, StoreLocation
 
 def delivery_agentstep1(request):
+    stores = []
+
+    # ---------------- POST: Save Registration ----------------
     if request.method == 'POST':
         data = request.session.get('delivery_data')
         if not data:
@@ -2653,6 +2679,10 @@ def delivery_agentstep1(request):
         pan_card_image = request.FILES.get('pan_card_image')
         aadhar_file = request.FILES.get('aadhar_card_image')
         selfie = request.FILES.get('selfie_image')
+
+        user_location = request.POST.get('location')  # e.g., "17.4,78.4"
+        selected_store_id = request.POST.get('selected_store')
+        selected_store = StoreLocation.objects.filter(id=selected_store_id, is_active=True, status=True).first()
 
         DeliveryPartner.objects.create(
             first_name=data['first_name'],
@@ -2663,16 +2693,131 @@ def delivery_agentstep1(request):
             pan_card_image=pan_card_image,
             aadhar_number=request.POST.get('aadhar_number'),
             aadhar_file=aadhar_file,
-            location=request.POST.get('location'),
+            location=user_location,
+            selected_store=selected_store,
             selfie=selfie
         )
 
         request.session.pop('delivery_data', None)
-
-        # ✅ Redirect to step 2 page
+        messages.success(request, "Registration step 1 completed.")
         return redirect('delivery_agentstep2')
 
-    return render(request, 'pages/delivery_agentstep1.html')
+    # ---------------- GET: Detect Locality/City and Filter Stores ----------------
+    location_str = request.GET.get('location')  # from JS
+    session_city = request.session.get('delivery_data', {}).get('city')  # fallback
+
+    detected_locality = None
+    detected_city = None
+
+    # Reverse geocode with OpenCage if coords present
+    if location_str:
+        try:
+            lat, lon = map(float, location_str.split(','))
+            api_key = getattr(settings, 'OPENCAGE_API_KEY', None)
+            if api_key:
+                url = "https://api.opencagedata.com/geocode/v1/json"
+                params = {
+                    'q': f'{lat},{lon}',
+                    'key': api_key,
+                    'language': 'en',
+                    'no_annotations': 1,
+                    'limit': 1
+                }
+                resp = requests.get(url, params=params, timeout=8)
+                resp.raise_for_status()
+                results = resp.json().get('results', [])
+                if results:
+                    components = results[0].get('components', {})
+                    detected_locality = (
+                        components.get('suburb')
+                        or components.get('neighbourhood')
+                        or components.get('locality')
+                        or components.get('town')
+                        or components.get('village')
+                    )
+                    detected_city = (
+                        components.get('city')
+                        or components.get('county')
+                        or components.get('state_district')
+                        or components.get('state')
+                    )
+        except Exception as e:
+            print("OpenCage reverse geocode error:", e)
+
+    # Filter active stores
+    active_stores = StoreLocation.objects.filter(is_active=True, status=True)
+    stores = active_stores.none()
+
+    # 1️⃣ Try locality
+    if detected_locality:
+        stores = active_stores.filter(city__iexact=detected_locality)
+
+    # 2️⃣ Fallback to detected city
+    if not stores.exists() and detected_city:
+        stores = active_stores.filter(city__iexact=detected_city)
+
+    # 3️⃣ Fallback to session city
+    if not stores.exists() and session_city:
+        stores = active_stores.filter(city__iexact=session_city)
+
+    # 4️⃣ Final fallback: all active stores
+    if not stores.exists():
+        stores = active_stores
+
+    return render(request, 'pages/delivery_agentstep1.html', {
+        'stores': stores,
+        'detected_locality': detected_locality,
+        'detected_city': detected_city,
+        'location': location_str or ''
+    })
+
+
+from django.http import JsonResponse
+from django.conf import settings
+import requests
+
+def get_city_from_coords(request):
+    lat = request.GET.get('lat')
+    lon = request.GET.get('lon')
+
+    if not lat or not lon:
+        return JsonResponse({'error': 'Coordinates missing'}, status=400)
+
+    try:
+        url = "http://api.positionstack.com/v1/reverse"
+        params = {
+            'access_key': settings.POSITIONSTACK_API_KEY,
+            'query': f"{lat},{lon}",
+            'limit': 1
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        if 'data' in data and data['data']:
+            city = data['data'][0].get('locality') or data['data'][0].get('region') or "Unknown"
+            return JsonResponse({'city': city})
+        return JsonResponse({'city': 'Unknown'})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def get_stores_by_city(request):
+    city = request.GET.get('city')
+    if not city:
+        return JsonResponse({'stores': []})
+
+    stores = StoreLocation.objects.filter(city__iexact=city, is_active=True, status=True)
+
+    store_list = [
+        {
+            'id': store.id,
+            'name': store.name
+        }
+        for store in stores
+    ]
+    return JsonResponse({'stores': store_list})
+
 
 
 from django.shortcuts import render
@@ -2765,30 +2910,119 @@ def verify_otp(request):
             return JsonResponse({"success": False, "message": str(e)})
 
 
-
-
 # views.py
-from django.shortcuts import render, redirect
-from .models import DeliveryPartner
+import requests
+from django.conf import settings
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from geopy.distance import geodesic
+from .models import DeliveryPartner, DetectedLocation
+import json
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
 
 def delivery_dashboard(request):
     partner_id = request.session.get('delivery_partner_id')
-
     if not partner_id:
-        return redirect('delivery_agentstep2')  # or your login page
+        return redirect('delivery_agentstep2')
 
     try:
         partner = DeliveryPartner.objects.get(id=partner_id)
     except DeliveryPartner.DoesNotExist:
         return redirect('delivery_agentstep2')
 
+    nearby_stores = []
+    if partner.selected_store:
+        store = partner.selected_store
+        nearby_stores.append({
+            'store_id': store.id,
+            'name': store.name,
+            'latitude': store.latitude,
+            'longitude': store.longitude,
+        })
+
     return render(request, 'pages/delivery_dashboard.html', {
-        'partner': partner
+        'partner': partner,
+        'nearby_stores': nearby_stores
     })
 
 
-from django.shortcuts import render
 
+@csrf_exempt
+def check_nearby_store(request):
+    if request.method != "POST":
+        return JsonResponse({"allowed": False, "message": "Invalid request method."})
+
+    partner_id = request.session.get("delivery_partner_id")
+    if not partner_id:
+        return JsonResponse({"allowed": False, "message": "Not authenticated."})
+
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return JsonResponse({"allowed": False, "message": "Invalid partner."})
+
+    if not partner.selected_store:
+        return JsonResponse({"allowed": False, "message": "No store selected."})
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"allowed": False, "message": "Invalid data."})
+
+    lat = data.get("latitude")
+    lon = data.get("longitude")
+
+    # If no lat/lon sent, fallback to IP-based lookup
+    if lat is None or lon is None:
+        ip = get_client_ip(request)
+        if not ip:
+            return JsonResponse({"allowed": False, "message": "Cannot get IP."})
+
+        ipstack_url = f"http://api.ipstack.com/{ip}?access_key={settings.IPSTACK_API_KEY}"
+        try:
+            res = requests.get(ipstack_url, timeout=5)
+            res.raise_for_status()
+            loc_data = res.json()
+            lat = loc_data.get("latitude")
+            lon = loc_data.get("longitude")
+        except Exception:
+            return JsonResponse({"allowed": False, "message": "Failed IP geolocation."})
+
+        if lat is None or lon is None:
+            return JsonResponse({"allowed": False, "message": "IP location unavailable."})
+
+    # Save detected location (optional)
+    DetectedLocation.objects.create(
+        delivery_partner=partner,
+        latitude=lat,
+        longitude=lon
+    )
+
+    current = (float(lat), float(lon))
+    store = partner.selected_store
+    store_location = (store.latitude, store.longitude)
+
+    distance_meters = geodesic(current, store_location).meters
+
+    if distance_meters <= 10000:
+        return JsonResponse({
+            "allowed": True,
+            "message": f"<strong style='color:green;'>You are within {round(distance_meters,1)} meters of your selected store: <b>{store.name}</b>.</strong>"
+        })
+
+    return JsonResponse({
+        "allowed": False,
+        "message": f"<strong style='color:red;'>You are {round(distance_meters,1)} meters away from your selected store, exceeding 150 meters.</strong>"
+    })
 
 
 def delivery_myearnings(request):
@@ -2818,6 +3052,11 @@ def manage_stores(request):
     locations = StoreLocation.objects.all().order_by('-created_at')
     return render(request, 'pages/manage_stores.html', {'locations': locations})
 
+import requests
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 
 @login_required
 def add_store_location(request):
@@ -2825,20 +3064,55 @@ def add_store_location(request):
         name = request.POST.get('name')
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
+        city = request.POST.get('city')  # From JS autofill (optional)
         is_active = request.POST.get('is_active') == 'on'
 
         if name and latitude and longitude:
-            StoreLocation.objects.create(
-                name=name,
-                latitude=latitude,
-                longitude=longitude,
-                is_active=is_active
-            )
-            messages.success(request, "Store location added successfully.")
+            try:
+                # If city is not provided, fetch it from OpenCage
+                if not city:
+                    try:
+                        url = (
+                            f"https://api.opencagedata.com/geocode/v1/json?"
+                            f"q={latitude}+{longitude}&key={settings.OPENCAGE_API_KEY}&language=en"
+                        )
+                        response = requests.get(url)
+                        data = response.json()
+
+                        if data.get('results'):
+                            components = data['results'][0]['components']
+                            city = (
+                                components.get('city') or
+                                components.get('town') or
+                                components.get('village') or
+                                components.get('state_district') or
+                                components.get('state')
+                            )
+                    except Exception as geo_error:
+                        messages.warning(request, f"City lookup failed: {geo_error}")
+
+                # Save store location
+                store = StoreLocation(
+                    name=name,
+                    latitude=float(latitude),
+                    longitude=float(longitude),
+                    city=city,
+                    is_active=is_active
+                )
+                store.save()
+
+                messages.success(
+                    request,
+                    f"Store '{store.name}' added successfully in {store.city or 'Unknown'}."
+                )
+
+            except Exception as e:
+                messages.error(request, f"Error adding store: {e}")
         else:
             messages.error(request, "All fields are required.")
 
     return redirect('manage_stores')
+
 
 
 @login_required

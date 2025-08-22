@@ -248,28 +248,45 @@
     </div>
     {% endif %}
 
+    
     <div class="top-section">
-        <h2>Admin Dashboard</h2>
-        <button class="add-admin-btn" onclick="toggleStoreForm()">➕ Add Store Admin</button>
-    </div>
+    <h2>Admin Dashboard</h2>
+    <button class="add-admin-btn" onclick="toggleStoreForm()">➕ Add Store Admin</button>
+</div>
 
-    <!-- Store Admin Form -->
-    <div class="store-admin-form" id="storeAdminForm">
-        <h3>Add Store Admin</h3>
-        <form method="post" action="{% url 'add_storeadmin_backend' %}">
-            {% csrf_token %}
-            <label>Name</label>
-            <input type="text" name="name" required>
+<!-- Store Admin Form -->
+<div class="store-admin-form" id="storeAdminForm">
+    <h3>Add Store Admin</h3>
+    <form method="post" action="{% url 'add_storeadmin_backend' %}">
+        {% csrf_token %}
 
-            <label>Mobile</label>
-            <input type="text" name="mobile" required>
+        <label for="store_id">Select Store</label>
+        <select name="store_id" id="store_id" required>
+            <option value="">-- Select a Store --</option>
+            {% for store in stores %}
+                <option value="{{ store.id }}">{{ store.name }} - {{ store.city }}</option>
+            {% endfor %}
+        </select>
 
-            <label>Email</label>
-            <input type="email" name="email" required>
+        <label>Name</label>
+        <input type="text" name="name" required>
 
-            <button type="submit">Save Store Admin</button>
-        </form>
-    </div>
+        <label>Mobile</label>
+        <input type="text" name="mobile" required>
+
+        <label>Email</label>
+        <input type="email" name="email" required>
+
+        <button type="submit">Save Store Admin</button>
+    </form>
+</div>
+
+<script>
+function toggleStoreForm() {
+    const form = document.getElementById("storeAdminForm");
+    form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+}
+</script>
 
     <!-- User Table -->
     <div class="section">
@@ -307,12 +324,6 @@
         </table>
     </div>
 
-    <script>
-        function toggleStoreForm() {
-            const form = document.getElementById("storeAdminForm");
-            form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
-        }
-    </script>
-
+  
 </body>
 </html>
