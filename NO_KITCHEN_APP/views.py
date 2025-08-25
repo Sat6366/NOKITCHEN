@@ -61,10 +61,10 @@ def menu_not_user(request):
 
 
 
-from django.shortcuts import render
+from datetime import datetime, date, time, timedelta
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
-from .models import WeeklyMealSelection, Wallet, SkippedMeal
+from django.shortcuts import render
+from .models import WeeklyMealSelection, SkippedMeal, Wallet
 
 @login_required
 def account(request):
@@ -73,25 +73,28 @@ def account(request):
 
     from_date_obj, to_date_obj = None, None
 
-    # Default to latest from/to date if not in GET
-    if not from_date_str or not to_date_str:
-        latest_entry = (
-            WeeklyMealSelection.objects.filter(user=request.user)
-            .exclude(from_date__isnull=True, to_date__isnull=True)
-            .order_by('-from_date')
-            .first()
-        )
-        if latest_entry:
-            from_date_obj = latest_entry.from_date
-            to_date_obj = latest_entry.to_date
-    else:
+    # ✅ Allow user to choose ANY available date range (not just latest)
+    available_ranges = (
+        WeeklyMealSelection.objects.filter(user=request.user)
+        .exclude(from_date__isnull=True, to_date__isnull=True)
+        .values('from_date', 'to_date')
+        .distinct()
+        .order_by('-from_date')
+    )
+
+    if from_date_str and to_date_str:
         try:
             from_date_obj = datetime.strptime(from_date_str, "%Y-%m-%d").date()
             to_date_obj = datetime.strptime(to_date_str, "%Y-%m-%d").date()
         except ValueError:
             pass
+    else:
+        # default to latest entry
+        latest_entry = available_ranges.first()
+        if latest_entry:
+            from_date_obj = latest_entry['from_date']
+            to_date_obj = latest_entry['to_date']
 
-    # Filter meals by user and date range
     meals_qs = WeeklyMealSelection.objects.filter(user=request.user)
     if from_date_obj and to_date_obj:
         meals_qs = meals_qs.filter(from_date=from_date_obj, to_date=to_date_obj)
@@ -105,7 +108,7 @@ def account(request):
         ).values_list('meal_selection_id', flat=True)
     )
 
-    # Organize meal schedule
+    # ✅ Organize meal schedule
     meal_schedule = {}
     for meal in meals_qs:
         day = meal.get_day_display()
@@ -125,7 +128,8 @@ def account(request):
         'wallet_balance': wallet_balance,
         'skipped_ids': skipped_ids,
         'from_date': from_date_obj,
-        'to_date': to_date_obj
+        'to_date': to_date_obj,
+        'available_ranges': available_ranges,  # ✅ send to template
     })
 
 

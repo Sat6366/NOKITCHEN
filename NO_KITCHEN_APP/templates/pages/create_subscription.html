@@ -1,4 +1,3 @@
-
 {% extends 'pages/main.html' %}
 
 {% load static %}
@@ -83,8 +82,6 @@
 .btn-outline-orange:hover {
   background-color: #fff3e0;
 }
-
-
 
 /* How It Works Section */
 .how-it-works {
@@ -248,9 +245,261 @@
   }
 }
 
+/* Today's Menu Section */
+.today-menu-section {
+  background: linear-gradient(135deg, #ff9a3d, #ff6f00);
+  padding: 40px 20px;
+  color: white;
+  border-radius: 16px;
+  margin: 40px auto;
+  max-width: 1200px;
+}
 
+.banner-content {
+  display: flex;
+  justify-content: center;
+}
 
-    </style>
+.menu-box {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  color: #333;
+  width: 100%;
+  max-width: 800px;
+}
+
+.menu-header {
+  color: #ff6f00;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.icon-strip {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 25px;
+}
+
+.meal-icon {
+  font-size: 28px;
+  color: #ff6f00;
+  background: #fff3e0;
+  padding: 15px;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 25px;
+}
+
+.menu-list li {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  background: #fff8e1;
+  border-radius: 10px;
+  border-left: 4px solid #ff9800;
+}
+
+.menu-list li i {
+  margin-right: 15px;
+  color: #ff6f00;
+  font-size: 20px;
+  width: 24px;
+}
+
+.label {
+  font-weight: 600;
+  margin-right: 10px;
+  min-width: 80px;
+}
+
+.items {
+  flex: 1;
+}
+
+.weekly-total-box {
+  background: #ffecb3;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.weekly-total-box h4 {
+  margin: 0 0 10px 0;
+  color: #ff6f00;
+  font-weight: 600;
+}
+
+.price-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #e65100;
+}
+
+.menu-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.action-btn {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-btn:first-child {
+  background: #ff9800;
+  color: white;
+}
+
+.action-btn:first-child:hover {
+  background: #f57c00;
+}
+
+.action-btn.subscribe {
+  background: #e65100;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.action-btn.subscribe:hover {
+  background: #bf360c;
+}
+
+/* Weekly Menu Cards */
+.horizontal-weekly-cards {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 20px;
+  margin: 30px auto;
+  max-width: 1200px;
+}
+
+.week-card {
+  min-width: 280px;
+  height: 380px;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.week-card:nth-child(1) { --day1: linear-gradient(135deg, #ff9a9e, #fad0c4); }
+.week-card:nth-child(2) { --day2: linear-gradient(135deg, #a1c4fd, #c2e9fb); }
+.week-card:nth-child(3) { --day3: linear-gradient(135deg, #ffecd2, #fcb69f); }
+.week-card:nth-child(4) { --day4: linear-gradient(135deg, #84fab0, #8fd3f4); }
+.week-card:nth-child(5) { --day5: linear-gradient(135deg, #d4fc79, #96e6a1); }
+.week-card:nth-child(6) { --day6: linear-gradient(135deg, #a6c0fe, #f68084); }
+.week-card:nth-child(7) { --day7: linear-gradient(135deg, #fbc2eb, #a6c1ee); }
+
+.card-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 25px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.circle-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 3px solid white;
+}
+
+.circle-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.day-label {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.meal-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Form Styling */
+.meal-block {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  height: 100%;
+}
+
+.meal-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  border: 3px solid #ffcc80;
+}
+
+.save-btn {
+  background: #4caf50;
+  padding: 12px 30px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.subscription-btn {
+  background: #ff6f00;
+  padding: 12px 30px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.save-btn:hover {
+  background: #388e3c;
+}
+
+.subscription-btn:hover {
+  background: #e65100;
+}
+
+.d-none {
+  display: none;
+}
+</style>
     
 </div>
 <!-- How It Works Section -->
@@ -329,23 +578,17 @@
       </ul>
 
       <div class="weekly-total-box">
-  <h4>Total Weekly Menu Price</h4>
-  <div class="price-value">₹{{ weekly_total_price }}</div>
-</div>
+        <h4>Total Weekly Menu Price</h4>
+        <div class="price-value">₹{{ weekly_total_price }}</div>
+      </div>
 
       <div class="menu-actions">
         <button class="action-btn" onclick="toggleWeeklyMenu()">📅 Weekly Plan</button>
-
-       <a href="{% url 'pay_now' %}" class="action-btn subscribe">
-  🔔 Get Subscription
-</a>
-
+        <a href="{% url 'pay_now' %}" class="action-btn subscribe">🔔 Get Subscription</a>
       </div>
     </div>
   </div>
 </section>
-
-
 
 <div id="weekly-row" class="horizontal-weekly-cards d-none">
   {% for menu in weekly_data %}
@@ -365,391 +608,6 @@
   {% endfor %}
 </div>
 
-<!-- JS -->
-<script>
-  function toggleWeeklyMenu() {
-    const section = document.getElementById('weekly-row');
-    const button = document.getElementById('weekly-toggle-btn');
-    section.classList.toggle('d-none');
-    button.textContent = section.classList.contains('d-none') ? "Show Weekly Menu" : "Hide Weekly Menu";
-  }
-</script>
-
-
-<style>
-  
- :root {
-  --day1: linear-gradient(135deg, #5f4b32, #d6ad60);    /* Sunday - Espresso & Honey Gold */
-  --day2: linear-gradient(135deg, #3e3a39, #9d8f85);    /* Monday - Charcoal & Warm Clay */
-  --day3: linear-gradient(135deg, #40312f, #c3b091);    /* Tuesday - Mocha & Almond Beige */
-  --day4: linear-gradient(135deg, #4a3f35, #eac39f);    /* Wednesday - Vintage Cocoa & Peach */
-  --day5: linear-gradient(135deg, #2d2a26, #cab48b);    /* Thursday - Ash Black & Oatmeal */
-  --day6: linear-gradient(135deg, #2f2e41, #ffd9a0);    /* Friday - Ink & Creamy Apricot */
-  --day7: linear-gradient(135deg, #312e2b, #e0b084);    /* Saturday - Dark Roast & Soft Sand */
-}
-.week-card {
-  min-width: 260px;
-  max-width: 280px;
-  border-radius: 18px;
-  padding: 1.2rem 1rem;
-  flex: 0 0 auto;
-  color: white;
-  scroll-snap-align: center;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-  backdrop-filter: blur(2px);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
-  font-family: 'Poppins', sans-serif;
-  background-blend-mode: multiply;
-}
-
-.week-card:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 24px rgba(255, 215, 100, 0.3);
-}
-
-/* Text inside */
-.week-card p {
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 6px 0;
-  color: #fdfdfd;
-}
-
-.week-card h5 {
-  font-size: 18px;
-  margin-top: 8px;
-  font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-}
-.circle-image {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: -20px auto 10px auto;
-  overflow: hidden;
-  box-shadow: 0 0 12px rgba(0,0,0,0.2);
-}
-.circle-image img {
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-
-.today-menu-section {
-  background: url('https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
-  padding: 60px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 500px;
-}
-
-.banner-content {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 30px 40px;
-  max-width: 900px;
-  width: 100%;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-}
-
-.menu-box {
-  color: #fff;
-}
-
-.menu-header {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 30px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.icon-strip {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 30px;
-  justify-content: center;
-}
-
-.meal-icon {
-  font-size: 28px;
-  background: rgba(255,255,255,0.15);
-  padding: 14px;
-  border-radius: 50%;
-  color: #ffeb3b;
-  transition: all 0.3s ease;
-}
-
-.meal-icon:hover {
-  background: rgba(255,255,255,0.25);
-  transform: scale(1.1);
-}
-
-.menu-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.menu-list li {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 14px 18px;
-  border-left: 4px solid #ffc107;
-  border-radius: 10px;
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.menu-list i {
-  font-size: 16px;
-  color: #ffeb3b;
-  margin-top: 2px;
-}
-
-.label {
-  font-weight: 600;
-  min-width: 80px;
-  display: inline-block;
-}
-
-.items em {
-  font-style: italic;
-  color: #ffe082;
-}
-
-.menu-actions {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-}
-
-.action-btn {
-  background: #fff;
-  color: #f57c00;
-  padding: 10px 20px;
-  border-radius: 25px;
-  border: none;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-
-.action-btn:hover {
-  background: #f57c00;
-  color: #fff;
-}
-
-.subscribe {
-  background: #ffe0b2;
-  color: #e65100;
-}
-
-.subscribe:hover {
-  background: #e65100;
-  color: #fff;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .banner-content {
-    padding: 20px;
-  }
-
-  .menu-header {
-    font-size: 22px;
-  }
-
-  .menu-list li {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .menu-actions {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .icon-strip {
-    gap: 14px;
-  }
-}
-
-
-
-/* ---------------- Weekly Menu Cards (Horizontal Scroll) ---------------- */
-.horizontal-weekly-cards {
-  display: flex;
-  gap: 1.2rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 10px;
-  padding-top: 10px;
-  margin-top: 20px;
-}
-
-.week-card {
-  min-width: 240px;
-  max-width: 260px;
-  height: auto;
-  border-radius: 18px;
-  padding: 1.2rem;
-  flex: 0 0 auto;
-  color: white;
-  scroll-snap-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  transition: all 0.4s ease;
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-}
-
-.week-card:hover {
-  transform: scale(1.04);
-  box-shadow: 0 0 28px rgba(255, 255, 255, 0.2);
-}
-
-/* ---------------- Circle Image on Top of Card ---------------- */
-.circle-image {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: -30px auto 15px auto;
-  overflow: hidden;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
-  position: relative;
-  z-index: 2;
-}
-
-.circle-image img {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-/* ---------------- Button ---------------- */
-#weekly-toggle-btn {
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease-in-out;
-}
-
-#weekly-toggle-btn:hover {
-  background-color: #ffca2c;
-  transform: scale(1.03);
-}
-
-/* ---------------- Scrollbar Style (Optional for Desktop) ---------------- */
-.horizontal-weekly-cards::-webkit-scrollbar {
-  height: 8px;
-}
-
-.horizontal-weekly-cards::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.horizontal-weekly-cards::-webkit-scrollbar-thumb {
-  background: #ffba00;
-  border-radius: 10px;
-}
-
-.horizontal-weekly-cards::-webkit-scrollbar-thumb:hover {
-  background: #ffa500;
-}
-
-/* Responsive Tweaks */
-@media (max-width: 768px) {
-  .week-card {
-    min-width: 80%;
-  }
-
-  .today-menu-card .list-group-item {
-    font-size: 0.95rem;
-  }
-}
-
- .custom-toggle-btn {
-  background: linear-gradient(to right, #ff8008, #ffc837);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 8px 22px;
-  border: none;
-  border-radius: 30px;
-  box-shadow: 0 4px 12px rgba(255, 128, 8, 0.3);
-  transition: all 0.3s ease-in-out;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.custom-toggle-btn:hover {
-  background: linear-gradient(to right, #ffc837, #ff8008);
-  box-shadow: 0 6px 16px rgba(255, 128, 8, 0.4);
-  transform: translateY(-1px);
-  cursor: pointer;
-}
-
-
-
-.text-center .btn {
-  padding: 10px 20px;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 6px;
-  margin: 0 8px;
-}
-
-.save-btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
-}
-
-.save-btn:hover {
-  background-color: #218838;
-}
-
-.subscription-btn {
-  background-color:rgb(247, 149, 30);
-  color: white;
-  border: none;
-}
-
-.subscription-btn:hover {
-  background-color:rgb(122, 127, 132);
-}
-
-  
-</style>
-
-
-
 <!-- Subscription Flexibility Section -->
 <section class="subscription-flex">
   <div class="container-sub">
@@ -764,16 +622,14 @@
         <br><br>
         Want to <strong>skip a day</strong> or cancel a meal? Just tap to skip — no questions asked.
         <br><br>
-        With NoKitchen, you're not locked in — you’re in charge.
+        With NoKitchen, you're not locked in — you're in charge.
       </p>
       <a href="#customize" class="btn-customize">Customize My Meals</a>
     </div>
   </div>
 </section>
 
-
-
- {% if user.is_authenticated %}
+{% if user.is_authenticated %}
   <div class="container my-5">
     <h2 class="text-center mb-4">🍽 Weekly Meal Selection</h2>
 
@@ -787,17 +643,16 @@
     </div>
 
     <!-- From Date & To Date -->
-<div class="row mb-4 justify-content-between align-items-end">
-  <div class="col-md-3">
-    <label for="from_date" class="form-label fw-semibold">From Date</label>
-    <input type="date" class="form-control" id="from_date" name="from_date">
-  </div>
-  <div class="col-md-3 text-end">
-    <label for="to_date" class="form-label fw-semibold">To Date</label>
-    <input type="date" class="form-control" id="to_date" name="to_date">
-  </div>
-</div>
-
+    <div class="row mb-4 justify-content-between align-items-end">
+      <div class="col-md-3">
+        <label for="from_date" class="form-label fw-semibold">From Date</label>
+        <input type="date" class="form-control" id="from_date" name="from_date" required>
+      </div>
+      <div class="col-md-3 text-end">
+        <label for="to_date" class="form-label fw-semibold">To Date</label>
+        <input type="date" class="form-control" id="to_date" name="to_date" required>
+      </div>
+    </div>
 
     <!-- Meal Plan Form -->
     <form id="meal-form">
@@ -815,7 +670,6 @@
                   <select name="{{ day }}_breakfast[]" multiple class="form-select mb-3">
                     {% for item in meal_items.breakfast %}
                       <option value="{{ item.id }}">{{ item.item_name }} (₹{{ item.price }})</option>
-
                     {% endfor %}
                   </select>
                 </div>
@@ -829,7 +683,6 @@
                   <select name="{{ day }}_lunch[]" multiple class="form-select mb-3">
                     {% for item in meal_items.lunch %}
                       <option value="{{ item.id }}">{{ item.item_name }} (₹{{ item.price }})</option>
-
                     {% endfor %}
                   </select>
                 </div>
@@ -843,7 +696,6 @@
                   <select name="{{ day }}_dinner[]" multiple class="form-select mb-3">
                     {% for item in meal_items.dinner %}
                       <option value="{{ item.id }}">{{ item.item_name }} (₹{{ item.price }})</option>
-
                     {% endfor %}
                   </select>
                 </div>
@@ -854,175 +706,152 @@
         {% endfor %}
       </div>
 
-<div class="text-end mt-4 mb-3">
-  <h5>Total Price: ₹<span id="totalPrice">0.00</span></h5>
-</div>
+      <div class="text-end mt-4 mb-3">
+        <h5>Total Price: ₹<span id="totalPrice">0.00</span></h5>
+      </div>
 
-
-    <div class="text-center mt-4">
-      <button type="submit" class="btn btn-success save-btn">Save</button>
-    <a href="{% url 'pay_now' %}?type=selection" class="btn btn-primary subscription-btn ms-3">
-  Pay & Get Subscription
-</a>
-
-
-    </div>
-
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-success save-btn">Save</button>
+        <a href="{% url 'pay_now' %}?type=selection" class="btn btn-primary subscription-btn ms-3">Pay & Get Subscription</a>
+      </div>
     </form>
   </div>
-<script>
-  const buttons = document.querySelectorAll('.day-btn');
-  const dayTabs = document.querySelectorAll('.day-tab');
-  const saveBtn = document.querySelector('.save-btn');
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-  const mealTypes = ['breakfast', 'lunch', 'dinner'];
-  const itemPrices = {};
-
-  // Map prices from options
-  document.querySelectorAll("select option").forEach(opt => {
-    const priceMatch = opt.textContent.match(/₹([\d.]+)/);
-    if (priceMatch) {
-      itemPrices[opt.value] = parseFloat(priceMatch[1]);
-    }
-  });
-
-  // Calculate total price
-  function calculateTotal() {
-    let total = 0;
-    document.querySelectorAll("select").forEach(sel => {
-      Array.from(sel.selectedOptions).forEach(opt => {
-        const itemId = opt.value;
-        if (itemPrices[itemId]) {
-          total += itemPrices[itemId];
-        }
-      });
-    });
-    document.getElementById("totalPrice").textContent = total.toFixed(2);
-  }
-
-  document.querySelectorAll("select").forEach(sel => {
-    sel.addEventListener("change", calculateTotal);
-  });
-
-  calculateTotal();
-
-  // Tab Switcher
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      buttons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      dayTabs.forEach(tab => tab.classList.add('d-none'));
-      document.getElementById(btn.dataset.day + "Tab").classList.remove('d-none');
-    });
-  });
-
-  // Save Day Meal Plan
-  saveBtn.addEventListener('click', function (event) {
-    event.preventDefault();
-
-    const fromDate = document.getElementById('from_date').value;
-    const toDate = document.getElementById('to_date').value;
-
-    if (!fromDate || !toDate) {
-      alert("⚠️ Please select both From Date and To Date.");
-      return;
-    }
-
-    const activeBtn = document.querySelector('.day-btn.active');
-    const currentDay = activeBtn.dataset.day;
-
-    const meal_plan = {};
-    meal_plan[currentDay] = {};
-
-    mealTypes.forEach(meal => {
-      const select = document.querySelector(`select[name="${currentDay}_${meal}[]"]`);
-      const selected = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
-      meal_plan[currentDay][meal] = selected;
-    });
-
-    const payload = {
-      from_date: fromDate,
-      to_date: toDate,
-      meal_plan: meal_plan,
-      day: currentDay,
-    };
-
-    fetch("{% url 'save_weekly_meal' %}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}',
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(result => {
-      if (result.status === 'success') {
-        alert(`✅ ${currentDay.charAt(0).toUpperCase() + currentDay.slice(1)} meals saved.`);
-
-        // Move to next day
-        const currentIndex = days.indexOf(currentDay);
-        if (currentIndex < days.length - 1) {
-          const nextDay = days[currentIndex + 1];
-          document.querySelector(`.day-btn[data-day="${nextDay}"]`).click();
-        } else {
-          alert("🎉 All meals saved for the week!");
-        }
-      } else {
-        alert("❌ Failed to save: " + result.message);
-      }
-    })
-    .catch(err => {
-      alert("⚠️ Error: " + err);
-    });
-  });
-</script>
-
-
-
-  {% else %}
-    <div class="container text-center mt-5">
-      <p class="text-danger">🔒 Please log in to use the weekly meal selection feature.</p>
-    </div>
-  {% endif %}
-
 
   <script>
-  const itemPrices = {};
+    // Set minimum dates to today
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('from_date').setAttribute('min', today);
+      document.getElementById('to_date').setAttribute('min', today);
+    });
 
-  // 1. Map all option values to prices from data attributes
-  document.querySelectorAll("select option").forEach(opt => {
-    const price = opt.textContent.match(/₹([\d.]+)/);
-    if (price) {
-      itemPrices[opt.value] = parseFloat(price[1]);
+    const buttons = document.querySelectorAll('.day-btn');
+    const dayTabs = document.querySelectorAll('.day-tab');
+    const saveBtn = document.querySelector('.save-btn');
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const mealTypes = ['breakfast', 'lunch', 'dinner'];
+    const itemPrices = {};
+
+    // Map prices from options
+    document.querySelectorAll("select option").forEach(opt => {
+      const priceMatch = opt.textContent.match(/₹([\d.]+)/);
+      if (priceMatch) {
+        itemPrices[opt.value] = parseFloat(priceMatch[1]);
+      }
+    });
+
+    // Calculate total price
+    function calculateTotal() {
+      let total = 0;
+      document.querySelectorAll("select").forEach(sel => {
+        Array.from(sel.selectedOptions).forEach(opt => {
+          const itemId = opt.value;
+          if (itemPrices[itemId]) {
+            total += itemPrices[itemId];
+          }
+        });
+      });
+      document.getElementById("totalPrice").textContent = total.toFixed(2);
     }
-  });
 
-  function calculateTotal() {
-    let total = 0;
     document.querySelectorAll("select").forEach(sel => {
-      Array.from(sel.selectedOptions).forEach(opt => {
-        const itemId = opt.value;
-        if (itemPrices[itemId]) {
-          total += itemPrices[itemId];
-        }
+      sel.addEventListener("change", calculateTotal);
+    });
+
+    calculateTotal();
+
+    // Tab Switcher
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        dayTabs.forEach(tab => tab.classList.add('d-none'));
+        document.getElementById(btn.dataset.day + "Tab").classList.remove('d-none');
       });
     });
 
-    document.getElementById("totalPrice").textContent = total.toFixed(2);
-  }
+    // Save Day Meal Plan
+    saveBtn.addEventListener('click', function (event) {
+      event.preventDefault();
 
-  // 2. Recalculate on any change
-  document.querySelectorAll("select").forEach(sel => {
-    sel.addEventListener("change", calculateTotal);
-  });
+      const fromDate = document.getElementById('from_date').value;
+      const toDate = document.getElementById('to_date').value;
 
-  // Initial trigger on page load
-  calculateTotal();
-</script>
+      if (!fromDate || !toDate) {
+        alert("⚠️ Please select both From Date and To Date.");
+        return;
+      }
 
+      // Validate dates are not in the past
+      const today = new Date().toISOString().split('T')[0];
+      if (fromDate < today || toDate < today) {
+        alert("⚠️ Dates cannot be in the past. Please select today or a future date.");
+        return;
+      }
 
+      const activeBtn = document.querySelector('.day-btn.active');
+      const currentDay = activeBtn.dataset.day;
+
+      const meal_plan = {};
+      meal_plan[currentDay] = {};
+
+      mealTypes.forEach(meal => {
+        const select = document.querySelector(`select[name="${currentDay}_${meal}[]"]`);
+        const selected = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
+        meal_plan[currentDay][meal] = selected;
+      });
+
+      const payload = {
+        from_date: fromDate,
+        to_date: toDate,
+        meal_plan: meal_plan,
+        day: currentDay,
+      };
+
+      fetch("{% url 'save_weekly_meal' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(result => {
+        if (result.status === 'success') {
+          alert(`✅ ${currentDay.charAt(0).toUpperCase() + currentDay.slice(1)} meals saved.`);
+
+          // Move to next day
+          const currentIndex = days.indexOf(currentDay);
+          if (currentIndex < days.length - 1) {
+            const nextDay = days[currentIndex + 1];
+            document.querySelector(`.day-btn[data-day="${nextDay}"]`).click();
+          } else {
+            alert("🎉 All meals saved for the week!");
+          }
+        } else {
+          alert("❌ Failed to save: " + result.message);
+        }
+      })
+      .catch(err => {
+        alert("⚠️ Error: " + err);
+      });
+    });
+
+    // Toggle Weekly Menu
+    function toggleWeeklyMenu() {
+      const section = document.getElementById('weekly-row');
+      const button = document.querySelector('.action-btn');
+      section.classList.toggle('d-none');
+      button.textContent = section.classList.contains('d-none') ? "📅 Weekly Plan" : "Hide Weekly Menu";
+    }
+  </script>
+{% else %}
+  <div class="container text-center mt-5">
+    <p class="text-danger">🔒 Please log in to use the weekly meal selection feature.</p>
+  </div>
+{% endif %}
 
 <!-- CSS -->
 <style>
@@ -1187,8 +1016,4 @@
 <!-- Bootstrap JS (for tabs) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-
-
 {% endblock %}
-
-
