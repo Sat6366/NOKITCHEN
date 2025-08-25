@@ -9,29 +9,29 @@ export default function InputField(props: InputFieldProps) {
   return (
     <TextInput
       {...props}
-      style={styles.input}
-      placeholderTextColor="#9ca3af"
+      style={[styles.input, props.style]}
+      placeholderTextColor="#a4a4aaff" // subtle placeholder color
     />
   );
 }
 
 const styles = StyleSheet.create({
   input: {
-    width: width * 0.8,       // 80% width
-    alignSelf: "center",
+    width: "60%",            // full width of parent
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    borderRadius: 14,
+    borderRadius: 12,
     paddingHorizontal: 14,
-    height: Math.min(width * 0.11, 44), // ✅ slightly shorter
+    height: Math.min(width * 0.11, 44), 
     fontSize: Math.min(width * 0.042, 16),
-    marginTop: 10,             // ✅ less spacing between fields
+    marginTop: 6,              // reduced spacing
     color: "#111827",
     backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.05,       // soft shadow
     shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
-    elevation: 1,
+    shadowRadius: 3,
+    elevation: 2,
+    textAlign: "left",         // left-aligned text
   },
 });

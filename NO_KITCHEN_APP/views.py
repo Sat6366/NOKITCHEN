@@ -1,4 +1,5 @@
 from django.shortcuts import render
+#satheeeeeeeeeeeeeshhhh
 
 # Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
