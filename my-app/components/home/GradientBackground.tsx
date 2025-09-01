@@ -1,20 +1,19 @@
-// components/home/GradientBackground.tsx
-import React, { ReactNode } from "react";
-import { StyleSheet } from "react-native";
+import React from "react";
+import { StatusBar, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
-interface GradientBackgroundProps {
-  children: ReactNode; // Accept children
-}
-
-export default function GradientBackground({ children }: GradientBackgroundProps) {
+export default function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
     <LinearGradient
-      colors={["#f26805ff", "#ec7b09ff"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      colors={["#FF914D", "#AB003E"]}
       style={styles.container}
     >
+      {/* ✅ System StatusBar control */}
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content" // white icons for signal/battery
+      />
       {children}
     </LinearGradient>
   );

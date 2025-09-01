@@ -19,7 +19,8 @@ export default function LoginForm() {
 
   const handleLogin = () => {
     if (phone.length >= 10) {
-      router.replace("/home");
+       router.push("/otp");
+;
     } else {
       alert("Please enter a valid phone number");
     }
