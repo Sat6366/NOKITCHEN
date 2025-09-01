@@ -1,11 +1,6 @@
 // app/home.tsx
-import React from "react";
-import { SafeAreaView, Text } from "react-native";
+import Main from "@/components/screens/Main"; // ✅ renamed
 
-export default function HomeScreen() {
-  return (
-    <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 24 }}>Welcome to Home 🚀</Text>
-    </SafeAreaView>
-  );
+export default function HomeRoute() {
+  return <Main />;
 }

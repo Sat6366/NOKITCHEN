@@ -4,6 +4,14 @@ from django.conf.urls.static import static
 from django.urls import path
 from . import views
 from .views import create_razorpay_order
+from rest_framework.routers import DefaultRouter
+from .views import StoreLocationViewSet, DeliveryPartnerViewSet
+
+
+router = DefaultRouter()
+router.register(r"store-locations", StoreLocationViewSet, basename="store-locations")
+router.register(r"delivery-partners", DeliveryPartnerViewSet, basename="delivery-partners")
+
 
 urlpatterns = [
     path('home/', views.home, name='home'),
@@ -105,4 +113,7 @@ urlpatterns = [
     path('get_city_from_coords/', views.get_city_from_coords, name='get_city_from_coords'),
     path('get_stores_by_city/', views.get_stores_by_city, name='get_stores_by_city'),
     path('check_nearby_store/', views.check_nearby_store, name='check_nearby_store'),
-]
+
+
+
+]+ router.urls

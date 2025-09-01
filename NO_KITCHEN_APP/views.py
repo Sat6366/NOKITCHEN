@@ -3192,3 +3192,39 @@ def delete_store_location(request, store_id):
     location.delete()
     messages.success(request, "Store location deleted.")
     return redirect('manage_stores')
+
+
+
+
+
+# react end point views 
+from rest_framework import viewsets, status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+
+from .models import StoreLocation, DeliveryPartner
+from .serializers import StoreLocationSerializer, DeliveryPartnerSerializer
+
+class StoreLocationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    /api/store-locations/ -> list
+    /api/store-locations/<id>/ -> retrieve
+    """
+    queryset = StoreLocation.objects.filter(is_active=True, status=True).order_by("-created_at")
+    serializer_class = StoreLocationSerializer
+
+class DeliveryPartnerViewSet(viewsets.ModelViewSet):
+    """
+    /api/delivery-partners/ -> create (multipart)
+    """
+    queryset = DeliveryPartner.objects.all().order_by("-created_at")
+    serializer_class = DeliveryPartnerSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def create(self, request, *args, **kwargs):
+        # DRF will accept selected_store as an ID (string/int) and set the FK
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        out = DeliveryPartnerSerializer(instance).data
+        return Response(out, status=status.HTTP_201_CREATED)

@@ -1,8 +1,7 @@
-// components/ImageCarousel.js
+// components/common/ImageCarousel.js
 import React, { useRef, useState } from "react";
 import {
   View,
-  FlatList,
   Image,
   Dimensions,
   StyleSheet,
@@ -12,10 +11,9 @@ import {
 const { width } = Dimensions.get("window");
 
 const images = [
-  require("../assets/images/img1.jpg"),
-  require("../assets/images/img2.jpg"),
-  require("../assets/images/img3.jpg"),
-  require("../assets/images/img4.jpg"),
+  require("../../assets/images/img1.jpg"),
+  require("../../assets/images/img2.png"),
+  require("../../assets/images/img3.jpg"),
 ];
 
 const ImageCarousel = () => {
@@ -66,14 +64,14 @@ export default ImageCarousel;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: 250, // ✅ fixed height instead of flex:1
+    width: width,
     alignItems: "center",
     justifyContent: "center",
   },
   image: {
     width: width,
-    height: 250, // you can make it full screen with Dimensions.get("window").height
-    borderRadius: 10,
+    height: 250,
   },
   dotContainer: {
     flexDirection: "row",
