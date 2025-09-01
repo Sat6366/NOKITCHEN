@@ -20,8 +20,35 @@ def home(request):
 
 from .models import NoKitchenMenu, NoKitchenCurries
 
+from django.shortcuts import render
+from django.db.models import Q
+from .models import NoKitchenMenu, NoKitchenCurries
+
+from django.shortcuts import render
+from django.db.models import Q
+from .models import NoKitchenMenu, NoKitchenCurries
+
 def menu(request):
-    items = NoKitchenMenu.objects.all().order_by('-created_at')
+    query = request.GET.get('q', '')
+    meal_type = request.GET.get('type', '')  # Get meal type from URL parameter
+    
+    # Start with all items
+    items = NoKitchenMenu.objects.all()
+    
+    # Apply search filter if query exists
+    if query:
+        items = items.filter(
+            Q(item_name__icontains=query) | 
+            Q(description__icontains=query)
+        )
+    
+    # Apply meal type filter if specified
+    if meal_type:
+        items = items.filter(meal_type=meal_type)
+    
+    # Order the results
+    items = items.order_by('-created_at')
+    
     veg_curries = NoKitchenCurries.objects.filter(curry_type='veg')
     nonveg_curries = NoKitchenCurries.objects.filter(curry_type='nonveg')
     all_items = NoKitchenMenu.objects.all()
@@ -31,7 +58,11 @@ def menu(request):
         'veg_curries': veg_curries,
         'nonveg_curries': nonveg_curries,
         'all_items': all_items,
+        'query': query,
+        'meal_type': meal_type,  # Pass meal type to template
     })
+
+
 
 from django.shortcuts import render
 
@@ -109,10 +140,29 @@ def account(request):
         ).values_list('meal_selection_id', flat=True)
     )
 
+    # Get today's date for comparison
+    today = timezone.now().date()
+    
+    # Create a mapping of day names to dates for the current week
+    day_date_map = {}
+    if from_date_obj:
+        current_date = from_date_obj
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        for i in range(7):
+            if current_date <= to_date_obj:
+                day_date_map[days[i]] = current_date
+                current_date += timedelta(days=1)
+
     # ✅ Organize meal schedule
     meal_schedule = {}
     for meal in meals_qs:
         day = meal.get_day_display()
+        
+        # Determine if this meal is in the past
+        meal_date = day_date_map.get(day)
+        meal.is_past_meal = meal_date and meal_date < today
+        
         meal_type = meal.get_meal_type_display()
         if day not in meal_schedule:
             meal_schedule[day] = {}
@@ -130,10 +180,8 @@ def account(request):
         'skipped_ids': skipped_ids,
         'from_date': from_date_obj,
         'to_date': to_date_obj,
-        'available_ranges': available_ranges,  # ✅ send to template
+        'available_ranges': available_ranges,
     })
-
-
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -352,19 +400,20 @@ def registerPage(request):
 
 
 def breakfast(request):
-    items = Food.objects.all().filter(meal_type ='breakfast')
-    context = {'items': items}
-    return render(request, 'pages/menu.html', context)
+    # Set meal_type in request.GET and call menu view
+    request.GET = request.GET.copy()
+    request.GET['type'] = 'breakfast'
+    return menu(request)
 
 def lunch(request):
-    items = Food.objects.all().filter(meal_type ='lunch')
-    context = {'items': items}
-    return render(request, 'pages/menu.html', context)
+    request.GET = request.GET.copy()
+    request.GET['type'] = 'lunch'
+    return menu(request)
 
 def dinner(request):
-    items = Food.objects.all().filter(meal_type ='dinner')
-    context = {'items': items}
-    return render(request, 'pages/menu.html', context)
+    request.GET = request.GET.copy()
+    request.GET['type'] = 'dinner'
+    return menu(request)
 
 def nonvegetarian(request):
     items = Food.objects.all().filter(vegetarian=False)

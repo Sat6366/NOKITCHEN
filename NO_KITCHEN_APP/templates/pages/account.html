@@ -244,6 +244,16 @@
     opacity: 0.7;
   }
 
+  .past-meal {
+    opacity: 0.6;
+    background-color: #f5f5f5;
+  }
+
+  .past-meal .btn-skip {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
   @media (max-width: 500px) {
     .meal-buttons-inline {
       gap: 4px;
@@ -260,17 +270,15 @@
     }
   }
 
-
   .date-range {
-  font-size: 16px;
-  color: #333;
-  background-color: #f1f1f1;
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
+    font-size: 16px;
+    color: #333;
+    background-color: #f1f1f1;
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
 </style>
 
 <!-- Wallet Floating -->
@@ -312,7 +320,7 @@
       </form>
     {% endif %}
 
-    {# ✅ DATE RANGE DISPLAY BLOCK — FIXED! #}
+    {# ✅ DATE RANGE DISPLAY BLOCK #}
     {% if from_date and to_date %}
       <div class="date-range mt-3">
         <strong>Meal Plan Duration:</strong>
@@ -333,16 +341,18 @@
           <h5>{{ day }}</h5>
           {% for meal_type, meal_info in meals.items %}
             {% with meal_info.selection as meal_selection %}
-              <div class="meal-item {% if meal_selection.id in skipped_ids %}skipped-meal{% endif %}"
+              <div class="meal-item {% if meal_selection.id in skipped_ids %}skipped-meal{% endif %} {% if meal_selection.is_past_meal %}past-meal{% endif %}"
               data-meal-id="{{ meal_selection.id }}"
-              data-meal-date="{{ meal_selection.date }}">
-
+              data-meal-type="{{ meal_type }}"
+              data-day="{{ day }}">
 
                 <div class="meal-header">
                   <div class="meal-type">{{ meal_type }}</div>
                   <div class="meal-buttons-inline">
-                    {% if meal_selection.id not in skipped_ids %}
-                      <button class="btn-meal btn-skip" title="Skip" onclick="skipMeal({{ meal_selection.id }}, this)">⨉</button>
+                    {% if meal_selection.id not in skipped_ids and not meal_selection.is_past_meal %}
+                      <button class="btn-meal btn-skip" title="Skip" onclick="skipMeal({{ meal_selection.id }}, this, '{{ day }}', '{{ meal_type }}')">⨉</button>
+                    {% elif meal_selection.id not in skipped_ids and meal_selection.is_past_meal %}
+                      <button class="btn-meal btn-skip" title="Cannot skip past meals" style="background-color: #ccc; cursor: not-allowed;" disabled>⨉</button>
                     {% endif %}
                     <button class="btn-meal btn-edit" title="Edit"
                       onclick="openEditModal({{ meal_selection.id }}, '{{ meal_info.items|join:", " }}', '{{ meal_type }}')">
@@ -362,6 +372,10 @@
 
                   {% if meal_selection.id in skipped_ids %}
                     <div><em style="color: red;">(Skipped)</em></div>
+                  {% endif %}
+                  
+                  {% if meal_selection.is_past_meal %}
+                    <div><em style="color: #999;">(Past meal - cannot skip)</em></div>
                   {% endif %}
                 </div>
               </div>
@@ -391,62 +405,88 @@
 </div>
 
 <script>
-  // ✅ Skip Meal Function with 2-hour cutoff
-function skipMeal(mealId, button) {
-  const mealBlock = button.closest(".meal-item");
-  const mealType = mealBlock.querySelector(".meal-type").innerText.trim();
-  const mealDateStr = mealBlock.getAttribute("data-meal-date"); // yyyy-mm-dd
-  const mealDate = new Date(mealDateStr); // meal’s actual date
-  const now = new Date();
-
-  let cutoff = null;
-
-  if (mealType === "Breakfast") {
-    cutoff = new Date(mealDate.getFullYear(), mealDate.getMonth(), mealDate.getDate(), 5, 30, 0);
-  } else if (mealType === "Lunch") {
-    cutoff = new Date(mealDate.getFullYear(), mealDate.getMonth(), mealDate.getDate(), 10, 30, 0);
-  } else if (mealType === "Dinner") {
-    cutoff = new Date(mealDate.getFullYear(), mealDate.getMonth(), mealDate.getDate(), 17, 30, 0);
-  }
-
-  if (cutoff && now > cutoff) {
-    alert("❌ You can only skip " + mealType + " before " +
-      cutoff.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }));
-    return;
-  }
-
-  const csrfToken = "{{ csrf_token }}";
-  if (!confirm("Are you sure you want to skip this meal?")) return;
-
-  fetch("{% url 'skip_meal' %}", {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": csrfToken,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams({ 'meal_id': mealId })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.status === 'success') {
-      alert("✅ Meal skipped! ₹" + data.refunded + " added to your wallet.");
-      const mealItem = button.closest(".meal-item");
-      mealItem.classList.add("skipped-meal");
-      const detailsDiv = mealItem.querySelector('.meal-details');
-      if (!detailsDiv.innerHTML.includes('Skipped')) {
-        detailsDiv.innerHTML += '<div><em style="color:red;">(Skipped)</em></div>';
-      }
-      button.remove();
-      document.querySelector('.wallet-amount').innerText = "Available Balance: ₹" + data.new_balance;
-    } else {
-      alert("❌ Failed: " + data.message);
+  // Create a mapping of day names to dates for the current week
+  const dayDateMap = {};
+  {% if from_date %}
+    const fromDate = new Date('{{ from_date|date:"Y-m-d" }}');
+    const toDate = new Date('{{ to_date|date:"Y-m-d" }}');
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    let currentDate = new Date(fromDate);
+    for (let i = 0; i < 7 && currentDate <= toDate; i++) {
+      dayDateMap[days[i]] = new Date(currentDate);
+      currentDate.setDate(currentDate.getDate() + 1);
     }
-  })
-  .catch(error => {
-    alert("⚠️ Request failed: " + error);
-  });
-}
+  {% endif %}
 
+  // ✅ Skip Meal Function with 2-hour cutoff and past meal restriction
+  function skipMeal(mealId, button, day, mealType) {
+    const mealDate = dayDateMap[day];
+    if (!mealDate) {
+      alert("❌ Cannot determine meal date.");
+      return;
+    }
+
+    const now = new Date();
+
+    // Check if it's a past meal (meal date is before today)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const mealDateOnly = new Date(mealDate);
+    mealDateOnly.setHours(0, 0, 0, 0);
+    
+    if (mealDateOnly < today) {
+      alert("❌ You cannot skip past meals.");
+      return;
+    }
+
+    let cutoff = null;
+
+    if (mealType === "Breakfast") {
+      cutoff = new Date(mealDate.getFullYear(), mealDate.getMonth(), mealDate.getDate(), 5, 30, 0);
+    } else if (mealType === "Lunch") {
+      cutoff = new Date(mealDate.getFullYear(), mealDate.getMonth(), mealDate.getDate(), 10, 30, 0);
+    } else if (mealType === "Dinner") {
+      cutoff = new Date(mealDate.getFullYear(), mealDate.getMonth(), mealDate.getDate(), 17, 30, 0);
+    }
+
+    if (cutoff && now > cutoff) {
+      alert("❌ You can only skip " + mealType + " before " +
+        cutoff.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }));
+      return;
+    }
+
+    const csrfToken = "{{ csrf_token }}";
+    if (!confirm("Are you sure you want to skip this meal?")) return;
+
+    fetch("{% url 'skip_meal' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ 'meal_id': mealId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert("✅ Meal skipped! ₹" + data.refunded + " added to your wallet.");
+        const mealItem = button.closest(".meal-item");
+        mealItem.classList.add("skipped-meal");
+        const detailsDiv = mealItem.querySelector('.meal-details');
+        if (!detailsDiv.innerHTML.includes('Skipped')) {
+          detailsDiv.innerHTML += '<div><em style="color:red;">(Skipped)</em></div>';
+        }
+        button.remove();
+        document.querySelector('.wallet-amount').innerText = "Available Balance: ₹" + data.new_balance;
+      } else {
+        alert("❌ Failed: " + data.message);
+      }
+    })
+    .catch(error => {
+      alert("⚠️ Request failed: " + error);
+    });
+  }
 
   // ✅ Toggle Wallet Panel
   function toggleWallet() {
@@ -552,6 +592,3 @@ function skipMeal(mealId, button) {
 </script>
 
 {% endblock %}
-
-
-{% comment %} uday {% endcomment %}

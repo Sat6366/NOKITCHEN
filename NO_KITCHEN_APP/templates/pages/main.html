@@ -43,10 +43,10 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <form class="d-flex" action="/nokitchen/search/" method="GET">
-            <input class="form-control me-2" type="text" placeholder="Search.." aria-label="Search" name="name" style="border-radius: 10px;">
-            <button class="btn btn-outline-light" type="submit" style="background:#ffde59;border-radius: 40px;">Search</button>
-          </form>
+          <form class="d-flex" action="{% url 'menu' %}" method="GET">
+    <input class="form-control me-2" type="text" placeholder="Search items here" aria-label="Search" name="q" style="border-radius: 10px;">
+    <button class="btn btn-outline-light" type="submit" style="background:#ffde59;border-radius: 40px;">Search</button>
+</form>
           <!-- -----category----- -->
           {% comment %} <div class="dropdown">
           <li class="nav-item active">
@@ -60,25 +60,25 @@
         </div> {% endcomment %}
 
         <div class="dropdown">
-          <li class="nav-item active">
-            <a class="nav-link" href="{% url 'menu' %}"  id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false"> <i class="bi bi-justify-right" style="color:#ffde59"></i> Menu</a>
-
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-              {%if user.is_authenticated%}
-              <li><a class="dropdown-item" href="{% url 'menu' %}">All items</a></li>
-              <li><a class="dropdown-item" href="{% url 'breakfast' %}">Break-fast</a></li>
-              <li><a class="dropdown-item" href="{% url 'lunch' %}">Lunch</a></li>
-              <li><a class="dropdown-item" href="{% url 'dinner' %}">Dinner</a></li>
-              {%else%}
-              <li><a class="dropdown-item" href="{% url 'menu!' %}">All items</a></li>
-              <li><a class="dropdown-item" href="{% url 'menu!' %}">Break-fast</a></li>
-              <li><a class="dropdown-item" href="{% url 'menu!' %}">Lunch</a></li>
-              <li><a class="dropdown-item" href="{% url 'menu!' %}">Dinner</a></li>
-              {%endif%}
-            </ul>
-          </li>
-        </div>
-
+  <li class="nav-item active">
+    <a class="nav-link" href="{% url 'menu' %}" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-justify-right" style="color:#ffde59"></i> Menu
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+      {% if user.is_authenticated %}
+      <li><a class="dropdown-item" href="{% url 'menu' %}">All items</a></li>
+      <li><a class="dropdown-item" href="{% url 'breakfast' %}">Breakfast</a></li>
+      <li><a class="dropdown-item" href="{% url 'lunch' %}">Lunch</a></li>
+      <li><a class="dropdown-item" href="{% url 'dinner' %}">Dinner</a></li>
+      {% else %}
+      <li><a class="dropdown-item" href="{% url 'menu' %}">All items</a></li>
+      <li><a class="dropdown-item" href="{% url 'menu' %}?type=breakfast">Breakfast</a></li>
+      <li><a class="dropdown-item" href="{% url 'menu' %}?type=lunch">Lunch</a></li>
+      <li><a class="dropdown-item" href="{% url 'menu' %}?type=dinner">Dinner</a></li>
+      {% endif %}
+    </ul>
+  </li>
+</div>
           {% comment %} <li class="nav-item">
             <a class="nav-link" href="{% url 'orders' %}"><i class="bi bi-card-checklist" style="color:#ffde59"></i> My Orders</a>
           </li> {% endcomment %}
