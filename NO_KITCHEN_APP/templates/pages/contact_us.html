@@ -1,103 +1,103 @@
-{%extends "pages/main.html"%}
+{% extends "pages/main.html" %}
 {% load static %}
-{%block content%}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contact Us</title>
+{% block content %}
 
-    
-    <!-- External CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
-    <link rel="stylesheet" href="{% static 'CSS/contact.css' %}" />
-  </head>
+<div class="container text-center my-5">
+  <h1 class="display-4 fw-bold">Contact <span class="text-warning">Us</span></h1>
+  <p class="text-muted mb-0">HOME / CONTACT</p>
+</div>
 
-
-  <body>
-   
-
-    <!-- Contact Section -->
-    <div class="container text-center my-5 ">
-      <h1 class="display-4">Contact <span class="text-warning">Us</span></h1>
-      <p class="fw-bold">HOME / CONTACT</p>
-    </div>
-
-    <div class="container my-5">
-      <div class="row text-center">
-        <div class="col-md-4">
-          <i class="fas fa-map-marker-alt fa-3x text-warning"></i>
-          <h4 class="my-3">Address</h4>
-          <p>Vasavi MPM Grand
-            817-7th floor, Vasavi Mpm Grand, Ameerpet, Hyderabad, Telangana 500038, India</p>
-        </div>
-        <div class="col-md-4">
-          <i class="fas fa-phone fa-3x text-warning"></i>
-          <h4 class="my-3">Call Us</h4>
-          <p>+0863 4534 6789</p>
-        </div>
-        <div class="col-md-4">
-          <i class="fas fa-envelope fa-3x text-warning"></i>
-          <h4 class="my-3">Email Us</h4>
-          <p>info@example.com</p>
+<div class="container my-5">
+  <div class="row text-center">
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body py-5">
+          <i class="fas fa-map-marker-alt fa-3x text-warning mb-3"></i>
+          <h4 class="card-title">Address</h4>
+          <p class="card-text">Vasavi MPM Grand<br>817-7th floor, Vasavi Mpm Grand, Ameerpet<br>Hyderabad, Telangana 500038, India</p>
         </div>
       </div>
     </div>
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body py-5">
+          <i class="fas fa-phone fa-3x text-warning mb-3"></i>
+          <h4 class="card-title">Call Us</h4>
+          <p class="card-text">+0863 4534 6789</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body py-5">
+          <i class="fas fa-envelope fa-3x text-warning mb-3"></i>
+          <h4 class="card-title">Email Us</h4>
+          <p class="card-text">info@example.com</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <div class="container my-5">
-      <div class="row">
-        <div class="col-md-6">
+<div class="container my-5">
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body p-0">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3020.2675471519486!2d-74.006015!3d40.712776!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb90cee196174f:0xbf13004d14ee215d!2s123+Street+NY!5e0!3m2!1sen!2sus!4v1677882632902!5m2!1sen!2sus"
             width="100%"
             height="350"
-            style="border: 0"
+            style="border: 0; border-radius: 0.375rem;"
             allowfullscreen=""
             loading="lazy"
             referrerpolicy="no-referrer-when-downgrade"
           ></iframe>
         </div>
-        <div class="col-md-6">
-  <form method="POST" novalidate class="form-control" id="contactForm">
-    {% csrf_token %}
-    <div class="mb-3">
-      {{ form.name.label_tag }} {{ form.name }}
-      <div class="error text-danger" id="nameError"></div>
-    </div>
-    <div class="mb-3">
-      {{ form.email.label_tag }} {{ form.email }}
-      <div class="error text-danger" id="emailError"></div>
-    </div>
-    <div class="mb-3">
-      {{ form.subject.label_tag }} {{ form.subject }}
-      <div class="error text-danger" id="subjectError"></div>
-    </div>
-    <div class="mb-3">
-      {{ form.message.label_tag }} {{ form.message }}
-      <div class="error text-danger" id="messageError"></div>
-    </div>
-    <button type="submit" class="btn btn-primary">Send Message</button>
-  </form>
-</div>
-
       </div>
     </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="card-title mb-4">Send us a Message</h3>
+          <form method="POST" novalidate id="contactForm">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+              <label for="id_name" class="form-label fw-semibold">Name</label>
+              {{ form.name }}
+              <div class="form-text text-danger" id="nameError"></div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="id_email" class="form-label fw-semibold">Email</label>
+              {{ form.email }}
+              <div class="form-text text-danger" id="emailError"></div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="id_subject" class="form-label fw-semibold">Subject</label>
+              {{ form.subject }}
+              <div class="form-text text-danger" id="subjectError"></div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="id_message" class="form-label fw-semibold">Message</label>
+              {{ form.message }}
+              <div class="form-text text-danger" id="messageError"></div>
+            </div>
+            
+            <button type="submit" class="btn btn-warning btn-lg w-100">
+              <i class="fas fa-paper-plane me-2"></i>Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-   
-    <script>
+<script>
 document.getElementById('contactForm').addEventListener('submit', function(e) {
   let valid = true;
 
@@ -106,47 +106,86 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
     document.getElementById(id).textContent = '';
   });
 
-  // Get form field values by their IDs (Django usually sets id="id_fieldname")
+  // Get form field values
   const name = document.getElementById('id_name').value.trim();
   const email = document.getElementById('id_email').value.trim();
   const subject = document.getElementById('id_subject').value.trim();
   const message = document.getElementById('id_message').value.trim();
 
-  // Name validation: only letters and spaces
+  // Name validation
   const nameRegex = /^[A-Za-z\s]+$/;
   if (!nameRegex.test(name)) {
     document.getElementById('nameError').textContent = "Name must contain only letters and spaces.";
     valid = false;
   }
 
-  // Email validation: simple regex
+  // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     document.getElementById('emailError').textContent = "Enter a valid email address.";
     valid = false;
   }
 
-  // Subject validation: letters, numbers, and simple punctuation
+  // Subject validation
   const subjectRegex = /^[A-Za-z0-9 .,!?-]+$/;
   if (!subjectRegex.test(subject)) {
     document.getElementById('subjectError').textContent = "Subject contains invalid characters.";
     valid = false;
   }
 
-  // Message validation: at least 10 characters
+  // Message validation
   if (message.length < 10) {
     document.getElementById('messageError').textContent = "Message must be at least 10 characters.";
     valid = false;
   }
 
   if (!valid) {
-    e.preventDefault();  // stop form submission if invalid
+    e.preventDefault();
   }
+});
+
+// Add Bootstrap styling to form fields
+document.addEventListener('DOMContentLoaded', function() {
+  const formFields = document.querySelectorAll('#contactForm input, #contactForm textarea');
+  formFields.forEach(field => {
+    field.classList.add('form-control');
+    field.classList.add('form-control-lg');
+  });
 });
 </script>
 
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-p7Y+JqzJjIR0MlxEovlpCVQmpZxlPCOeD0GJb4RYJj4ty4Gp75IG9cu8Ny0Y/hl+" crossorigin="anonymous"></script>
-  </body>
-</html>
+<style>
+.card {
+  border-radius: 0.75rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #000;
+  font-weight: 600;
+}
+
+.btn-warning:hover {
+  background-color: #e0a800;
+  border-color: #e0a800;
+  color: #000;
+}
+
+.form-control {
+  border-radius: 0.5rem;
+  border: 1px solid #dee2e6;
+}
+
+.form-control:focus {
+  border-color: #ffc107;
+  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+</style>
+
 {% endblock %}
