@@ -1,23 +1,38 @@
 // components/screens/Main.tsx
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import NavButtons from "../common/NavButtons"; // adjust path if needed
+import NavButtons from "../common/NavButtons";
+import GradientBackground from "../home/GradientBackground";
+import CustomHeaderOptions from "../common/CustomHeaderOptions";
+import ProfileToggle from "../common/ProfileToggle";
+import WeatherBanner from "../common/WeatherBanner";
 
 export default function Main() {
   const handleNav = (screen: string) => {
-    // For now just log it
     console.log("Pressed:", screen);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Welcome to Main Screen 🎉</Text>
+    <GradientBackground>
+      {/* ✅ Full screen gradient, no header */}
+      <CustomHeaderOptions />
+       <ProfileToggle />
+       
 
-      {/* ✅ Bottom Nav */}
-      <View style={styles.navContainer}>
-        <NavButtons onPress={handleNav} />
+
+
+
+      
+      <View style={styles.container}>
+        <WeatherBanner/>
+        <Text style={styles.text}>Welcome to Main Screen </Text>
+        
+        {/* ✅ Bottom Nav */}
+        <View style={styles.navContainer}>
+          <NavButtons onPress={handleNav} />
+        </View>
       </View>
-    </View>
+    </GradientBackground>
   );
 }
 
@@ -26,15 +41,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
   },
   text: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 20,
+    textShadowColor: "rgba(0,0,0,0.3)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   navContainer: {
     position: "absolute",
     bottom: 40,
     width: "100%",
+    paddingHorizontal: 20,
   },
 });
