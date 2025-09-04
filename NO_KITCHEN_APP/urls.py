@@ -113,7 +113,8 @@ urlpatterns = [
     path('get_city_from_coords/', views.get_city_from_coords, name='get_city_from_coords'),
     path('get_stores_by_city/', views.get_stores_by_city, name='get_stores_by_city'),
     path('check_nearby_store/', views.check_nearby_store, name='check_nearby_store'),
-
+    path("send-otp/",views.SendOtpAPI.as_view(), name="send-otp"),
+    path("verify-otp/",views.VerifyOtpAPI.as_view(), name="verify-otp"),
 
 
 ]+ router.urls

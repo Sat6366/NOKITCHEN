@@ -45,3 +45,15 @@ class DeliveryPartnerSerializer(serializers.ModelSerializer):
         model = DeliveryPartner
         fields = "__all__"
         read_only_fields = ["agent_code", "created_at", "updated_at", "registered_on"]
+
+
+
+from rest_framework import serializers
+
+class SendOtpSerializer(serializers.Serializer):
+    mobile = serializers.CharField(max_length=15)
+
+
+class VerifyOtpSerializer(serializers.Serializer):
+    session_id = serializers.CharField()
+    otp = serializers.CharField(max_length=6)

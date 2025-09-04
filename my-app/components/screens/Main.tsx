@@ -6,6 +6,8 @@ import GradientBackground from "../home/GradientBackground";
 import CustomHeaderOptions from "../common/CustomHeaderOptions";
 import ProfileToggle from "../common/ProfileToggle";
 import WeatherBanner from "../common/WeatherBanner";
+import DeliveryBenefitsBanner from "../common/DeliveryBenefitsBanner";
+
 
 export default function Main() {
   const handleNav = (screen: string) => {
@@ -17,15 +19,16 @@ export default function Main() {
       {/* ✅ Full screen gradient, no header */}
       <CustomHeaderOptions />
        <ProfileToggle />
-       
+       <WeatherBanner/>
 
 
 
 
       
       <View style={styles.container}>
-        <WeatherBanner/>
-        <Text style={styles.text}>Welcome to Main Screen </Text>
+        <DeliveryBenefitsBanner/>
+        
+        <Text style={styles.text}> </Text>
         
         {/* ✅ Bottom Nav */}
         <View style={styles.navContainer}>
