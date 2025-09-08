@@ -1,124 +1,52 @@
 // components/common/NavButtons.tsx
-import React, { useState, useRef, useEffect } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  useWindowDimensions,
-  Animated,
-} from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ Premium icons
+import React from "react";
+import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+
+type Screen = "main" | "orders" | "earnings" | "profile";
 
 type Props = {
-  onPress: (screen: string) => void;
+  onNavigate: (screen: Screen) => void;
+  active: Screen;
 };
 
-const tabs = [
-  { name: "Home", icon: "home-variant-outline" as const },
-  { name: "Orders", icon: "file-document-outline" as const },
-  { name: "Earnings", icon: "chart-line-variant" as const },
-  { name: "Profile", icon: "account-outline" as const },
-];
-
-export default function NavButtons({ onPress }: Props) {
-  const [active, setActive] = useState("Home");
-  const { width } = useWindowDimensions();
-
-  // Animation values
-  const indicatorX = useRef(new Animated.Value(0)).current;
-  const indicatorScale = useRef(new Animated.Value(0)).current;
-
-  // Responsive sizes
-  const tabWidth = width / tabs.length;
-  const iconSize = width < 360 ? 22 : width < 768 ? 28 : 32;
-  const fontSize = width < 360 ? 10 : width < 768 ? 12 : 14;
-
-  useEffect(() => {
-    const index = tabs.findIndex((t) => t.name === active);
-
-    Animated.parallel([
-      Animated.spring(indicatorX, {
-        toValue: index * tabWidth,
-        useNativeDriver: true,
-      }),
-      Animated.spring(indicatorScale, {
-        toValue: 1,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [active]);
-
+export default function NavButtons({ onNavigate, active }: Props) {
   return (
-    <View className="bg-white border-t border-gray-100 shadow-lg rounded-t-2xl">
-      <View className="flex-row justify-around items-center relative">
-        {/* Floating yellow indicator (premium touch) */}
-        <Animated.View
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            width: tabWidth * 0.6, // smaller pill width for elegance
-            height: 3,
-            backgroundColor: "#facc15",
-            borderRadius: 50,
-            transform: [
-              { translateX: Animated.add(indicatorX, new Animated.Value(tabWidth * 0.2)) }, // center the pill
-              { scaleX: indicatorScale },
-            ],
-          }}
-        />
+    <View style={styles.container}>
+      <TouchableOpacity onPress={() => onNavigate("main")} style={styles.tab}>
+        <Text style={active === "main" ? styles.activeText : styles.inactiveText}>🏠</Text>
+        <Text style={active === "main" ? styles.activeLabel : styles.inactiveLabel}>Home</Text>
+      </TouchableOpacity>
 
-        {tabs.map((tab) => {
-          const isActive = active === tab.name;
+      <TouchableOpacity onPress={() => onNavigate("orders")} style={styles.tab}>
+        <Text style={active === "orders" ? styles.activeText : styles.inactiveText}>📦</Text>
+        <Text style={active === "orders" ? styles.activeLabel : styles.inactiveLabel}>Orders</Text>
+      </TouchableOpacity>
 
-          return (
-            <Pressable
-              key={tab.name}
-              onPress={() => {
-                setActive(tab.name);
-                onPress(tab.name);
-              }}
-              className="flex-1 items-center py-3"
-            >
-              {({ pressed }) => (
-                <Animated.View
-                  style={{
-                    transform: [
-                      { translateY: isActive ? -5 : pressed ? -3 : 0 },
-                      { scale: isActive ? 1.1 : 1 },
-                    ],
-                  }}
-                  className="items-center"
-                >
-                  <MaterialCommunityIcons
-                    name={tab.icon}
-                    size={iconSize}
-                    color={
-                      isActive
-                        ? "#de7932ff" // black for active
-                        : pressed
-                        ? "#fbad04ff" // yellow on press
-                        : "#0b0b0bff" // neutral gray
-                    }
-                  />
-                  <Text
-                    style={{ fontSize }}
-                    className={`mt-1 ${
-                      isActive
-                        ? "text-black font-semibold"
-                        : pressed
-                        ? "text-yellow-500"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {tab.name}
-                  </Text>
-                </Animated.View>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+      <TouchableOpacity onPress={() => onNavigate("earnings")} style={styles.tab}>
+        <Text style={active === "earnings" ? styles.activeText : styles.inactiveText}>💰</Text>
+        <Text style={active === "earnings" ? styles.activeLabel : styles.inactiveLabel}>Earnings</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => onNavigate("profile")} style={styles.tab}>
+        <Text style={active === "profile" ? styles.activeText : styles.inactiveText}>👤</Text>
+        <Text style={active === "profile" ? styles.activeLabel : styles.inactiveLabel}>Profile</Text>
+      </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#ff9800",
+  },
+  tab: { alignItems: "center", flex: 1 },
+  activeText: { fontSize: 20, color: "#fff" },
+  inactiveText: { fontSize: 20, color: "#333" },
+  activeLabel: { fontSize: 12, color: "#fff", fontWeight: "700", marginTop: 2 },
+  inactiveLabel: { fontSize: 12, color: "#333", marginTop: 2 },
+});
