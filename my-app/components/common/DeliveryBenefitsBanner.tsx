@@ -5,11 +5,12 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Easing,
   FlatList,
+  Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+
+const { width } = Dimensions.get("window");
 
 const DeliveryBenefitsBanner = () => {
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -19,39 +20,23 @@ const DeliveryBenefitsBanner = () => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 800,
         useNativeDriver: true,
       }),
       Animated.spring(slideAnim, {
         toValue: 0,
         bounciness: 12,
-        speed: 2,
+        speed: 3,
         useNativeDriver: true,
       }),
     ]).start();
   }, []);
 
   const benefits = [
-    {
-      id: "1",
-      text: "Earn flexible income per delivery",
-      icon: "cash-outline",
-    },
-    {
-      id: "2",
-      text: "Weekly bonuses & incentives",
-      icon: "gift-outline",
-    },
-    {
-      id: "3",
-      text: "Work on your own schedule",
-      icon: "time-outline",
-    },
-    {
-      id: "4",
-      text: "Fuel allowance & extra perks",
-      icon: "car-outline",
-    },
+    { id: "1", text: "Earn flexible income per delivery", icon: "cash-outline" },
+    { id: "2", text: "Weekly bonuses & incentives", icon: "gift-outline" },
+    { id: "3", text: "Work on your own schedule", icon: "time-outline" },
+    { id: "4", text: "Fuel allowance & extra perks", icon: "car-outline" },
   ];
 
   return (
@@ -64,12 +49,7 @@ const DeliveryBenefitsBanner = () => {
         },
       ]}
     >
-      <LinearGradient
-        colors={["#FF914D", "#AB003E"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
+      <View style={styles.card}>
         <Text style={styles.title}>Delivery Partner Benefits 🚴</Text>
 
         <FlatList
@@ -79,54 +59,58 @@ const DeliveryBenefitsBanner = () => {
             <View style={styles.benefitItem}>
               <Ionicons
                 name={item.icon as any}
-                size={22}
-                color="#fff"
+                size={18} // smaller icon
+                color="#FF6F00" // premium orange
                 style={styles.icon}
               />
               <Text style={styles.benefitText}>{item.text}</Text>
             </View>
           )}
         />
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: "92%",
+    width: "90%",
     alignSelf: "center",
-    marginTop: 20,
-    borderRadius: 18,
-    overflow: "hidden",
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 8,
+    marginTop: 16,
   },
-  gradient: {
-    padding: 18,
+  card: {
+    backgroundColor: "#F8F9FA", // light card
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#E0E0E0", // subtle border
   },
   title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: 12,
-    textAlign: "center",
+    fontSize: 16, // smaller
+    fontWeight: "600",
+    color: "#333", // dark grey
+    marginBottom: 10,
+    textAlign: "left",
   },
   benefitItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 6,
+    marginVertical: 4,
   },
   icon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   benefitText: {
-    fontSize: 16,
-    color: "#fff",
+    fontSize: width < 380 ? 13 : 14, // smaller text
+    color: "#444",
     flexShrink: 1,
+    lineHeight: 20,
   },
 });
 

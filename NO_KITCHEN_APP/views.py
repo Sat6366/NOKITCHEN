@@ -2039,6 +2039,7 @@ def reset_password_view(request, user_id):
 
 # Resturent S
 
+# views.py
 import requests
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -2050,8 +2051,9 @@ API_KEY = "5a1df62d-601e-11f0-a562-0200cd936042"  # Your 2Factor API key
 def add_restaurant(request):
     return render(request, 'pages/add_restaurant.html')
 
-# Send OTP
-def send_otp(request):
+# views.py
+
+def storeadmin_send_otp(request):
     if request.method == "POST":
         mobile = request.POST.get("mobile")
         try:
@@ -2073,8 +2075,8 @@ def send_otp(request):
             return JsonResponse({'status': 'error', 'message': 'Mobile not registered'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
-# Verify OTP
-def verify_otp(request):
+
+def storeadmin_verify_otp(request):
     if request.method == "POST":
         mobile = request.session.get("mobile")
         session_id = request.session.get("session_id")
@@ -2090,10 +2092,11 @@ def verify_otp(request):
         if data["Status"] == "Success":
             admin = StoreAdmin.objects.get(mobile=mobile)
             request.session['store_admin_id'] = admin.id
-            return JsonResponse({'status': 'success', 'redirect_url': '/nokitchen/restaurant_home/'})
+            return JsonResponse({'status': 'success', 'redirect_url': '/restaurant_home/'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid OTP'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
 
 # Restaurant Dashboard
 def restaurant_home(request):

@@ -1,12 +1,11 @@
 // components/common/ProfileWithToggle.tsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Animated,
-  Easing,
+  TouchableWithoutFeedback,
   Image,
 } from "react-native";
 
@@ -14,48 +13,58 @@ export default function ProfileWithToggle() {
   const [isOnline, setIsOnline] = useState(false);
   const animatedValue = useRef(new Animated.Value(0)).current;
 
-  const toggleSwitch = () => {
-    setIsOnline(!isOnline);
-
+  useEffect(() => {
     Animated.timing(animatedValue, {
-      toValue: isOnline ? 0 : 1,
+      toValue: isOnline ? 1 : 0,
       duration: 300,
-      easing: Easing.out(Easing.circle),
       useNativeDriver: false,
     }).start();
-  };
+  }, [isOnline]);
 
+  // Knob sliding movement
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [2, 28], // movement of slider
+    outputRange: [2, 90 - 22],
   });
 
+  // Background & Glow color change
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#222", "#4CAF50"], // black when offline, green when online
+    outputRange: ["#FFA500", "#4CAF50"],
   });
+
+  const glowColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#FFA50088", "#4CAF5088"], // semi-transparent glow
+  });
+
+  const toggleText = isOnline ? "Online" : "Offline";
 
   return (
     <View style={styles.container}>
-      {/* Profile on Left */}
+      {/* Profile Image */}
       <Image
-        source={{ uri: "https://i.pravatar.cc/100" }} // sample profile image
+        source={{ uri: "https://i.pravatar.cc/100" }}
         style={styles.profile}
       />
 
-      {/* Toggle Button with Text */}
-      <TouchableOpacity onPress={toggleSwitch} activeOpacity={0.9}>
-        <Animated.View style={[styles.switchBackground, { backgroundColor }]}>
-          {/* ✅ Text inside the toggle */}
-          <Text style={styles.toggleText}>
-            {isOnline ? "Online" : "Offline"}
-          </Text>
+      {/* Toggle */}
+      <TouchableWithoutFeedback onPress={() => setIsOnline(!isOnline)}>
+        <Animated.View
+          style={[
+            styles.switchBackground,
+            { backgroundColor, shadowColor: glowColor },
+          ]}
+        >
+          {/* Centered text */}
+          <Text style={styles.text}>{toggleText}</Text>
 
+          {/* Small knob */}
           <Animated.View
             style={[styles.slider, { transform: [{ translateX }] }]}
           />
         </Animated.View>
-      </TouchableOpacity>
+      </TouchableWithoutFeedback>
     </View>
   );
 }
@@ -65,40 +74,48 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // profile left, toggle right
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     marginTop: 20,
   },
   profile: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 2,
     borderColor: "#fff",
   },
   switchBackground: {
-    width: 80, // made wider to fit text
-    height: 34,
-    borderRadius: 20,
+    width: 90,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
-    paddingHorizontal: 8,
-    elevation: 5, // 3D shadow
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  toggleText: {
-    flex: 1,
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 12,
-    textAlign: "center",
+    paddingHorizontal: 4,
+    elevation: 8, // stronger shadow for glow
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 12,
+    position: "relative",
   },
   slider: {
     position: "absolute",
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: "#fff",
-    elevation: 3, // 3D effect
+    top: 10,
+    elevation: 6,
+    shadowColor: "#fff",
+    shadowOpacity: 0.6,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 6,
+  },
+  text: {
+    position: "absolute",
+    width: "100%",
+    textAlign: "center",
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 12,
   },
 });

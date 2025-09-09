@@ -97,8 +97,11 @@ urlpatterns = [
     path('storeadmin/approve/<int:pk>/', views.approve_storeadmin, name='approve_storeadmin'),
     path('storeadmin/deactivate/<int:pk>/', views.deactivate_storeadmin, name='deactivate_storeadmin'),
     path('storeadmin/remove/<int:pk>/', views.remove_storeadmin, name='remove_storeadmin'),
-    path('send_otp/', views.send_otp, name='send_otp'),
-    path('verify_otp/', views.verify_otp, name='verify_otp'),
+    
+
+    path('store-admin/send-otp/', views.storeadmin_send_otp, name='storeadmin_send_otp'),
+    path('store-admin/verify-otp/', views.storeadmin_verify_otp, name='storeadmin_verify_otp'),
+
     path('order/<str:order_type>/<int:order_id>/details/', views.view_order_details, name='view_order_details'),
     path('manage-stores/', views.manage_stores, name='manage_stores'),
     path('add-store/', views.add_store_location, name='add_store_location'),
