@@ -2671,13 +2671,9 @@ def delivery_register(request):
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
-from django.http import JsonResponse
-import requests
 from .models import DeliveryPartner, StoreLocation
-
+import requests
 def delivery_agentstep1(request):
-    stores = []
-
     # ---------------- POST: Save Registration ----------------
     if request.method == 'POST':
         data = request.session.get('delivery_data')
@@ -2685,11 +2681,11 @@ def delivery_agentstep1(request):
             return redirect('delivery_register')
 
         pan_card_image = request.FILES.get('pan_card_image')
-        aadhar_file = request.FILES.get('aadhar_card_image')
+        aadhar_file = request.FILES.get('aadhar_file')  # Ensure HTML input matches this name
         selfie = request.FILES.get('selfie_image')
-
         user_location = request.POST.get('location')  # e.g., "17.4,78.4"
         selected_store_id = request.POST.get('selected_store')
+
         selected_store = StoreLocation.objects.filter(id=selected_store_id, is_active=True, status=True).first()
 
         DeliveryPartner.objects.create(
@@ -2710,14 +2706,13 @@ def delivery_agentstep1(request):
         messages.success(request, "Registration step 1 completed.")
         return redirect('delivery_agentstep2')
 
-    # ---------------- GET: Detect Locality/City and Filter Stores ----------------
+    # ---------------- GET: Detect City/Locality ----------------
     location_str = request.GET.get('location')  # from JS
     session_city = request.session.get('delivery_data', {}).get('city')  # fallback
 
     detected_locality = None
     detected_city = None
 
-    # Reverse geocode with OpenCage if coords present
     if location_str:
         try:
             lat, lon = map(float, location_str.split(','))
@@ -2736,39 +2731,25 @@ def delivery_agentstep1(request):
                 results = resp.json().get('results', [])
                 if results:
                     components = results[0].get('components', {})
-                    detected_locality = (
-                        components.get('suburb')
-                        or components.get('neighbourhood')
-                        or components.get('locality')
-                        or components.get('town')
-                        or components.get('village')
-                    )
-                    detected_city = (
-                        components.get('city')
-                        or components.get('county')
-                        or components.get('state_district')
-                        or components.get('state')
-                    )
+                    detected_locality = components.get('suburb') or components.get('neighbourhood') or components.get('locality') or components.get('town') or components.get('village')
+                    detected_city = components.get('city') or components.get('county') or components.get('state_district') or components.get('state')
         except Exception as e:
-            print("OpenCage reverse geocode error:", e)
+            print("Reverse geocode error:", e)
 
-    # Filter active stores
-    active_stores = StoreLocation.objects.filter(is_active=True, status=True)
-    stores = active_stores.none()
+    # ---------------- Fetch Active Stores ----------------
+    stores = StoreLocation.objects.filter(is_active=True, status=True)
+    active_stores = stores  # fallback reference
 
-    # 1️⃣ Try locality
+    # Filter based on locality → city → session city
     if detected_locality:
-        stores = active_stores.filter(city__iexact=detected_locality)
+        stores = stores.filter(city__iexact=detected_locality)
 
-    # 2️⃣ Fallback to detected city
     if not stores.exists() and detected_city:
-        stores = active_stores.filter(city__iexact=detected_city)
+        stores = stores.filter(city__iexact=detected_city)
 
-    # 3️⃣ Fallback to session city
     if not stores.exists() and session_city:
-        stores = active_stores.filter(city__iexact=session_city)
+        stores = stores.filter(city__iexact=session_city)
 
-    # 4️⃣ Final fallback: all active stores
     if not stores.exists():
         stores = active_stores
 
@@ -2780,10 +2761,7 @@ def delivery_agentstep1(request):
     })
 
 
-from django.http import JsonResponse
-from django.conf import settings
-import requests
-
+# ---------------- API: Get City from Coordinates ----------------
 def get_city_from_coords(request):
     lat = request.GET.get('lat')
     lon = request.GET.get('lon')
@@ -2810,6 +2788,7 @@ def get_city_from_coords(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# ---------------- API: Get Stores by City ----------------
 def get_stores_by_city(request):
     city = request.GET.get('city')
     if not city:
@@ -2817,15 +2796,9 @@ def get_stores_by_city(request):
 
     stores = StoreLocation.objects.filter(city__iexact=city, is_active=True, status=True)
 
-    store_list = [
-        {
-            'id': store.id,
-            'name': store.name
-        }
-        for store in stores
-    ]
-    return JsonResponse({'stores': store_list})
+    store_list = [{'id': store.id, 'name': store.name} for store in stores]
 
+    return JsonResponse({'stores': store_list})
 
 
 from django.shortcuts import render

@@ -120,4 +120,4 @@ urlpatterns = [
     path("verify-otp/",views.VerifyOtpAPI.as_view(), name="verify-otp"),
 
 
-]+ router.urls
+]
