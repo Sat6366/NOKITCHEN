@@ -3162,9 +3162,6 @@ class DeliveryPartnerViewSet(viewsets.ModelViewSet):
 
 
 # accounts/api_views.py
-
-# views.py (excerpt)
-import json
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -3173,71 +3170,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import SendOtpSerializer, VerifyOtpSerializer
+from .serializers import SendOtpSerializer, VerifyOtpSerializer, DeliveryPartnerSerializer
 from .models import DeliveryPartner
 
 User = get_user_model()
 
-class SendOtpAPI(APIView):
-    def post(self, request):
-        serializer = SendOtpSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        mobile = serializer.validated_data["mobile"]
-        # Make sure mobile includes country code. If user sends 10-digit, prepend +91
-        if not mobile.startswith("+"):
-            mobile_to_send = f"+91{mobile}"
-        else:
-            mobile_to_send = mobile
-
-        try:
-            url = f"https://2factor.in/API/V1/{settings.TWO_FACTOR_API_KEY}/SMS/{mobile_to_send}/AUTOGEN"
-            resp = requests.get(url, timeout=10)
-            data = resp.json()
-
-            if data.get("Status") == "Success":
-                session_id = data.get("Details")
-                # store mobile against session_id for later verification (5 minutes)
-                cache.set(session_id, mobile_to_send, timeout=300)
-                return Response({"success": True, "session_id": session_id}, status=status.HTTP_200_OK)
-
-            return Response({"success": False, "message": data.get("Details", "Failed to send OTP")},
-                            status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"success": False, "message": str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-# views.py
-import json
-# views.py
-# views.py
-import requests
-from django.conf import settings
-from django.core.cache import cache
-from django.contrib.auth import get_user_model
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import SendOtpSerializer, VerifyOtpSerializer
-from .models import DeliveryPartner
-
-User = get_user_model()
 
 class SendOtpAPI(APIView):
     """
-    Generates OTP for a given mobile number using 2factor.in
+    Send OTP to delivery partner using 2factor.in API
     """
-
     def post(self, request):
         serializer = SendOtpSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         mobile = serializer.validated_data["mobile"].strip()
-        # Ensure mobile has country code
         mobile_to_send = mobile if mobile.startswith("+") else f"+91{mobile}"
 
         try:
@@ -3247,23 +3195,19 @@ class SendOtpAPI(APIView):
 
             if data.get("Status") == "Success":
                 session_id = data.get("Details")
-                # Store mobile against session_id for later verification (5 minutes)
-                cache.set(session_id, mobile_to_send, timeout=300)
-                return Response({"success": True, "session_id": session_id}, status=status.HTTP_200_OK)
+                cache.set(session_id, mobile_to_send, timeout=300)  # store mobile for 5 mins
+                return Response({"success": True, "session_id": session_id})
 
-            return Response({"success": False, "message": data.get("Details", "Failed to send OTP")},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, "message": data.get("Details")}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            return Response({"success": False, "message": str(e)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"success": False, "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class VerifyOtpAPI(APIView):
     """
-    Verifies OTP using 2factor.in and returns JWT tokens for the user.
+    Verify OTP, return JWT tokens and DeliveryPartner profile including ID
     """
-
     def post(self, request):
         serializer = VerifyOtpSerializer(data=request.data)
         if not serializer.is_valid():
@@ -3272,44 +3216,36 @@ class VerifyOtpAPI(APIView):
         session_id = serializer.validated_data["session_id"].strip()
         otp = serializer.validated_data["otp"].strip()
 
-        # Retrieve mobile from cache
         mobile = cache.get(session_id)
         if not mobile:
-            return Response({"success": False, "message": "Session expired or invalid session_id"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, "message": "Session expired"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Verify OTP with 2factor
             url = f"https://2factor.in/API/V1/{settings.TWO_FACTOR_API_KEY}/SMS/VERIFY/{session_id}/{otp}"
             resp = requests.get(url, timeout=10)
             data = resp.json()
 
             if data.get("Status") == "Success":
-                # OTP verified successfully
-                # Try to find DeliveryPartner with this mobile
-                partner = DeliveryPartner.objects.filter(
-                    mobile__in=[mobile, mobile.replace("+", "")]
-                ).first()
+                # Get or create DeliveryPartner
+                partner = DeliveryPartner.objects.filter(mobile__in=[mobile, mobile.replace("+", "")]).first()
+                if not partner:
+                    partner = DeliveryPartner.objects.create(mobile=mobile)
 
-                # Get Django User linked to DeliveryPartner or create a new one
-                user = getattr(partner, "user", None) if partner else None
-                if not user:
-                    username = mobile.replace("+", "")
-                    user, _ = User.objects.get_or_create(username=username, defaults={"is_active": True})
-
-                # Issue JWT tokens
+                # Create/get user for JWT
+                user, _ = User.objects.get_or_create(username=mobile.replace("+", ""))
                 refresh = RefreshToken.for_user(user)
+
+                # Serialize partner including ID
+                partner_serializer = DeliveryPartnerSerializer(partner, context={'request': request})
+
                 return Response({
                     "success": True,
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
-                    "user": {"id": user.id, "username": user.username},
-                }, status=status.HTTP_200_OK)
+                    "partner": partner_serializer.data
+                })
 
-            # OTP mismatch
-            return Response({"success": False, "message": data.get("Details", "OTP Mismatch")},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, "message": "OTP Mismatch"}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as exc:
-            return Response({"success": False, "message": str(exc)},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"success": False, "message": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

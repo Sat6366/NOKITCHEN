@@ -49,11 +49,28 @@ class DeliveryPartnerSerializer(serializers.ModelSerializer):
 
 
 from rest_framework import serializers
+from .models import DeliveryPartner
 
 class SendOtpSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=15)
 
-
 class VerifyOtpSerializer(serializers.Serializer):
     session_id = serializers.CharField()
     otp = serializers.CharField(max_length=6)
+
+from rest_framework import serializers
+from .models import DeliveryPartner
+
+class DeliveryPartnerSerializer(serializers.ModelSerializer):
+    selfie = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DeliveryPartner
+        # Added 'id' here
+        fields = ['id', 'first_name', 'last_name', 'mobile', 'selfie', 'agent_code']
+
+    def get_selfie(self, obj):
+        request = self.context.get('request')
+        if obj.selfie:
+            return request.build_absolute_uri(obj.selfie.url)
+        return None

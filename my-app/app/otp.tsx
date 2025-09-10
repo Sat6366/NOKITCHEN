@@ -1,33 +1,49 @@
+// app/otp.tsx
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert, ActivityIndicator, TextInput, Keyboard } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Alert,
+  ActivityIndicator,
+  TextInput,
+  Keyboard,
+} from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import AppHeader from "@/components/common/AppHeader";
 import CustomHeaderOptions from "@/components/common/CustomHeaderOptions";
+import { useAuth } from "@/components/context/AuthContext";
 
-const BASE_URL = "http://192.168.0.9:8000/api"; // your LAN IP
+const BASE_URL = "http://192.168.0.9:8000/api"; // replace with your server IP
 
-// ===== OTP Input Component =====
-const OTPInput = ({ length = 6, onComplete }: { length?: number; onComplete?: (otp: string) => void }) => {
+// ================= OTP INPUT COMPONENT =================
+const OTPInput = ({
+  length = 6,
+  onComplete,
+}: {
+  length?: number;
+  onComplete?: (otp: string) => void;
+}) => {
   const [otp, setOtp] = useState(Array(length).fill(""));
   const inputs = useRef<(TextInput | null)[]>([]);
   const [completed, setCompleted] = useState(false);
 
   const handleChange = (text: string, index: number) => {
-    if (!/^\d*$/.test(text)) return; // only numbers allowed
+    if (!/^\d*$/.test(text)) return; // only numbers
     const newOtp = [...otp];
     newOtp[index] = text;
     setOtp(newOtp);
 
-    // auto-focus next
     if (text && index < length - 1) inputs.current[index + 1]?.focus();
 
-    // if all filled and not already completed
-    if (newOtp.every(d => d !== "") && !completed) {
+    if (newOtp.every((d) => d !== "") && !completed) {
       setCompleted(true);
       onComplete && onComplete(newOtp.join(""));
-      Keyboard.dismiss(); // hide keyboard
-    } else if (newOtp.some(d => d === "")) {
+      Keyboard.dismiss();
+    } else if (newOtp.some((d) => d === "")) {
       setCompleted(false);
     }
   };
@@ -43,10 +59,10 @@ const OTPInput = ({ length = 6, onComplete }: { length?: number; onComplete?: (o
       {otp.map((digit, index) => (
         <TextInput
           key={index}
-          ref={el => (inputs.current[index] = el)}
+          ref={(el) => (inputs.current[index] = el)}
           value={digit}
-          onChangeText={t => handleChange(t, index)}
-          onKeyPress={e => handleKeyPress(e, index)}
+          onChangeText={(t) => handleChange(t, index)}
+          onKeyPress={(e) => handleKeyPress(e, index)}
           keyboardType="numeric"
           maxLength={1}
           style={styles.otpInput}
@@ -58,32 +74,39 @@ const OTPInput = ({ length = 6, onComplete }: { length?: number; onComplete?: (o
   );
 };
 
-// ===== OTP Page =====
+// ================= OTP PAGE =================
 export default function OTPPage() {
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(30);
   const [fadeAnim] = useState(new Animated.Value(0));
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const { sessionId = "", mobile = "" } = useLocalSearchParams<{ sessionId?: string; mobile?: string }>();
 
+  const router = useRouter();
+  const { sessionId = "", mobile = "" } =
+    useLocalSearchParams<{ sessionId?: string; mobile?: string }>();
+
+  const { login } = useAuth(); // use login() instead of setUser
+
+  // fade in animation
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
+  // resend timer
   useEffect(() => {
     if (timer > 0) {
-      const interval = setInterval(() => setTimer(t => t - 1), 1000);
+      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
       return () => clearInterval(interval);
     }
   }, [timer]);
 
+  // handle OTP verification
   const handleContinue = async () => {
-    const otpTrimmed = otp.trim();
-    const sessionTrimmed = sessionId.trim();
-    const mobileTrimmed = mobile.trim();
-
-    if (!otpTrimmed || otpTrimmed.length < 6) {
+    if (!otp || otp.length < 6) {
       Alert.alert("Error", "Enter full 6-digit OTP");
       return;
     }
@@ -94,17 +117,21 @@ export default function OTPPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_id: sessionTrimmed,
-          mobile: mobileTrimmed,
-          otp: otpTrimmed,
+          session_id: sessionId.trim(),
+          otp: otp.trim(),
         }),
       });
+
       const data = await res.json();
       console.log("Verify OTP response:", data);
 
-      if (data.success) {
+      if (data.success && data.partner) {
         Alert.alert("Success", "OTP Verified ✅");
-        router.replace("/home");
+
+        // ✅ store logged-in user globally via AuthContext
+        await login(data);
+
+        router.replace("/home"); // redirect to home screen
       } else {
         Alert.alert("Error", data.message || "Invalid OTP");
       }
@@ -116,6 +143,7 @@ export default function OTPPage() {
     }
   };
 
+  // handle resend
   const handleResend = async () => {
     if (timer !== 0) return;
 
@@ -150,7 +178,9 @@ export default function OTPPage() {
           <Text style={styles.subtitle}>
             Code sent to <Text style={{ fontWeight: "600" }}>{mobile}</Text>
           </Text>
+
           <OTPInput length={6} onComplete={setOtp} />
+
           <TouchableOpacity
             style={[styles.buttonContainer, (!otp || loading) && { opacity: 0.6 }]}
             disabled={!otp || loading}
@@ -160,6 +190,7 @@ export default function OTPPage() {
               {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Continue</Text>}
             </LinearGradient>
           </TouchableOpacity>
+
           <Text style={styles.timerText}>
             {timer > 0 ? `Resend OTP in ${timer}s` : "Didn't get OTP?"}
           </Text>
@@ -174,6 +205,7 @@ export default function OTPPage() {
   );
 }
 
+// ================= STYLES =================
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 20 },
@@ -197,14 +229,5 @@ const styles = StyleSheet.create({
   timerText: { marginTop: 20, fontSize: 14, color: "#999" },
   resendText: { marginTop: 10, fontSize: 16, color: "#FF5722", fontWeight: "600" },
   otpContainer: { flexDirection: "row", justifyContent: "center", marginVertical: 20 },
-  otpInput: {
-    width: 45,
-    height: 55,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    marginHorizontal: 5,
-    borderRadius: 8,
-    fontSize: 22,
-    color: "#000",
-  },
+  otpInput: { width: 45, height: 55, borderWidth: 1, borderColor: "#ccc", marginHorizontal: 5, borderRadius: 8, fontSize: 22, color: "#000" },
 });

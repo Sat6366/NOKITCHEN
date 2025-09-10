@@ -8,9 +8,11 @@ import Earnings from "./components/screens/Earnings";
 import Profile from "./components/screens/Profile";
 import NavButtons from "./components/common/NavButtons";
 
+import { AuthProvider } from "./components/context/AuthContext"; // ✅ add this
+
 export type Screen = "main" | "orders" | "earnings" | "profile";
 
-export default function App() {
+function AppContent() {
   const [active, setActive] = useState<Screen>("main");
 
   const renderScreen = () => {
@@ -33,6 +35,14 @@ export default function App() {
       <View style={styles.content}>{renderScreen()}</View>
       <NavButtons active={active} onNavigate={setActive} />
     </View>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent /> {/* ✅ wrap your app inside AuthProvider */}
+    </AuthProvider>
   );
 }
 
