@@ -5,15 +5,12 @@ import {
   Text,
   StyleSheet,
   Image,
-  Dimensions,
   TouchableOpacity,
   LayoutAnimation,
   Platform,
   UIManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-const { width } = Dimensions.get("window");
 
 // enable LayoutAnimation for Android
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -23,13 +20,15 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 interface ProfileBannerProps {
   name: string;
   email: string;
-  userId?: string; // 👈 added ID
+  userId?: string;
   imageUri: string;
   onEdit?: () => void;
   moreDetails?: {
     phone?: string;
-    address?: string;
     joined?: string;
+    pan_number?: string;
+    aadhar_number?: string;
+    store?: string;
   };
 }
 
@@ -54,37 +53,57 @@ export default function ProfileBanner({
       <View style={styles.imageWrapper}>
         <Image source={{ uri: imageUri }} style={styles.profileImage} />
 
-        {/* Edit Button */}
-        <TouchableOpacity style={styles.editBtn} onPress={onEdit}>
-          <Ionicons name="pencil" size={18} color="#fff" />
-        </TouchableOpacity>
+        {onEdit && (
+          <TouchableOpacity style={styles.editBtn} >
+            <Ionicons name="pencil" size={18} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Default Info (always visible) */}
+      {/* Always Visible Info */}
       <Text style={styles.name}>{name}</Text>
       {userId && <Text style={styles.userId}>ID: {userId}</Text>}
       <Text style={styles.email}>{email}</Text>
 
-      {/* Extra Details (above More button when expanded) */}
-      {showMore && (
+      {/* More Details */}
+      {showMore && moreDetails && (
         <View style={styles.moreDetails}>
-          {moreDetails?.phone && (
-            <Text style={styles.detail}>📞 {moreDetails.phone}</Text>
+          {moreDetails.phone && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Phone</Text>
+              <Text style={styles.value}>{moreDetails.phone}</Text>
+            </View>
           )}
-          {moreDetails?.address && (
-            <Text style={styles.detail}>🏠 {moreDetails.address}</Text>
+          {moreDetails.joined && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Joined</Text>
+              <Text style={styles.value}>{moreDetails.joined}</Text>
+            </View>
           )}
-          {moreDetails?.joined && (
-            <Text style={styles.detail}>📅 Joined: {moreDetails.joined}</Text>
+          {moreDetails.pan_number && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>PAN</Text>
+              <Text style={styles.value}>{moreDetails.pan_number}</Text>
+            </View>
+          )}
+          {moreDetails.aadhar_number && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Aadhar</Text>
+              <Text style={styles.value}>{moreDetails.aadhar_number}</Text>
+            </View>
+          )}
+          {moreDetails.store && (
+            <View style={styles.detailRow}>
+              <Text style={styles.label}>Store</Text>
+              <Text style={styles.value}>{moreDetails.store}</Text>
+            </View>
           )}
         </View>
       )}
 
-      {/* More Button */}
+      {/* Toggle Button */}
       <TouchableOpacity style={styles.moreBtn} onPress={handleToggle}>
-        <Text style={styles.moreText}>
-          {showMore ? "Less" : "More"}
-        </Text>
+        <Text style={styles.moreText}>{showMore ? "Less" : "More"}</Text>
         <Ionicons
           name={showMore ? "chevron-up" : "chevron-down"}
           size={18}
@@ -98,10 +117,10 @@ export default function ProfileBanner({
 const styles = StyleSheet.create({
   cardWrapper: {
     marginHorizontal: 16,
-    backgroundColor: "#b8b8b8ff",
+    backgroundColor: "#7b7676ff",
     borderRadius: 20,
     alignItems: "center",
-    paddingVertical: 25, // 👈 reduced height
+    paddingVertical: 25,
     elevation: 5,
     shadowColor: "#000",
     shadowOpacity: 0.08,
@@ -123,28 +142,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 15,
   },
-  profileImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-    borderRadius: 55,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#222",
-    marginTop: 4,
-  },
-  userId: {
-    fontSize: 14,
-    color: "#888",
-    marginTop: 2,
-  },
-  email: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 2,
-  },
+  profileImage: { width: "100%", height: "100%", borderRadius: 55 },
+  name: { fontSize: 20, fontWeight: "700", color: "#fff", marginTop: 4 },
+  userId: { fontSize: 14, color: "#FF914D", marginTop: 2 },
+  email: { fontSize: 14, color: "#ccc", marginTop: 2 },
   editBtn: {
     position: "absolute",
     bottom: 0,
@@ -161,21 +162,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 18,
     borderRadius: 20,
-    backgroundColor: "#FF914D", // orange button
+    backgroundColor: "#FF914D",
   },
-  moreText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#fff", // white text
-    marginRight: 6,
+  moreText: { fontSize: 14, fontWeight: "600", color: "#fff", marginRight: 6 },
+  moreDetails: { marginTop: 12, width: "90%" },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#555",
   },
-  moreDetails: {
-    marginTop: 12,
-    alignItems: "center",
-  },
-  detail: {
-    fontSize: 14,
-    color: "#444",
-    marginTop: 4,
-  },
+  label: { color: "#FF914D", fontSize: 14, fontWeight: "600" },
+  value: { color: "#fff", fontSize: 14 },
 });

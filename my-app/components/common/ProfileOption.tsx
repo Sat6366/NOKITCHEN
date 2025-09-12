@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eee",
     marginTop: 12,
-    elevation: 2,
-    shadowColor: "#000",
+    elevation: 2, // Android shadow
+    shadowColor: "#000", // iOS shadow
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 12,
-    color: "#FF5733",
+    color: "#FF5733", // orange text like Logout
   },
 });

@@ -6,6 +6,7 @@ import CustomHeaderOptions from "../common/CustomHeaderOptions";
 import DeliveryBenefitsBanner from "../common/DeliveryBenefitsBanner";
 import ProfileWithToggle from "../common/ProfileToggle";
 import NavButtons from "../common/NavButtons";
+import WeatherBanner from "../common/WeatherBanner";
 
 export default function Main() {
   return (
@@ -13,12 +14,18 @@ export default function Main() {
       {/* Fixed Header with Back Arrow */}
       <CustomHeaderOptions title="Home" showBack />
 
-      {/* Scrollable content */}
+      {/* Fixed top content */}
+      
+
+      {/* Scrollable middle content only */}
       <ScrollView
+        style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <ProfileWithToggle />
+      
+        <WeatherBanner />
         <View style={styles.page}>
           <Text style={styles.text}></Text>
           <DeliveryBenefitsBanner />
@@ -27,11 +34,13 @@ export default function Main() {
           <View style={styles.box} />
           <View style={styles.box} />
           <View style={styles.box} />
+          <View style={styles.box} />
+          <View style={styles.box} />
         </View>
       </ScrollView>
 
       {/* Fixed Bottom Navigation */}
-      <NavButtons/>
+      <NavButtons />
     </GradientBackground>
   );
 }
@@ -40,12 +49,15 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
+  scrollContainer: {
+    flex: 1,
+  },
   scrollContent: {
-    paddingBottom: 80, // space for bottom nav
+    paddingBottom: 100, // space for bottom nav
+    alignItems: "center",
   },
   page: {
-    flexGrow: 1,
-    justifyContent: "center",
+    width: "100%",
     alignItems: "center",
   },
   text: {

@@ -6,180 +6,192 @@ import {
   StyleSheet,
   Animated,
   Easing,
-  ImageBackground,
+  Image,
   Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
 const WeatherBanner = () => {
-  const [temp, setTemp] = useState(28);
-  const [condition, setCondition] = useState("Sunny");
+  const [temp] = useState(25);
+  const [condition] = useState("Cloudy");
 
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(-width));
-  const [pulseAnim] = useState(new Animated.Value(1));
-  const [glowAnim] = useState(new Animated.Value(0));
 
-  const today = new Date();
-  const dateString = today.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-  });
+  // Multiple cloud animations
+  const [cloudAnim1] = useState(new Animated.Value(0));
+  const [cloudAnim2] = useState(new Animated.Value(0));
+  const [cloudAnim3] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    // Banner slide-in + fade
+    // card animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 600,
         useNativeDriver: true,
       }),
       Animated.spring(slideAnim, {
         toValue: 0,
         speed: 2,
-        bounciness: 12,
+        bounciness: 6,
         useNativeDriver: true,
       }),
     ]).start();
 
-    // Pulsing weather icon
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    // cloud animations (different speeds for realism)
+    const animateCloud = (anim: Animated.Value, duration: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
 
-    // Moving glow line
-    Animated.loop(
-      Animated.timing(glowAnim, {
-        toValue: 1,
-        duration: 4000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    ).start();
+    animateCloud(cloudAnim1, 12000); // slow big cloud
+    animateCloud(cloudAnim2, 9000); // medium
+    animateCloud(cloudAnim3, 6000); // faster small
   }, []);
 
-  const glowTranslateX = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-width, width],
+  const cloudTranslate = (anim: Animated.Value, offset: number) =>
+    anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-50 - offset, width + offset],
+    });
+
+  const today = new Date();
+  const dateString = today.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
   });
 
   return (
     <Animated.View
       style={[
         styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateX: slideAnim }],
-        },
+        { opacity: fadeAnim, transform: [{ translateX: slideAnim }] },
       ]}
     >
-      <LinearGradient
-        colors={["#1e3c72", "#2a5298"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        {/* Weather Icon with Pulse */}
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-          <ImageBackground
-            source={{
-              uri:
-                condition === "Sunny"
-                  ? "https://cdn-icons-png.flaticon.com/512/869/869869.png"
-                  : "https://cdn-icons-png.flaticon.com/512/1163/1163624.png",
-            }}
-            style={styles.icon}
-            imageStyle={{ tintColor: "#fff" }}
-          />
-        </Animated.View>
+      {/* Animated Clouds (layered, soft, realistic) */}
+      <Animated.Image
+        source={{ uri: "https://cdn-icons-png.flaticon.com/512/414/414825.png" }}
+        style={[
+          styles.cloud,
+          {
+            top: 5,
+            width: 60,
+            height: 35,
+            opacity: 0.5,
+            transform: [{ translateX: cloudTranslate(cloudAnim1, 0) }],
+          },
+        ]}
+      />
+      <Animated.Image
+        source={{ uri: "https://cdn-icons-png.flaticon.com/512/414/414825.png" }}
+        style={[
+          styles.cloud,
+          {
+            top: 20,
+            width: 45,
+            height: 28,
+            opacity: 0.7,
+            transform: [{ translateX: cloudTranslate(cloudAnim2, 40) }],
+          },
+        ]}
+      />
+      <Animated.Image
+        source={{ uri: "https://cdn-icons-png.flaticon.com/512/414/414825.png" }}
+        style={[
+          styles.cloud,
+          {
+            top: 30,
+            width: 35,
+            height: 20,
+            opacity: 0.9,
+            transform: [{ translateX: cloudTranslate(cloudAnim3, 80) }],
+          },
+        ]}
+      />
 
-        {/* Weather Info */}
+      {/* Weather Info */}
+      <View style={styles.content}>
+        <Image
+          source={{
+            uri:
+              condition === "Sunny"
+                ? "https://cdn-icons-png.flaticon.com/512/869/869869.png"
+                : "https://cdn-icons-png.flaticon.com/512/414/414825.png", // cloud icon
+          }}
+          style={styles.icon}
+        />
         <View style={styles.info}>
           <Text style={styles.temp}>{temp}°C</Text>
           <Text style={styles.condition}>{condition}</Text>
           <Text style={styles.date}>{dateString}</Text>
         </View>
-
-        {/* Animated Moving Glow Line */}
-        <Animated.View
-          style={[
-            styles.glowLine,
-            { transform: [{ translateX: glowTranslateX }] },
-          ]}
-        />
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: "92%",
+    width: "90%",
     alignSelf: "center",
-    marginTop: 16,
-    borderRadius: 16,
+    marginTop: 10,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    padding: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
     overflow: "hidden",
-    elevation: 8,
-    shadowColor: "#00f",
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 8,
+    minHeight: 60, // compact
+    justifyContent: "center",
   },
-  gradient: {
+  content: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    minHeight: 80, // reduced height
+    zIndex: 5,
   },
   icon: {
-    width: 50,
-    height: 50,
-    marginRight: 14,
+    width: 26,
+    height: 26,
+    marginRight: 8,
   },
   info: {
     flex: 1,
   },
   temp: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#fff",
-    textShadowColor: "rgba(0,0,0,0.4)",
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 4,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#333",
   },
   condition: {
-    fontSize: 15,
-    color: "#f0f0f0",
-    opacity: 0.9,
+    fontSize: 12,
+    color: "#666",
   },
   date: {
-    fontSize: 13,
-    color: "#ccc",
-    marginTop: 2,
+    fontSize: 10,
+    color: "#999",
   },
-  glowLine: {
+  cloud: {
     position: "absolute",
-    bottom: 0,
-    height: 3,
-    width: "50%",
-    backgroundColor: "rgba(255,255,255,0.6)",
-    borderRadius: 2,
+    resizeMode: "contain",
   },
 });
 

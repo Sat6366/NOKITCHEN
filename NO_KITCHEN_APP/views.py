@@ -2421,7 +2421,6 @@ def view_order_details(request, order_type, order_id):
 
 # kitchen_app/views.py
 # views.py
-# views.py
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
