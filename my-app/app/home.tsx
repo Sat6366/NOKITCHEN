@@ -1,6 +1,7 @@
 // app/home.tsx
-import Main from "@/components/screens/Main"; // ✅ renamed
+import React from "react";
+import HomeLayout from "../components/layout/HomeLayout";
 
 export default function HomeRoute() {
-  return <Main />;
+  return <HomeLayout />;
 }

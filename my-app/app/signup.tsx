@@ -70,8 +70,15 @@ const Input = memo(
 const FileAttach = memo(({ label, file, onPick }: any) => {
   return (
     <TouchableOpacity style={styles.attachBtn} onPress={onPick}>
-      <Ionicons name="attach-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
-      <Text style={styles.attachText}>{file ? file.split("/").pop() : label}</Text>
+      <Ionicons
+        name="attach-outline"
+        size={16}
+        color="#fff"
+        style={{ marginRight: 6 }}
+      />
+      <Text style={styles.attachText}>
+        {file ? file.split("/").pop() : label}
+      </Text>
     </TouchableOpacity>
   );
 });
@@ -96,15 +103,35 @@ export default function SignupForm() {
   });
 
   const [stores, setStores] = useState<any[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [filteredStores, setFilteredStores] = useState<any[]>([]);
   const [selectedStore, setSelectedStore] = useState<string | null>(null);
 
   // Fetch stores
   useEffect(() => {
     axios
       .get(`${API_BASE}/store-locations/`)
-      .then((res) => setStores(res.data))
+      .then((res) => {
+        setStores(res.data);
+        // extract unique cities
+        const cityList = [
+          ...new Set(res.data.map((s: any) => s.city).filter(Boolean)),
+        ];
+        setCities(cityList);
+      })
       .catch((err) => console.error(err?.response?.data || err.message));
   }, []);
+
+  // Filter stores when city changes
+  useEffect(() => {
+    if (selectedCity) {
+      setFilteredStores(stores.filter((s) => s.city === selectedCity));
+      setSelectedStore(null); // reset store when city changes
+    } else {
+      setFilteredStores([]);
+    }
+  }, [selectedCity, stores]);
 
   // ✅ Use useCallback to prevent unnecessary re-renders
   const updateField = useCallback((key: keyof FormDataType, value: string) => {
@@ -122,7 +149,14 @@ export default function SignupForm() {
   }, []);
 
   const validate = () => {
-    if (!form.firstName || !form.lastName || !form.email || !form.mobile || !form.aadharNumber || !selectedStore) {
+    if (
+      !form.firstName ||
+      !form.lastName ||
+      !form.email ||
+      !form.mobile ||
+      !form.aadharNumber ||
+      !selectedStore
+    ) {
       Alert.alert("Error", "Please fill all required fields");
       return false;
     }
@@ -172,7 +206,9 @@ export default function SignupForm() {
       const res = await axios.post(`${API_BASE}/delivery-partners/`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      const code = res.data?.agent_code ? `\nAgent Code: ${res.data.agent_code}` : "";
+      const code = res.data?.agent_code
+        ? `\nAgent Code: ${res.data.agent_code}`
+        : "";
       Alert.alert("Success", `Registered successfully!${code}`);
       router.replace("/login");
     } catch (err: any) {
@@ -200,38 +236,114 @@ export default function SignupForm() {
 
         <View style={styles.card}>
           <View style={styles.form}>
-            <Input placeholder="First Name" value={form.firstName} onChangeText={(t) => updateField("firstName", t)} />
-            <Input placeholder="Last Name" value={form.lastName} onChangeText={(t) => updateField("lastName", t)} />
-            <Input placeholder="Email" value={form.email} onChangeText={(t) => updateField("email", t)} keyboardType="email-address" />
-            <Input placeholder="Mobile Number" value={form.mobile} onChangeText={(t) => updateField("mobile", t)} keyboardType="phone-pad" />
-            <Input placeholder="PAN Number" value={form.panNumber} onChangeText={(t) => updateField("panNumber", t)} />
-            <FileAttach label="Attach PAN" file={files.panFile} onPick={() => pickFile("panFile")} />
-            <Input placeholder="Aadhar Number" value={form.aadharNumber} onChangeText={(t) => updateField("aadharNumber", t)} keyboardType="numeric" />
-            <FileAttach label="Attach Aadhar" file={files.aadharFile} onPick={() => pickFile("aadharFile")} />
-            <Input placeholder="Location (optional)" value={form.location} onChangeText={(t) => updateField("location", t)} />
-            <FileAttach label="Attach Selfie" file={files.selfieFile} onPick={() => pickFile("selfieFile")} />
+            <Input
+              placeholder="First Name"
+              value={form.firstName}
+              onChangeText={(t) => updateField("firstName", t)}
+            />
+            <Input
+              placeholder="Last Name"
+              value={form.lastName}
+              onChangeText={(t) => updateField("lastName", t)}
+            />
+            <Input
+              placeholder="Email"
+              value={form.email}
+              onChangeText={(t) => updateField("email", t)}
+              keyboardType="email-address"
+            />
+            <Input
+              placeholder="Mobile Number"
+              value={form.mobile}
+              onChangeText={(t) => updateField("mobile", t)}
+              keyboardType="phone-pad"
+            />
+            <Input
+              placeholder="PAN Number"
+              value={form.panNumber}
+              onChangeText={(t) => updateField("panNumber", t)}
+            />
+            <FileAttach
+              label="Attach PAN"
+              file={files.panFile}
+              onPick={() => pickFile("panFile")}
+            />
+            <Input
+              placeholder="Aadhar Number"
+              value={form.aadharNumber}
+              onChangeText={(t) => updateField("aadharNumber", t)}
+              keyboardType="numeric"
+            />
+            <FileAttach
+              label="Attach Aadhar"
+              file={files.aadharFile}
+              onPick={() => pickFile("aadharFile")}
+            />
+            <Input
+              placeholder="Location (optional)"
+              value={form.location}
+              onChangeText={(t) => updateField("location", t)}
+            />
+            <FileAttach
+              label="Attach Selfie"
+              file={files.selfieFile}
+              onPick={() => pickFile("selfieFile")}
+            />
 
+            {/* City Selector */}
+            <Text style={styles.label}>Select City</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedCity}
+                onValueChange={(val) => setSelectedCity(val)}
+                mode="dropdown"
+                style={{ height: 44 }}
+              >
+                <Picker.Item label="-- Select City --" value={null} />
+                {cities.map((city) => (
+                  <Picker.Item key={city} label={city} value={city} />
+                ))}
+              </Picker>
+            </View>
+
+            {/* Store Selector */}
             <Text style={styles.label}>Select Store Location</Text>
             <View style={styles.pickerWrapper}>
-              <Picker selectedValue={selectedStore} onValueChange={(val) => setSelectedStore(val)} mode="dropdown" style={{ height: 44 }}>
+              <Picker
+                selectedValue={selectedStore}
+                onValueChange={(val) => setSelectedStore(val)}
+                mode="dropdown"
+                style={{ height: 44 }}
+                enabled={!!selectedCity}
+              >
                 <Picker.Item label="-- Select Store --" value={null} />
-                {stores.map((s) => (
-                  <Picker.Item key={s.id} label={`${s.name}${s.city ? ` (${s.city})` : ""}`} value={String(s.id)} />
+                {filteredStores.map((s) => (
+                  <Picker.Item
+                    key={s.id}
+                    label={`${s.name}${s.city ? ` (${s.city})` : ""}`}
+                    value={String(s.id)}
+                  />
                 ))}
               </Picker>
             </View>
           </View>
         </View>
 
-        <TouchableOpacity onPress={handleSignup} activeOpacity={0.9} style={styles.signupWrapper}>
-          <LinearGradient colors={["#f97316", "#FAA403"]} style={styles.signupBtn}>
+        <TouchableOpacity
+          onPress={handleSignup}
+          activeOpacity={0.9}
+          style={styles.signupWrapper}
+        >
+          <LinearGradient
+            colors={["#f97316", "#FAA403"]}
+            style={styles.signupBtn}
+          >
             <Text style={styles.signupText}>Sign Up</Text>
           </LinearGradient>
         </TouchableOpacity>
 
         <AlreadyUser />
         <SocialLogins />
-       
       </ScrollView>
       <Footer />
     </View>
@@ -251,15 +363,60 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 12,
   },
-  title: { fontSize: 22, fontWeight: "700", color: "#111827", textAlign: "center", marginTop: 10 },
-  subtitle: { fontSize: 14, color: "#6b7280", marginBottom: 14, textAlign: "center" },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginBottom: 14,
+    textAlign: "center",
+  },
   form: { gap: 10 },
-  input: { borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 12, paddingHorizontal: 12, height: 44, fontSize: 14, color: "#111827", backgroundColor: "#fff" },
+  input: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 44,
+    fontSize: 14,
+    color: "#111827",
+    backgroundColor: "#fff",
+  },
   label: { marginTop: 12, marginBottom: 6, fontWeight: "600", color: "#374151" },
-  attachBtn: { flexDirection: "row", alignItems: "center", paddingHorizontal: 12, height: 36, borderRadius: 20, backgroundColor: "#FAA403", marginTop: 6, alignSelf: "flex-start" },
+  attachBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    height: 36,
+    borderRadius: 20,
+    backgroundColor: "#FAA403",
+    marginTop: 6,
+    alignSelf: "flex-start",
+  },
   attachText: { fontSize: 13, color: "#fff", fontWeight: "500" },
   signupWrapper: { marginTop: 20, alignItems: "center" },
-  signupBtn: { width: "80%", borderRadius: 28, paddingVertical: 14, alignItems: "center", justifyContent: "center", shadowColor: "#f97316", shadowOpacity: 0.25, shadowOffset: { width: 0, height: 5 }, shadowRadius: 8, elevation: 3 },
+  signupBtn: {
+    width: "80%",
+    borderRadius: 28,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#f97316",
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 8,
+    elevation: 3,
+  },
   signupText: { fontSize: 16, fontWeight: "600", color: "#fff" },
-  pickerWrapper: { borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 12, backgroundColor: "#fff" },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    backgroundColor: "#fff",
+  },
 });

@@ -6,127 +6,192 @@ import {
   StyleSheet,
   Animated,
   Easing,
-  ImageBackground,
+  Image,
   Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
 const WeatherBanner = () => {
-  const [temp, setTemp] = useState(28);
-  const [condition, setCondition] = useState("Sunny");
+  const [temp] = useState(25);
+  const [condition] = useState("Cloudy");
+
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(-width));
 
-  useEffect(() => {
-    // Fade-in
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1200,
-      useNativeDriver: true,
-    }).start();
+  // Multiple cloud animations
+  const [cloudAnim1] = useState(new Animated.Value(0));
+  const [cloudAnim2] = useState(new Animated.Value(0));
+  const [cloudAnim3] = useState(new Animated.Value(0));
 
-    // Sliding banner entrance
-    Animated.spring(slideAnim, {
-      toValue: 0,
-      speed: 2,
-      bounciness: 12,
-      useNativeDriver: true,
-    }).start();
+  useEffect(() => {
+    // card animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        speed: 2,
+        bounciness: 6,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // cloud animations (different speeds for realism)
+    const animateCloud = (anim: Animated.Value, duration: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
+
+    animateCloud(cloudAnim1, 12000); // slow big cloud
+    animateCloud(cloudAnim2, 9000); // medium
+    animateCloud(cloudAnim3, 6000); // faster small
   }, []);
+
+  const cloudTranslate = (anim: Animated.Value, offset: number) =>
+    anim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [-50 - offset, width + offset],
+    });
+
+  const today = new Date();
+  const dateString = today.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 
   return (
     <Animated.View
       style={[
         styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateX: slideAnim }],
-        },
+        { opacity: fadeAnim, transform: [{ translateX: slideAnim }] },
       ]}
     >
-      <LinearGradient
-        colors={["#1e3c72", "#2a5298"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
-        {/* Weather Icon with Glow */}
-        <ImageBackground
+      {/* Animated Clouds (layered, soft, realistic) */}
+      <Animated.Image
+        source={{ uri: "https://cdn-icons-png.flaticon.com/512/414/414825.png" }}
+        style={[
+          styles.cloud,
+          {
+            top: 5,
+            width: 60,
+            height: 35,
+            opacity: 0.5,
+            transform: [{ translateX: cloudTranslate(cloudAnim1, 0) }],
+          },
+        ]}
+      />
+      <Animated.Image
+        source={{ uri: "https://cdn-icons-png.flaticon.com/512/414/414825.png" }}
+        style={[
+          styles.cloud,
+          {
+            top: 20,
+            width: 45,
+            height: 28,
+            opacity: 0.7,
+            transform: [{ translateX: cloudTranslate(cloudAnim2, 40) }],
+          },
+        ]}
+      />
+      <Animated.Image
+        source={{ uri: "https://cdn-icons-png.flaticon.com/512/414/414825.png" }}
+        style={[
+          styles.cloud,
+          {
+            top: 30,
+            width: 35,
+            height: 20,
+            opacity: 0.9,
+            transform: [{ translateX: cloudTranslate(cloudAnim3, 80) }],
+          },
+        ]}
+      />
+
+      {/* Weather Info */}
+      <View style={styles.content}>
+        <Image
           source={{
             uri:
               condition === "Sunny"
                 ? "https://cdn-icons-png.flaticon.com/512/869/869869.png"
-                : "https://cdn-icons-png.flaticon.com/512/1163/1163624.png",
+                : "https://cdn-icons-png.flaticon.com/512/414/414825.png", // cloud icon
           }}
           style={styles.icon}
-          imageStyle={{ tintColor: "#fff" }}
         />
-
-        {/* Info */}
         <View style={styles.info}>
           <Text style={styles.temp}>{temp}°C</Text>
           <Text style={styles.condition}>{condition}</Text>
+          <Text style={styles.date}>{dateString}</Text>
         </View>
-
-        {/* Animated Glow Line */}
-        <LinearGradient
-          colors={["transparent", "rgba(255,255,255,0.3)", "transparent"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.glowLine}
-        />
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: "92%",
+    width: "90%",
     alignSelf: "center",
-    marginTop: 20,
-    borderRadius: 20,
+    marginTop: 10,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    padding: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
     overflow: "hidden",
-    elevation: 8,
-    shadowColor: "#00f",
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 10,
+    minHeight: 60, // compact
+    justifyContent: "center",
   },
-  gradient: {
+  content: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    zIndex: 5,
   },
   icon: {
-    width: 60,
-    height: 60,
-    marginRight: 16,
+    width: 26,
+    height: 26,
+    marginRight: 8,
   },
   info: {
     flex: 1,
   },
   temp: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: "#fff",
-    textShadowColor: "rgba(0,0,0,0.4)",
-    textShadowOffset: { width: 1, height: 2 },
-    textShadowRadius: 4,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#333",
   },
   condition: {
-    fontSize: 16,
-    color: "#f0f0f0",
-    opacity: 0.9,
+    fontSize: 12,
+    color: "#666",
   },
-  glowLine: {
+  date: {
+    fontSize: 10,
+    color: "#999",
+  },
+  cloud: {
     position: "absolute",
-    bottom: 0,
-    left: -50,
-    width: "200%",
-    height: 3,
+    resizeMode: "contain",
   },
 });
 

@@ -1,124 +1,100 @@
 // components/common/NavButtons.tsx
-import React, { useState, useRef, useEffect } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  useWindowDimensions,
-  Animated,
-} from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ Premium icons
+import React from "react";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { BlurView } from "expo-blur"; // Glassy premium effect
+
+type Screen = "main" | "orders" | "earnings" | "profile";
 
 type Props = {
-  onPress: (screen: string) => void;
+  onNavigate: (screen: Screen) => void;
+  active: Screen;
 };
 
-const tabs = [
-  { name: "Home", icon: "home-variant-outline" as const },
-  { name: "Orders", icon: "file-document-outline" as const },
-  { name: "Earnings", icon: "chart-line-variant" as const },
-  { name: "Profile", icon: "account-outline" as const },
-];
-
-export default function NavButtons({ onPress }: Props) {
-  const [active, setActive] = useState("Home");
-  const { width } = useWindowDimensions();
-
-  // Animation values
-  const indicatorX = useRef(new Animated.Value(0)).current;
-  const indicatorScale = useRef(new Animated.Value(0)).current;
-
-  // Responsive sizes
-  const tabWidth = width / tabs.length;
-  const iconSize = width < 360 ? 22 : width < 768 ? 28 : 32;
-  const fontSize = width < 360 ? 10 : width < 768 ? 12 : 14;
-
-  useEffect(() => {
-    const index = tabs.findIndex((t) => t.name === active);
-
-    Animated.parallel([
-      Animated.spring(indicatorX, {
-        toValue: index * tabWidth,
-        useNativeDriver: true,
-      }),
-      Animated.spring(indicatorScale, {
-        toValue: 1,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [active]);
-
+export default function NavButtons({ onNavigate, active }: Props) {
   return (
-    <View className="bg-white border-t border-gray-100 shadow-lg rounded-t-2xl">
-      <View className="flex-row justify-around items-center relative">
-        {/* Floating yellow indicator (premium touch) */}
-        <Animated.View
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            width: tabWidth * 0.6, // smaller pill width for elegance
-            height: 3,
-            backgroundColor: "#facc15",
-            borderRadius: 50,
-            transform: [
-              { translateX: Animated.add(indicatorX, new Animated.Value(tabWidth * 0.2)) }, // center the pill
-              { scaleX: indicatorScale },
-            ],
-          }}
-        />
+    <View style={styles.wrapper}>
+      <BlurView intensity={70} tint="dark" style={styles.container}>
+        <TouchableOpacity onPress={() => onNavigate("main")} style={styles.tab}>
+          <View style={[styles.iconWrapper, active === "main" && styles.activeIconBg]}>
+            <Ionicons
+              name={active === "main" ? "home" : "home-outline"}
+              size={24}
+              color={active === "main" ? "#fff" : "#bbb"}
+            />
+          </View>
+        </TouchableOpacity>
 
-        {tabs.map((tab) => {
-          const isActive = active === tab.name;
+        <TouchableOpacity onPress={() => onNavigate("orders")} style={styles.tab}>
+          <View style={[styles.iconWrapper, active === "orders" && styles.activeIconBg]}>
+            <Ionicons
+              name={active === "orders" ? "cube" : "cube-outline"}
+              size={24}
+              color={active === "orders" ? "#fff" : "#bbb"}
+            />
+          </View>
+        </TouchableOpacity>
 
-          return (
-            <Pressable
-              key={tab.name}
-              onPress={() => {
-                setActive(tab.name);
-                onPress(tab.name);
-              }}
-              className="flex-1 items-center py-3"
-            >
-              {({ pressed }) => (
-                <Animated.View
-                  style={{
-                    transform: [
-                      { translateY: isActive ? -5 : pressed ? -3 : 0 },
-                      { scale: isActive ? 1.1 : 1 },
-                    ],
-                  }}
-                  className="items-center"
-                >
-                  <MaterialCommunityIcons
-                    name={tab.icon}
-                    size={iconSize}
-                    color={
-                      isActive
-                        ? "#de7932ff" // black for active
-                        : pressed
-                        ? "#fbad04ff" // yellow on press
-                        : "#0b0b0bff" // neutral gray
-                    }
-                  />
-                  <Text
-                    style={{ fontSize }}
-                    className={`mt-1 ${
-                      isActive
-                        ? "text-black font-semibold"
-                        : pressed
-                        ? "text-yellow-500"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {tab.name}
-                  </Text>
-                </Animated.View>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+        <TouchableOpacity onPress={() => onNavigate("earnings")} style={styles.tab}>
+          <View style={[styles.iconWrapper, active === "earnings" && styles.activeIconBg]}>
+            <Ionicons
+              name={active === "earnings" ? "wallet" : "wallet-outline"}
+              size={24}
+              color={active === "earnings" ? "#fff" : "#bbb"}
+            />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => onNavigate("profile")} style={styles.tab}>
+          <View style={[styles.iconWrapper, active === "profile" && styles.activeIconBg]}>
+            <Ionicons
+              name={active === "profile" ? "person" : "person-outline"}
+              size={24}
+              color={active === "profile" ? "#fff" : "#bbb"}
+            />
+          </View>
+        </TouchableOpacity>
+      </BlurView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrapper: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 10,
+    backgroundColor: "rgba(20,20,20,0.7)",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  tab: {
+    alignItems: "center",
+    flex: 1,
+  },
+  iconWrapper: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activeIconBg: {
+    backgroundColor: "#ff9800",
+    shadowColor: "#ff9800",
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+});

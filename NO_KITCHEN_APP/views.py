@@ -2088,6 +2088,7 @@ def reset_password_view(request, user_id):
 
 # Resturent S
 
+# views.py
 import requests
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -2099,8 +2100,9 @@ API_KEY = "5a1df62d-601e-11f0-a562-0200cd936042"  # Your 2Factor API key
 def add_restaurant(request):
     return render(request, 'pages/add_restaurant.html')
 
-# Send OTP
-def send_otp(request):
+# views.py
+
+def storeadmin_send_otp(request):
     if request.method == "POST":
         mobile = request.POST.get("mobile")
         try:
@@ -2122,8 +2124,8 @@ def send_otp(request):
             return JsonResponse({'status': 'error', 'message': 'Mobile not registered'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
-# Verify OTP
-def verify_otp(request):
+
+def storeadmin_verify_otp(request):
     if request.method == "POST":
         mobile = request.session.get("mobile")
         session_id = request.session.get("session_id")
@@ -2139,10 +2141,11 @@ def verify_otp(request):
         if data["Status"] == "Success":
             admin = StoreAdmin.objects.get(mobile=mobile)
             request.session['store_admin_id'] = admin.id
-            return JsonResponse({'status': 'success', 'redirect_url': '/nokitchen/restaurant_home/'})
+            return JsonResponse({'status': 'success', 'redirect_url': '/restaurant_home/'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid OTP'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
 
 # Restaurant Dashboard
 def restaurant_home(request):
@@ -2467,7 +2470,6 @@ def view_order_details(request, order_type, order_id):
 
 # kitchen_app/views.py
 # views.py
-# views.py
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -2717,13 +2719,9 @@ def delivery_register(request):
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
-from django.http import JsonResponse
-import requests
 from .models import DeliveryPartner, StoreLocation
-
+import requests
 def delivery_agentstep1(request):
-    stores = []
-
     # ---------------- POST: Save Registration ----------------
     if request.method == 'POST':
         data = request.session.get('delivery_data')
@@ -2731,11 +2729,11 @@ def delivery_agentstep1(request):
             return redirect('delivery_register')
 
         pan_card_image = request.FILES.get('pan_card_image')
-        aadhar_file = request.FILES.get('aadhar_card_image')
+        aadhar_file = request.FILES.get('aadhar_file')  # Ensure HTML input matches this name
         selfie = request.FILES.get('selfie_image')
-
         user_location = request.POST.get('location')  # e.g., "17.4,78.4"
         selected_store_id = request.POST.get('selected_store')
+
         selected_store = StoreLocation.objects.filter(id=selected_store_id, is_active=True, status=True).first()
 
         DeliveryPartner.objects.create(
@@ -2756,14 +2754,13 @@ def delivery_agentstep1(request):
         messages.success(request, "Registration step 1 completed.")
         return redirect('delivery_agentstep2')
 
-    # ---------------- GET: Detect Locality/City and Filter Stores ----------------
+    # ---------------- GET: Detect City/Locality ----------------
     location_str = request.GET.get('location')  # from JS
     session_city = request.session.get('delivery_data', {}).get('city')  # fallback
 
     detected_locality = None
     detected_city = None
 
-    # Reverse geocode with OpenCage if coords present
     if location_str:
         try:
             lat, lon = map(float, location_str.split(','))
@@ -2782,39 +2779,25 @@ def delivery_agentstep1(request):
                 results = resp.json().get('results', [])
                 if results:
                     components = results[0].get('components', {})
-                    detected_locality = (
-                        components.get('suburb')
-                        or components.get('neighbourhood')
-                        or components.get('locality')
-                        or components.get('town')
-                        or components.get('village')
-                    )
-                    detected_city = (
-                        components.get('city')
-                        or components.get('county')
-                        or components.get('state_district')
-                        or components.get('state')
-                    )
+                    detected_locality = components.get('suburb') or components.get('neighbourhood') or components.get('locality') or components.get('town') or components.get('village')
+                    detected_city = components.get('city') or components.get('county') or components.get('state_district') or components.get('state')
         except Exception as e:
-            print("OpenCage reverse geocode error:", e)
+            print("Reverse geocode error:", e)
 
-    # Filter active stores
-    active_stores = StoreLocation.objects.filter(is_active=True, status=True)
-    stores = active_stores.none()
+    # ---------------- Fetch Active Stores ----------------
+    stores = StoreLocation.objects.filter(is_active=True, status=True)
+    active_stores = stores  # fallback reference
 
-    # 1️⃣ Try locality
+    # Filter based on locality → city → session city
     if detected_locality:
-        stores = active_stores.filter(city__iexact=detected_locality)
+        stores = stores.filter(city__iexact=detected_locality)
 
-    # 2️⃣ Fallback to detected city
     if not stores.exists() and detected_city:
-        stores = active_stores.filter(city__iexact=detected_city)
+        stores = stores.filter(city__iexact=detected_city)
 
-    # 3️⃣ Fallback to session city
     if not stores.exists() and session_city:
-        stores = active_stores.filter(city__iexact=session_city)
+        stores = stores.filter(city__iexact=session_city)
 
-    # 4️⃣ Final fallback: all active stores
     if not stores.exists():
         stores = active_stores
 
@@ -2826,10 +2809,7 @@ def delivery_agentstep1(request):
     })
 
 
-from django.http import JsonResponse
-from django.conf import settings
-import requests
-
+# ---------------- API: Get City from Coordinates ----------------
 def get_city_from_coords(request):
     lat = request.GET.get('lat')
     lon = request.GET.get('lon')
@@ -2856,6 +2836,7 @@ def get_city_from_coords(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# ---------------- API: Get Stores by City ----------------
 def get_stores_by_city(request):
     city = request.GET.get('city')
     if not city:
@@ -2863,15 +2844,9 @@ def get_stores_by_city(request):
 
     stores = StoreLocation.objects.filter(city__iexact=city, is_active=True, status=True)
 
-    store_list = [
-        {
-            'id': store.id,
-            'name': store.name
-        }
-        for store in stores
-    ]
-    return JsonResponse({'stores': store_list})
+    store_list = [{'id': store.id, 'name': store.name} for store in stores]
 
+    return JsonResponse({'stores': store_list})
 
 
 from django.shortcuts import render
@@ -3198,6 +3173,7 @@ def delete_store_location(request, store_id):
 
 
 # react end point views 
+
 from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -3228,3 +3204,96 @@ class DeliveryPartnerViewSet(viewsets.ModelViewSet):
         instance = serializer.save()
         out = DeliveryPartnerSerializer(instance).data
         return Response(out, status=status.HTTP_201_CREATED)
+
+
+
+
+
+# accounts/api_views.py
+import requests
+from django.conf import settings
+from django.core.cache import cache
+from django.contrib.auth import get_user_model
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import SendOtpSerializer, VerifyOtpSerializer, DeliveryPartnerSerializer
+from .models import DeliveryPartner
+
+User = get_user_model()
+
+
+class SendOtpAPI(APIView):
+    """
+    Send OTP to delivery partner using 2factor.in API
+    """
+    def post(self, request):
+        serializer = SendOtpSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        mobile = serializer.validated_data["mobile"].strip()
+        mobile_to_send = mobile if mobile.startswith("+") else f"+91{mobile}"
+
+        try:
+            url = f"https://2factor.in/API/V1/{settings.TWO_FACTOR_API_KEY}/SMS/{mobile_to_send}/AUTOGEN"
+            resp = requests.get(url, timeout=10)
+            data = resp.json()
+
+            if data.get("Status") == "Success":
+                session_id = data.get("Details")
+                cache.set(session_id, mobile_to_send, timeout=300)  # store mobile for 5 mins
+                return Response({"success": True, "session_id": session_id})
+
+            return Response({"success": False, "message": data.get("Details")}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"success": False, "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class VerifyOtpAPI(APIView):
+    """
+    Verify OTP, return JWT tokens and DeliveryPartner profile including ID
+    """
+    def post(self, request):
+        serializer = VerifyOtpSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        session_id = serializer.validated_data["session_id"].strip()
+        otp = serializer.validated_data["otp"].strip()
+
+        mobile = cache.get(session_id)
+        if not mobile:
+            return Response({"success": False, "message": "Session expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            url = f"https://2factor.in/API/V1/{settings.TWO_FACTOR_API_KEY}/SMS/VERIFY/{session_id}/{otp}"
+            resp = requests.get(url, timeout=10)
+            data = resp.json()
+
+            if data.get("Status") == "Success":
+                # Get or create DeliveryPartner
+                partner = DeliveryPartner.objects.filter(mobile__in=[mobile, mobile.replace("+", "")]).first()
+                if not partner:
+                    partner = DeliveryPartner.objects.create(mobile=mobile)
+
+                # Create/get user for JWT
+                user, _ = User.objects.get_or_create(username=mobile.replace("+", ""))
+                refresh = RefreshToken.for_user(user)
+
+                # Serialize partner including ID
+                partner_serializer = DeliveryPartnerSerializer(partner, context={'request': request})
+
+                return Response({
+                    "success": True,
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                    "partner": partner_serializer.data
+                })
+
+            return Response({"success": False, "message": "OTP Mismatch"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as exc:
+            return Response({"success": False, "message": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

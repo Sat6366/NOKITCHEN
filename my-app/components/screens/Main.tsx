@@ -1,60 +1,75 @@
 // components/screens/Main.tsx
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import NavButtons from "../common/NavButtons";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import GradientBackground from "../home/GradientBackground";
 import CustomHeaderOptions from "../common/CustomHeaderOptions";
-import ProfileToggle from "../common/ProfileToggle";
+import DeliveryBenefitsBanner from "../common/DeliveryBenefitsBanner";
+import ProfileWithToggle from "../common/ProfileToggle";
+import NavButtons from "../common/NavButtons";
 import WeatherBanner from "../common/WeatherBanner";
 
 export default function Main() {
-  const handleNav = (screen: string) => {
-    console.log("Pressed:", screen);
-  };
-
   return (
-    <GradientBackground>
-      {/* ✅ Full screen gradient, no header */}
-      <CustomHeaderOptions />
-       <ProfileToggle />
-       
+    <GradientBackground style={styles.gradient}>
+      {/* Fixed Header with Back Arrow */}
+      <CustomHeaderOptions title="Home" showBack />
 
-
-
-
+      {/* Fixed top content */}
       
-      <View style={styles.container}>
-        <WeatherBanner/>
-        <Text style={styles.text}>Welcome to Main Screen </Text>
-        
-        {/* ✅ Bottom Nav */}
-        <View style={styles.navContainer}>
-          <NavButtons onPress={handleNav} />
+
+      {/* Scrollable middle content only */}
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <ProfileWithToggle />
+      
+        <WeatherBanner />
+        <View style={styles.page}>
+          <Text style={styles.text}></Text>
+          <DeliveryBenefitsBanner />
+
+          {/* Example scrollable items */}
+          <View style={styles.box} />
+          <View style={styles.box} />
+          <View style={styles.box} />
+          <View style={styles.box} />
+          <View style={styles.box} />
         </View>
-      </View>
+      </ScrollView>
+
+      {/* Fixed Bottom Navigation */}
+      <NavButtons />
     </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  gradient: {
     flex: 1,
-    justifyContent: "center",
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100, // space for bottom nav
+    alignItems: "center",
+  },
+  page: {
+    width: "100%",
     alignItems: "center",
   },
   text: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "700",
     color: "#fff",
-    marginBottom: 20,
-    textShadowColor: "rgba(0,0,0,0.3)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
-  navContainer: {
-    position: "absolute",
-    bottom: 40,
-    width: "100%",
-    paddingHorizontal: 20,
+  box: {
+    height: 150,
+    width: "90%",
+    marginVertical: 10,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 12,
   },
 });

@@ -1,15 +1,16 @@
-// screens/Earnings.tsx
+// components/screens/Earnings.tsx
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 export default function Earnings() {
   return (
-    <View style={styles.container}>
+    <View style={styles.page}>
       <Text style={styles.text}>💰 Earnings Screen</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  text: { fontSize: 20, fontWeight: "bold" },
+  page: { flex: 1, justifyContent: "center", alignItems: "center" },
+  text: { fontSize: 20, fontWeight: "700" },
 });
