@@ -21,7 +21,7 @@ urlpatterns = [
     path('orders/', views.orders, name='orders'),
     path('account/', views.account, name='account'),
     path('cart/', views.cart, name='cart'),
-    
+    path('ajax/check-location/', views.check_location, name='ajax_check_location'),
     path('cart/remove/<int:product_id>', views.cart_remove, name='cart_remove'),
     path('cart/remove_product/<int:product_id>', views.cart_remove_product, name='cart_remove_product'),    
     path('login/', views.loginPage, name='login'),

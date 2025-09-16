@@ -3297,3 +3297,70 @@ class VerifyOtpAPI(APIView):
 
         except Exception as exc:
             return Response({"success": False, "message": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# views.py
+import json
+from math import radians, sin, cos, sqrt, atan2
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt  # we'll use csrf token from cookie instead of exempt
+from django.contrib.auth.decorators import login_required
+
+from .models import StoreLocation
+
+# Haversine (km)
+def calculate_distance(lat1, lon1, lat2, lon2):
+    R = 6371.0
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1-a))
+    return R * c
+
+@login_required
+@require_POST
+def check_location(request):
+    """
+    AJAX endpoint:
+    POST JSON fields: { "lat": <float>, "lon": <float> }
+    Response: { available: bool, distance: <km float>, store: "<name>", message: "<...>" }
+    """
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        user_lat = float(data.get("lat"))
+        user_lon = float(data.get("lon"))
+    except Exception:
+        return HttpResponseBadRequest(json.dumps({"error": "Invalid or missing lat/lon"}), content_type="application/json")
+
+    # Find nearest active store
+    stores = StoreLocation.objects.filter(is_active=True)
+    if not stores.exists():
+        return JsonResponse({"available": False, "message": "No active stores found."})
+
+    nearest = None
+    min_distance = float("inf")
+    for s in stores:
+        try:
+            dist = calculate_distance(user_lat, user_lon, float(s.latitude), float(s.longitude))
+            if dist < min_distance:
+                min_distance = dist
+                nearest = s
+        except Exception:
+            continue
+
+    if nearest is None:
+        return JsonResponse({"available": False, "message": "No active stores found."})
+
+    # Availability decision: within 7 km
+    within_km = 7.0
+    available = (min_distance <= within_km)
+
+    return JsonResponse({
+        "available": available,
+        "distance_km": round(min_distance, 3),
+        "store_name": nearest.name,
+        "store_lat": nearest.latitude,
+        "store_lon": nearest.longitude,
+        "message": "Within delivery radius." if available else "Out of delivery radius."
+    })
