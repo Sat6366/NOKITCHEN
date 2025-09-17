@@ -25,3 +25,52 @@ class PreparationStatusSerializer(serializers.ModelSerializer):
             }
         except:
             return {"error": "Order object not found"}
+
+
+
+
+# react end point serizilers
+
+from rest_framework import serializers
+from .models import StoreLocation, DeliveryPartner
+
+class StoreLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoreLocation
+        # use your real fields from the model:
+        fields = ["id", "name", "latitude", "longitude", "city", "status", "is_active"]
+
+class DeliveryPartnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryPartner
+        fields = "__all__"
+        read_only_fields = ["agent_code", "created_at", "updated_at", "registered_on"]
+
+
+
+from rest_framework import serializers
+from .models import DeliveryPartner
+
+class SendOtpSerializer(serializers.Serializer):
+    mobile = serializers.CharField(max_length=15)
+
+class VerifyOtpSerializer(serializers.Serializer):
+    session_id = serializers.CharField()
+    otp = serializers.CharField(max_length=6)
+
+from rest_framework import serializers
+from .models import DeliveryPartner
+
+class DeliveryPartnerSerializer(serializers.ModelSerializer):
+    selfie = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DeliveryPartner
+        # Added 'id' here
+        fields = ['id', 'first_name', 'last_name', 'mobile', 'selfie', 'agent_code']
+
+    def get_selfie(self, obj):
+        request = self.context.get('request')
+        if obj.selfie:
+            return request.build_absolute_uri(obj.selfie.url)
+        return None

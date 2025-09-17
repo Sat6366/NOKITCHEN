@@ -4,6 +4,14 @@ from django.conf.urls.static import static
 from django.urls import path
 from . import views
 from .views import create_razorpay_order
+from rest_framework.routers import DefaultRouter
+from .views import StoreLocationViewSet, DeliveryPartnerViewSet
+
+
+router = DefaultRouter()
+router.register(r"store-locations", StoreLocationViewSet, basename="store-locations")
+router.register(r"delivery-partners", DeliveryPartnerViewSet, basename="delivery-partners")
+
 
 urlpatterns = [
     path('home/', views.home, name='home'),
@@ -59,10 +67,11 @@ urlpatterns = [
     path('delivery_agentstep1/',views.delivery_agentstep1, name='delivery_agentstep1'),
     path('delivery_agentstep2/',views.delivery_agentstep2, name='delivery_agentstep2'),
     path('delivery_dashboard/', views.delivery_dashboard, name='delivery_dashboard'),
-   
+    
     path('delivery_myearnings/', views.delivery_myearnings, name='delivery_myearnings'),
     path('delivery_myorders/', views.delivery_myorders, name='delivery_myorders'),
     path('delivery_profile/', views.delivery_profile, name='delivery_profile'),
+    path('delivery_logout/', views.delivery_logout, name='delivery_logout'),
     path('add_to_cart/<int:item_id>/', views.add_to_cart, name='add_to_cart'),
     path('save_weekly_menu/', views.save_weekly_menu, name='save_weekly_menu'),
     path('menu/delete/<int:item_id>/', views.delete_menu_item, name='delete_menu_item'),
@@ -89,8 +98,11 @@ urlpatterns = [
     path('storeadmin/approve/<int:pk>/', views.approve_storeadmin, name='approve_storeadmin'),
     path('storeadmin/deactivate/<int:pk>/', views.deactivate_storeadmin, name='deactivate_storeadmin'),
     path('storeadmin/remove/<int:pk>/', views.remove_storeadmin, name='remove_storeadmin'),
-    path('send_otp/', views.send_otp, name='send_otp'),
-    path('verify_otp/', views.verify_otp, name='verify_otp'),
+    
+
+    path('store-admin/send-otp/', views.storeadmin_send_otp, name='storeadmin_send_otp'),
+    path('store-admin/verify-otp/', views.storeadmin_verify_otp, name='storeadmin_verify_otp'),
+
     path('order/<str:order_type>/<int:order_id>/details/', views.view_order_details, name='view_order_details'),
     path('manage-stores/', views.manage_stores, name='manage_stores'),
     path('add-store/', views.add_store_location, name='add_store_location'),
@@ -105,4 +117,8 @@ urlpatterns = [
     path('get_city_from_coords/', views.get_city_from_coords, name='get_city_from_coords'),
     path('get_stores_by_city/', views.get_stores_by_city, name='get_stores_by_city'),
     path('check_nearby_store/', views.check_nearby_store, name='check_nearby_store'),
+    path("send-otp/",views.SendOtpAPI.as_view(), name="send-otp"),
+    path("verify-otp/",views.VerifyOtpAPI.as_view(), name="verify-otp"),
+
+
 ]

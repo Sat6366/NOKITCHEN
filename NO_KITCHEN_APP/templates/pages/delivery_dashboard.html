@@ -511,9 +511,9 @@
 
 <body>
 
-
 <div class="sidebar">
-  <img src="{{ partner.selfie.url }}" alt="Profile Image" onerror="this.src='https://i.pravatar.cc/100?u={{ partner.mobile }}'" />
+  <img src="{{ partner.selfie.url }}" alt="Profile Image"
+       onerror="this.src='https://i.pravatar.cc/100?u={{ partner.mobile }}'" />
   <div class="user-id">
     {{ partner.first_name }} {{ partner.last_name }}
     <div style="font-size: 12px; color: #ccc;">
@@ -523,18 +523,16 @@
   <a href="{% url 'delivery_dashboard' %}" class="nav-link active"><i class="bi bi-speedometer2"></i>Dashboard</a>
   <a href="{% url 'delivery_myorders' %}" class="nav-link"><i class="bi bi-box-seam"></i>My Orders</a>
   <a href="{% url 'delivery_myearnings' %}" class="nav-link"><i class="bi bi-wallet2"></i>Earnings</a>
-  <a href="#" class="nav-link"><i class="bi bi-star-fill"></i>Ratings</a>
+ 
   <a href="{% url 'delivery_profile' %}" class="nav-link"><i class="bi bi-person-circle"></i>Profile</a>
-  <a href="#" class="nav-link"><i class="bi bi-box-arrow-right"></i>Logout</a>
-</div>
+  <a href="{% url 'delivery_logout' %}" class="nav-link">
+  <i class="bi bi-box-arrow-right"></i>Logout
+</a>
 
+</div>
 
 <!-- Main Content -->
 <div class="main-content">
-  
-<!-- Wrap both in a flex container -->
-
-  <!-- Right side: toggle button -->
   <div class="status-toggle d-flex align-items-center">
     <input type="checkbox" id="toggleStatus" />
     <label for="toggleStatus" id="toggleLabel" class="d-flex align-items-center">
@@ -542,12 +540,14 @@
       <span class="slider"></span>
     </label>
   </div>
+  <div id="distance-info" style="margin-top: 10px; font-size: 14px; color: #555;"></div>
 </div>
 
+<!-- Offline confirmation modal -->
 <div id="offlineConfirmModal">
   <div class="modal-content">
     <h3>Are you sure you want to go offline?</h3>
-    <p> You may lose extra bonus opportunities.</p>
+    <p>You may lose extra bonus opportunities.</p>
     <div class="modal-buttons">
       <button class="btn-confirm">Continue</button>
       <button class="btn-cancel">Cancel</button>
@@ -555,60 +555,123 @@
   </div>
 </div>
 
-</section>
+<!-- Toast styling -->
+<style>
+  .toast-message {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #fff;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+  }
+  .toast-success { background: #28a745; }
+  .toast-error { background: #dc3545; }
+  .toast-warning { background: #ffc107; color: #000; }
+</style>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
   const toggleCheckbox = document.getElementById("toggleStatus");
   const toggleLabelText = document.querySelector(".status-text");
   const offlineModal = document.getElementById("offlineConfirmModal");
   const btnConfirm = offlineModal.querySelector(".btn-confirm");
   const btnCancel = offlineModal.querySelector(".btn-cancel");
+  const distanceInfo = document.getElementById("distance-info");
 
-  // Load saved status from localStorage
+  let updateInterval = null;
+
+  // Load saved status
   const savedStatus = localStorage.getItem("deliveryStatus");
   toggleCheckbox.checked = savedStatus === "online";
   toggleLabelText.textContent = savedStatus === "online" ? "Online" : "Offline";
 
   toggleCheckbox.addEventListener("change", function () {
     if (this.checked) {
-      // Going online (use your existing logic here)
+      // Ask for location permission first
       if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-          sendLocation(position.coords.latitude, position.coords.longitude);
-        }, function (error) {
-          sendLocation(null, null);
-        }, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            checkDistanceAndGoOnline(position.coords.latitude, position.coords.longitude);
+          },
+          function (error) {
+            toggleCheckbox.checked = false;
+            showToast("Please allow location access to go online.", "error");
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
       } else {
-        sendLocation(null, null);
+        toggleCheckbox.checked = false;
+        showToast("Geolocation not supported by browser.", "error");
       }
     } else {
-      // Going offline - show confirmation modal
-      // Temporarily revert toggle to ON until confirmation
-      toggleCheckbox.checked = true;
-
+      toggleCheckbox.checked = true; // keep ON until confirmed
       offlineModal.style.display = "flex";
 
       btnConfirm.onclick = function () {
-        // User confirmed going offline
         offlineModal.style.display = "none";
         toggleCheckbox.checked = false;
         toggleLabelText.textContent = "Offline";
         localStorage.setItem("deliveryStatus", "offline");
+        distanceInfo.textContent = "";
+        clearInterval(updateInterval);
         showToast("You're now offline.", "warning");
       };
 
       btnCancel.onclick = function () {
-        // User cancelled - keep toggle ON
         offlineModal.style.display = "none";
         toggleCheckbox.checked = true;
       };
     }
   });
+
+  function checkDistanceAndGoOnline(lat, lon) {
+    fetch("{% url 'check_nearby_store' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ latitude: lat, longitude: lon }),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.allowed) {
+        toggleLabelText.textContent = "Online";
+        localStorage.setItem("deliveryStatus", "online");
+        distanceInfo.innerHTML = data.message;
+        showToast("You're now online.", "success");
+
+        // Start sending location every 10 seconds
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(() => {
+          navigator.geolocation.getCurrentPosition(
+            pos => sendLocation(pos.coords.latitude, pos.coords.longitude),
+            () => console.log("Failed to update location"),
+            { enableHighAccuracy: true, maximumAge: 0 }
+          );
+        }, 10000);
+
+      } else {
+        toggleCheckbox.checked = false;
+        toggleLabelText.textContent = "Offline";
+        localStorage.setItem("deliveryStatus", "offline");
+        distanceInfo.innerHTML = data.message;
+        showToast("You are not within 200 meters of your selected store.", "error");
+      }
+    })
+    .catch(() => {
+      toggleCheckbox.checked = false;
+      toggleLabelText.textContent = "Offline";
+      localStorage.setItem("deliveryStatus", "offline");
+      distanceInfo.textContent = "";
+      showToast("Error checking location.", "error");
+    });
+  }
 
   function sendLocation(lat, lon) {
     fetch("{% url 'check_nearby_store' %}", {
@@ -617,37 +680,21 @@
         "Content-Type": "application/json",
         "X-CSRFToken": "{{ csrf_token }}",
       },
-      body: JSON.stringify({ latitude: lat, longitude: lon })
+      body: JSON.stringify({ latitude: lat, longitude: lon }),
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.allowed) {
-        toggleLabelText.textContent = "Online";
-        localStorage.setItem("deliveryStatus", "online");
-        showToast(data.message, "success");
-      } else {
-        toggleCheckbox.checked = false;
-        toggleLabelText.textContent = "Offline";
-        localStorage.setItem("deliveryStatus", "offline");
-        showToast(data.message, "error");
-      }
+    .then((res) => res.json())
+    .then((data) => {
+      distanceInfo.innerHTML = data.message;
     })
-    .catch(() => {
-      toggleCheckbox.checked = false;
-      toggleLabelText.textContent = "Offline";
-      localStorage.setItem("deliveryStatus", "offline");
-      showToast("Error checking location.", "error");
-    });
+    .catch(() => console.log("Error sending location"));
   }
 
   function showToast(message, type = "success") {
     const toast = document.createElement("div");
     toast.classList.add("toast-message");
-
     if (type === "success") toast.classList.add("toast-success");
     else if (type === "error") toast.classList.add("toast-error");
     else toast.classList.add("toast-warning");
-
     toast.innerHTML = message;
     document.body.appendChild(toast);
 

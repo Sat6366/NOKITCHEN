@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadOrders();
 
   function loadOrders() {
-    fetch('/nokitchen/api/today-meals/')
+    fetch('/api/today-meals/')
       .then(response => {
         if (!response.ok) throw new Error('Network error');
         return response.json();
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
   window.updateStatus = function(selectEl, source, orderId, mealType) {
   const newStatus = selectEl.value;
 
-  fetch('/nokitchen/api/update-status/', {
+  fetch('/api/update-status/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

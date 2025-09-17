@@ -1,4 +1,5 @@
 from django.shortcuts import render
+#satheeeeeeeeeeeeeshhhh
 
 # Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
@@ -19,8 +20,35 @@ def home(request):
 
 from .models import NoKitchenMenu, NoKitchenCurries
 
+from django.shortcuts import render
+from django.db.models import Q
+from .models import NoKitchenMenu, NoKitchenCurries
+
+from django.shortcuts import render
+from django.db.models import Q
+from .models import NoKitchenMenu, NoKitchenCurries
+
 def menu(request):
-    items = NoKitchenMenu.objects.all().order_by('-created_at')
+    query = request.GET.get('q', '')
+    meal_type = request.GET.get('type', '')  # Get meal type from URL parameter
+    
+    # Start with all items
+    items = NoKitchenMenu.objects.all()
+    
+    # Apply search filter if query exists
+    if query:
+        items = items.filter(
+            Q(item_name__icontains=query) | 
+            Q(description__icontains=query)
+        )
+    
+    # Apply meal type filter if specified
+    if meal_type:
+        items = items.filter(meal_type=meal_type)
+    
+    # Order the results
+    items = items.order_by('-created_at')
+    
     veg_curries = NoKitchenCurries.objects.filter(curry_type='veg')
     nonveg_curries = NoKitchenCurries.objects.filter(curry_type='nonveg')
     all_items = NoKitchenMenu.objects.all()
@@ -30,7 +58,11 @@ def menu(request):
         'veg_curries': veg_curries,
         'nonveg_curries': nonveg_curries,
         'all_items': all_items,
+        'query': query,
+        'meal_type': meal_type,  # Pass meal type to template
     })
+
+
 
 from django.shortcuts import render
 
@@ -61,10 +93,10 @@ def menu_not_user(request):
 
 
 
-from django.shortcuts import render
+from datetime import datetime, date, time, timedelta
 from django.contrib.auth.decorators import login_required
-from datetime import datetime
-from .models import WeeklyMealSelection, Wallet, SkippedMeal
+from django.shortcuts import render
+from .models import WeeklyMealSelection, SkippedMeal, Wallet
 
 @login_required
 def account(request):
@@ -73,25 +105,28 @@ def account(request):
 
     from_date_obj, to_date_obj = None, None
 
-    # Default to latest from/to date if not in GET
-    if not from_date_str or not to_date_str:
-        latest_entry = (
-            WeeklyMealSelection.objects.filter(user=request.user)
-            .exclude(from_date__isnull=True, to_date__isnull=True)
-            .order_by('-from_date')
-            .first()
-        )
-        if latest_entry:
-            from_date_obj = latest_entry.from_date
-            to_date_obj = latest_entry.to_date
-    else:
+    # ✅ Allow user to choose ANY available date range (not just latest)
+    available_ranges = (
+        WeeklyMealSelection.objects.filter(user=request.user)
+        .exclude(from_date__isnull=True, to_date__isnull=True)
+        .values('from_date', 'to_date')
+        .distinct()
+        .order_by('-from_date')
+    )
+
+    if from_date_str and to_date_str:
         try:
             from_date_obj = datetime.strptime(from_date_str, "%Y-%m-%d").date()
             to_date_obj = datetime.strptime(to_date_str, "%Y-%m-%d").date()
         except ValueError:
             pass
+    else:
+        # default to latest entry
+        latest_entry = available_ranges.first()
+        if latest_entry:
+            from_date_obj = latest_entry['from_date']
+            to_date_obj = latest_entry['to_date']
 
-    # Filter meals by user and date range
     meals_qs = WeeklyMealSelection.objects.filter(user=request.user)
     if from_date_obj and to_date_obj:
         meals_qs = meals_qs.filter(from_date=from_date_obj, to_date=to_date_obj)
@@ -105,10 +140,29 @@ def account(request):
         ).values_list('meal_selection_id', flat=True)
     )
 
-    # Organize meal schedule
+    # Get today's date for comparison
+    today = timezone.now().date()
+    
+    # Create a mapping of day names to dates for the current week
+    day_date_map = {}
+    if from_date_obj:
+        current_date = from_date_obj
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        for i in range(7):
+            if current_date <= to_date_obj:
+                day_date_map[days[i]] = current_date
+                current_date += timedelta(days=1)
+
+    # ✅ Organize meal schedule
     meal_schedule = {}
     for meal in meals_qs:
         day = meal.get_day_display()
+        
+        # Determine if this meal is in the past
+        meal_date = day_date_map.get(day)
+        meal.is_past_meal = meal_date and meal_date < today
+        
         meal_type = meal.get_meal_type_display()
         if day not in meal_schedule:
             meal_schedule[day] = {}
@@ -125,10 +179,9 @@ def account(request):
         'wallet_balance': wallet_balance,
         'skipped_ids': skipped_ids,
         'from_date': from_date_obj,
-        'to_date': to_date_obj
+        'to_date': to_date_obj,
+        'available_ranges': available_ranges,
     })
-
-
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
@@ -347,19 +400,20 @@ def registerPage(request):
 
 
 def breakfast(request):
-    items = Food.objects.all().filter(meal_type ='breakfast')
-    context = {'items': items}
-    return render(request, 'pages/menu.html', context)
+    # Set meal_type in request.GET and call menu view
+    request.GET = request.GET.copy()
+    request.GET['type'] = 'breakfast'
+    return menu(request)
 
 def lunch(request):
-    items = Food.objects.all().filter(meal_type ='lunch')
-    context = {'items': items}
-    return render(request, 'pages/menu.html', context)
+    request.GET = request.GET.copy()
+    request.GET['type'] = 'lunch'
+    return menu(request)
 
 def dinner(request):
-    items = Food.objects.all().filter(meal_type ='dinner')
-    context = {'items': items}
-    return render(request, 'pages/menu.html', context)
+    request.GET = request.GET.copy()
+    request.GET['type'] = 'dinner'
+    return menu(request)
 
 def nonvegetarian(request):
     items = Food.objects.all().filter(vegetarian=False)
@@ -2034,6 +2088,7 @@ def reset_password_view(request, user_id):
 
 # Resturent S
 
+# views.py
 import requests
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -2045,8 +2100,9 @@ API_KEY = "5a1df62d-601e-11f0-a562-0200cd936042"  # Your 2Factor API key
 def add_restaurant(request):
     return render(request, 'pages/add_restaurant.html')
 
-# Send OTP
-def send_otp(request):
+# views.py
+
+def storeadmin_send_otp(request):
     if request.method == "POST":
         mobile = request.POST.get("mobile")
         try:
@@ -2068,8 +2124,8 @@ def send_otp(request):
             return JsonResponse({'status': 'error', 'message': 'Mobile not registered'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
-# Verify OTP
-def verify_otp(request):
+
+def storeadmin_verify_otp(request):
     if request.method == "POST":
         mobile = request.session.get("mobile")
         session_id = request.session.get("session_id")
@@ -2085,10 +2141,11 @@ def verify_otp(request):
         if data["Status"] == "Success":
             admin = StoreAdmin.objects.get(mobile=mobile)
             request.session['store_admin_id'] = admin.id
-            return JsonResponse({'status': 'success', 'redirect_url': '/nokitchen/restaurant_home/'})
+            return JsonResponse({'status': 'success', 'redirect_url': '/restaurant_home/'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid OTP'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
 
 # Restaurant Dashboard
 def restaurant_home(request):
@@ -2413,29 +2470,11 @@ def view_order_details(request, order_type, order_id):
 
 # kitchen_app/views.py
 # views.py
-# views.py
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from datetime import date
 from .models import WeeklyMealSelection, WeeklyMenuPlan, CustomMealPlan, FinalMealOrder
-
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from datetime import date
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from datetime import date
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.contrib.contenttypes.models import ContentType
-from datetime import date
-
-from .models import (
-    WeeklyMealSelection, WeeklyMenuPlan, CustomMealPlan, FinalMealOrder,
-    PreparationStatus, DeliveryAddress
-)
-
 @api_view(['GET'])
 def today_meals_api(request):
     today = date.today()
@@ -2449,7 +2488,7 @@ def today_meals_api(request):
             time = getattr(delivery, f"{meal_type}_time", None)
             address = f"{delivery.flat_number}, {delivery.street}"
             return (str(time) if time else 'N/A', address)
-        except DeliveryAddress.DoesNotExist:
+        except Exception:
             return ('N/A', 'N/A')
 
     def get_order_status(model_name, obj_id, meal_type):
@@ -2462,88 +2501,99 @@ def today_meals_api(request):
                 date=today
             )
             return status_obj.status
-        except PreparationStatus.DoesNotExist:
+        except Exception:
             return "queued"
 
-    selections = WeeklyMealSelection.objects.filter(from_date__lte=today, to_date__gte=today, day=today_day)
-    for sel in selections:
-        selected_items = ', '.join([item.item_name for item in sel.selected_items.all()])
-        time, address = get_delivery_info(sel.user, sel.meal_type)
-        data[sel.meal_type].append({
-            'user': sel.user.username if sel.user else '',
-            'order_id': sel.custom_order_id,
-            'source': 'WeeklyMealSelection',
-            'day': sel.day,
-            'meal_description': selected_items or 'N/A',
-            'items_count': sel.selected_items.count(),
-            'delivery_time': time,
-            'address': address,
-            'price': float(sel.total_price),
-            'status': get_order_status('WeeklyMealSelection', sel.id, sel.meal_type),
-        })
-
-    plans = WeeklyMenuPlan.objects.filter(from_date__lte=today, to_date__gte=today, day=today_day)
-    for plan in plans:
-        for meal_type in meal_types:
-            items = getattr(plan, f"{meal_type}_items").all()
-            if items.exists():
-                time, address = get_delivery_info(plan.user, meal_type)
-                item_names = ', '.join([item.item_name for item in items])
-                data[meal_type].append({
-                    'user': plan.user.username if plan.user else '',
-                    'order_id': plan.plan_order_id,
-                    'source': 'WeeklyMenuPlan',
-                    'day': plan.day,
-                    'meal_description': item_names or 'N/A',
-                    'items_count': items.count(),
-                    'delivery_time': time,
-                    'address': address,
-                    'price': float(plan.total_price or 0),
-                    'status': get_order_status('WeeklyMenuPlan', plan.id, meal_type),
-                })
-
-    customs = CustomMealPlan.objects.filter(start_date__lte=today, end_date__gte=today)
-    for custom in customs:
-        for meal_type in meal_types:
-            meal_content = getattr(custom, meal_type, None)
-            if meal_content and today_day in meal_content.lower():
-                time, address = get_delivery_info(custom.user, meal_type)
-                data[meal_type].append({
-                    'user': custom.user.username,
-                    'order_id': custom.custom_order_id,
-                    'source': 'CustomMealPlan',
-                    'day': today_day,
-                    'meal_description': meal_content or 'N/A',
-                    'items_count': 1,
-                    'delivery_time': time,
-                    'address': address,
-                    'price': float(custom.total_price),
-                    'status': get_order_status('CustomMealPlan', custom.id, meal_type),
-                })
-
-    finals = FinalMealOrder.objects.filter(start_date__lte=today, end_date__gte=today)
-    for order in finals:
-        for meal_type in meal_types:
-            delivery_time = getattr(order, f"{meal_type}_time", None)
-            try:
-                delivery = DeliveryAddress.objects.filter(user=order.user).latest('id')
-                address = f"{delivery.flat_number}, {delivery.street}"
-            except DeliveryAddress.DoesNotExist:
-                address = 'N/A'
-            data[meal_type].append({
-                'user': order.user.username,
-                'order_id': order.order_id,
-                'source': 'FinalMealOrder',
-                'day': today_day,
-                'meal_description': order.ordered_items,
-                'items_count': len(order.ordered_items.split(',')) if order.ordered_items else 0,
-                'delivery_time': str(delivery_time) if delivery_time else 'N/A',
+    try:
+        # ✅ WeeklyMealSelection
+        selections = WeeklyMealSelection.objects.filter(
+            from_date__lte=today, to_date__gte=today, day=today_day
+        )
+        for sel in selections:
+            selected_items = ', '.join([item.item_name for item in sel.selected_items.all()])
+            time, address = get_delivery_info(sel.user, sel.meal_type)
+            data[sel.meal_type].append({
+                'user': getattr(sel.user, "username", ""),
+                'order_id': sel.custom_order_id,
+                'source': 'WeeklyMealSelection',
+                'day': sel.day,
+                'meal_description': selected_items or 'N/A',
+                'items_count': sel.selected_items.count(),
+                'delivery_time': time,
                 'address': address,
-                'price': float(order.total_amount),
-                'status': get_order_status('FinalMealOrder', order.id, meal_type),
+                'price': float(sel.total_price or 0),
+                'status': get_order_status('WeeklyMealSelection', sel.id, sel.meal_type),
             })
 
-    return Response(data)
+        # ✅ WeeklyMenuPlan
+        plans = WeeklyMenuPlan.objects.filter(from_date__lte=today, to_date__gte=today, day=today_day)
+        for plan in plans:
+            for meal_type in meal_types:
+                items = getattr(plan, f"{meal_type}_items").all()
+                if items.exists():
+                    time, address = get_delivery_info(plan.user, meal_type)
+                    item_names = ', '.join([item.item_name for item in items])
+                    data[meal_type].append({
+                        'user': getattr(plan.user, "username", ""),
+                        'order_id': plan.plan_order_id,
+                        'source': 'WeeklyMenuPlan',
+                        'day': plan.day,
+                        'meal_description': item_names or 'N/A',
+                        'items_count': items.count(),
+                        'delivery_time': time,
+                        'address': address,
+                        'price': float(plan.total_price or 0),
+                        'status': get_order_status('WeeklyMenuPlan', plan.id, meal_type),
+                    })
+
+        # ✅ CustomMealPlan
+        customs = CustomMealPlan.objects.filter(start_date__lte=today, end_date__gte=today)
+        for custom in customs:
+            for meal_type in meal_types:
+                meal_content = getattr(custom, meal_type, None)
+                if meal_content and today_day in meal_content.lower():
+                    time, address = get_delivery_info(custom.user, meal_type)
+                    data[meal_type].append({
+                        'user': getattr(custom.user, "username", ""),
+                        'order_id': custom.custom_order_id,
+                        'source': 'CustomMealPlan',
+                        'day': today_day,
+                        'meal_description': meal_content or 'N/A',
+                        'items_count': 1,
+                        'delivery_time': time,
+                        'address': address,
+                        'price': float(custom.total_price or 0),
+                        'status': get_order_status('CustomMealPlan', custom.id, meal_type),
+                    })
+
+        # ✅ FinalMealOrder
+        finals = FinalMealOrder.objects.filter(start_date__lte=today, end_date__gte=today)
+        for order in finals:
+            for meal_type in meal_types:
+                delivery_time = getattr(order, f"{meal_type}_time", None)
+                try:
+                    delivery = DeliveryAddress.objects.filter(user=order.user).latest('id')
+                    address = f"{delivery.flat_number}, {delivery.street}"
+                except Exception:
+                    address = 'N/A'
+                ordered_items = order.ordered_items or ""
+                data[meal_type].append({
+                    'user': getattr(order.user, "username", ""),
+                    'order_id': order.order_id,
+                    'source': 'FinalMealOrder',
+                    'day': today_day,
+                    'meal_description': ordered_items,
+                    'items_count': len(ordered_items.split(',')) if ordered_items else 0,
+                    'delivery_time': str(delivery_time) if delivery_time else 'N/A',
+                    'address': address,
+                    'price': float(order.total_amount or 0),
+                    'status': get_order_status('FinalMealOrder', order.id, meal_type),
+                })
+
+        return Response(data)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 
 # Template view
@@ -2663,13 +2713,9 @@ def delivery_register(request):
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
-from django.http import JsonResponse
-import requests
 from .models import DeliveryPartner, StoreLocation
-
+import requests
 def delivery_agentstep1(request):
-    stores = []
-
     # ---------------- POST: Save Registration ----------------
     if request.method == 'POST':
         data = request.session.get('delivery_data')
@@ -2677,11 +2723,11 @@ def delivery_agentstep1(request):
             return redirect('delivery_register')
 
         pan_card_image = request.FILES.get('pan_card_image')
-        aadhar_file = request.FILES.get('aadhar_card_image')
+        aadhar_file = request.FILES.get('aadhar_file')  # Ensure HTML input matches this name
         selfie = request.FILES.get('selfie_image')
-
         user_location = request.POST.get('location')  # e.g., "17.4,78.4"
         selected_store_id = request.POST.get('selected_store')
+
         selected_store = StoreLocation.objects.filter(id=selected_store_id, is_active=True, status=True).first()
 
         DeliveryPartner.objects.create(
@@ -2702,14 +2748,13 @@ def delivery_agentstep1(request):
         messages.success(request, "Registration step 1 completed.")
         return redirect('delivery_agentstep2')
 
-    # ---------------- GET: Detect Locality/City and Filter Stores ----------------
+    # ---------------- GET: Detect City/Locality ----------------
     location_str = request.GET.get('location')  # from JS
     session_city = request.session.get('delivery_data', {}).get('city')  # fallback
 
     detected_locality = None
     detected_city = None
 
-    # Reverse geocode with OpenCage if coords present
     if location_str:
         try:
             lat, lon = map(float, location_str.split(','))
@@ -2728,39 +2773,25 @@ def delivery_agentstep1(request):
                 results = resp.json().get('results', [])
                 if results:
                     components = results[0].get('components', {})
-                    detected_locality = (
-                        components.get('suburb')
-                        or components.get('neighbourhood')
-                        or components.get('locality')
-                        or components.get('town')
-                        or components.get('village')
-                    )
-                    detected_city = (
-                        components.get('city')
-                        or components.get('county')
-                        or components.get('state_district')
-                        or components.get('state')
-                    )
+                    detected_locality = components.get('suburb') or components.get('neighbourhood') or components.get('locality') or components.get('town') or components.get('village')
+                    detected_city = components.get('city') or components.get('county') or components.get('state_district') or components.get('state')
         except Exception as e:
-            print("OpenCage reverse geocode error:", e)
+            print("Reverse geocode error:", e)
 
-    # Filter active stores
-    active_stores = StoreLocation.objects.filter(is_active=True, status=True)
-    stores = active_stores.none()
+    # ---------------- Fetch Active Stores ----------------
+    stores = StoreLocation.objects.filter(is_active=True, status=True)
+    active_stores = stores  # fallback reference
 
-    # 1️⃣ Try locality
+    # Filter based on locality → city → session city
     if detected_locality:
-        stores = active_stores.filter(city__iexact=detected_locality)
+        stores = stores.filter(city__iexact=detected_locality)
 
-    # 2️⃣ Fallback to detected city
     if not stores.exists() and detected_city:
-        stores = active_stores.filter(city__iexact=detected_city)
+        stores = stores.filter(city__iexact=detected_city)
 
-    # 3️⃣ Fallback to session city
     if not stores.exists() and session_city:
-        stores = active_stores.filter(city__iexact=session_city)
+        stores = stores.filter(city__iexact=session_city)
 
-    # 4️⃣ Final fallback: all active stores
     if not stores.exists():
         stores = active_stores
 
@@ -2772,10 +2803,7 @@ def delivery_agentstep1(request):
     })
 
 
-from django.http import JsonResponse
-from django.conf import settings
-import requests
-
+# ---------------- API: Get City from Coordinates ----------------
 def get_city_from_coords(request):
     lat = request.GET.get('lat')
     lon = request.GET.get('lon')
@@ -2802,6 +2830,7 @@ def get_city_from_coords(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# ---------------- API: Get Stores by City ----------------
 def get_stores_by_city(request):
     city = request.GET.get('city')
     if not city:
@@ -2809,15 +2838,9 @@ def get_stores_by_city(request):
 
     stores = StoreLocation.objects.filter(city__iexact=city, is_active=True, status=True)
 
-    store_list = [
-        {
-            'id': store.id,
-            'name': store.name
-        }
-        for store in stores
-    ]
-    return JsonResponse({'stores': store_list})
+    store_list = [{'id': store.id, 'name': store.name} for store in stores]
 
+    return JsonResponse({'stores': store_list})
 
 
 from django.shortcuts import render
@@ -2929,6 +2952,13 @@ def get_client_ip(request):
     return ip
 
 
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from geopy.distance import geodesic
+import json
+from .models import DeliveryPartner, DetectedLocation
+
 def delivery_dashboard(request):
     partner_id = request.session.get('delivery_partner_id')
     if not partner_id:
@@ -2953,7 +2983,6 @@ def delivery_dashboard(request):
         'partner': partner,
         'nearby_stores': nearby_stores
     })
-
 
 
 @csrf_exempt
@@ -2981,26 +3010,10 @@ def check_nearby_store(request):
     lat = data.get("latitude")
     lon = data.get("longitude")
 
-    # If no lat/lon sent, fallback to IP-based lookup
     if lat is None or lon is None:
-        ip = get_client_ip(request)
-        if not ip:
-            return JsonResponse({"allowed": False, "message": "Cannot get IP."})
+        return JsonResponse({"allowed": False, "message": "Geolocation unavailable."})
 
-        ipstack_url = f"http://api.ipstack.com/{ip}?access_key={settings.IPSTACK_API_KEY}"
-        try:
-            res = requests.get(ipstack_url, timeout=5)
-            res.raise_for_status()
-            loc_data = res.json()
-            lat = loc_data.get("latitude")
-            lon = loc_data.get("longitude")
-        except Exception:
-            return JsonResponse({"allowed": False, "message": "Failed IP geolocation."})
-
-        if lat is None or lon is None:
-            return JsonResponse({"allowed": False, "message": "IP location unavailable."})
-
-    # Save detected location (optional)
+    # Save detected location
     DetectedLocation.objects.create(
         delivery_partner=partner,
         latitude=lat,
@@ -3013,29 +3026,72 @@ def check_nearby_store(request):
 
     distance_meters = geodesic(current, store_location).meters
 
-    if distance_meters <= 10000:
+    if distance_meters <= 6000:  # 200 meters radius
         return JsonResponse({
             "allowed": True,
-            "message": f"<strong style='color:green;'>You are within {round(distance_meters,1)} meters of your selected store: <b>{store.name}</b>.</strong>"
+            "message": f"<strong style='color:green;'>You are within {round(distance_meters,1)} meters of <b>{store.name}</b>. You can go Online.</strong>"
         })
 
     return JsonResponse({
         "allowed": False,
-        "message": f"<strong style='color:red;'>You are {round(distance_meters,1)} meters away from your selected store, exceeding 150 meters.</strong>"
+        "message": f"<strong style='color:red;'>You are {round(distance_meters,1)} meters away from <b>{store.name}</b>, exceeding 200 meters.</strong>"
     })
 
 
+
+
 def delivery_myearnings(request):
-    return render(request, 'pages/delivery_myearnings.html')
+    partner_id = request.session.get('delivery_partner_id')
+    if not partner_id:
+        return redirect('delivery_agentstep2')
+
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return redirect('delivery_agentstep2')
+
+    return render(request, 'pages/delivery_myearnings.html', {
+        'partner': partner
+    })
+
+
 
 def delivery_myorders(request):
-    return render(request, 'pages/delivery_myorders.html')
+    partner_id = request.session.get('delivery_partner_id')
+    if not partner_id:
+        return redirect('delivery_agentstep2')
+
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return redirect('delivery_agentstep2')
+
+    return render(request, 'pages/delivery_myorders.html', {
+        'partner': partner
+    })
+
 
 def delivery_profile(request):
-    return render(request, 'pages/delivery_profile.html')
+    partner_id = request.session.get('delivery_partner_id')
+    if not partner_id:
+        return redirect('delivery_agentstep2')
 
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return redirect('delivery_agentstep2')
 
+    return render(request, 'pages/delivery_profile.html', {
+        'partner': partner
+    })
 
+from django.shortcuts import render, redirect
+
+def delivery_logout(request):
+    # Clear the delivery partner session
+    if 'delivery_partner_id' in request.session:
+        del request.session['delivery_partner_id']
+    return redirect('delivery_agentstep2')
 
 
 
@@ -3138,3 +3194,133 @@ def delete_store_location(request, store_id):
     location.delete()
     messages.success(request, "Store location deleted.")
     return redirect('manage_stores')
+
+
+
+
+
+# react end point views 
+
+from rest_framework import viewsets, status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+
+from .models import StoreLocation, DeliveryPartner
+from .serializers import StoreLocationSerializer, DeliveryPartnerSerializer
+
+class StoreLocationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    /api/store-locations/ -> list
+    /api/store-locations/<id>/ -> retrieve
+    """
+    queryset = StoreLocation.objects.filter(is_active=True, status=True).order_by("-created_at")
+    serializer_class = StoreLocationSerializer
+
+class DeliveryPartnerViewSet(viewsets.ModelViewSet):
+    """
+    /api/delivery-partners/ -> create (multipart)
+    """
+    queryset = DeliveryPartner.objects.all().order_by("-created_at")
+    serializer_class = DeliveryPartnerSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def create(self, request, *args, **kwargs):
+        # DRF will accept selected_store as an ID (string/int) and set the FK
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        out = DeliveryPartnerSerializer(instance).data
+        return Response(out, status=status.HTTP_201_CREATED)
+
+
+
+
+
+# accounts/api_views.py
+import requests
+from django.conf import settings
+from django.core.cache import cache
+from django.contrib.auth import get_user_model
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import SendOtpSerializer, VerifyOtpSerializer, DeliveryPartnerSerializer
+from .models import DeliveryPartner
+
+User = get_user_model()
+
+
+class SendOtpAPI(APIView):
+    """
+    Send OTP to delivery partner using 2factor.in API
+    """
+    def post(self, request):
+        serializer = SendOtpSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        mobile = serializer.validated_data["mobile"].strip()
+        mobile_to_send = mobile if mobile.startswith("+") else f"+91{mobile}"
+
+        try:
+            url = f"https://2factor.in/API/V1/{settings.TWO_FACTOR_API_KEY}/SMS/{mobile_to_send}/AUTOGEN"
+            resp = requests.get(url, timeout=10)
+            data = resp.json()
+
+            if data.get("Status") == "Success":
+                session_id = data.get("Details")
+                cache.set(session_id, mobile_to_send, timeout=300)  # store mobile for 5 mins
+                return Response({"success": True, "session_id": session_id})
+
+            return Response({"success": False, "message": data.get("Details")}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"success": False, "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class VerifyOtpAPI(APIView):
+    """
+    Verify OTP, return JWT tokens and DeliveryPartner profile including ID
+    """
+    def post(self, request):
+        serializer = VerifyOtpSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        session_id = serializer.validated_data["session_id"].strip()
+        otp = serializer.validated_data["otp"].strip()
+
+        mobile = cache.get(session_id)
+        if not mobile:
+            return Response({"success": False, "message": "Session expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            url = f"https://2factor.in/API/V1/{settings.TWO_FACTOR_API_KEY}/SMS/VERIFY/{session_id}/{otp}"
+            resp = requests.get(url, timeout=10)
+            data = resp.json()
+
+            if data.get("Status") == "Success":
+                # Get or create DeliveryPartner
+                partner = DeliveryPartner.objects.filter(mobile__in=[mobile, mobile.replace("+", "")]).first()
+                if not partner:
+                    partner = DeliveryPartner.objects.create(mobile=mobile)
+
+                # Create/get user for JWT
+                user, _ = User.objects.get_or_create(username=mobile.replace("+", ""))
+                refresh = RefreshToken.for_user(user)
+
+                # Serialize partner including ID
+                partner_serializer = DeliveryPartnerSerializer(partner, context={'request': request})
+
+                return Response({
+                    "success": True,
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                    "partner": partner_serializer.data
+                })
+
+            return Response({"success": False, "message": "OTP Mismatch"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as exc:
+            return Response({"success": False, "message": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

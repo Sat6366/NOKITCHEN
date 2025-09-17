@@ -1,9 +1,12 @@
+
 {% extends 'pages/main.html' %}
 {% load static %}
 
-{% block title %}Menu{% endblock %}
+{% block title %}{% if query %}Search Results{% elif meal_type %}{{ meal_type|title }}{% else %}Menu{% endif %}{% endblock %}
 
 {% block content %}
+
+
 <style>
  body {
   font-family: 'Poppins', sans-serif;
@@ -460,13 +463,13 @@
 
 </style>
 
+{% if not query and not meal_type %}
 <section class="hero-section">
   <h1>Delight in Every Bite 🍔</h1>
-  <p>Crave it. Click it. Enjoy it. Explore your next favorite dish from NoKitchen’s delicious collection.</p>
+  <p>Crave it. Click it. Enjoy it. Explore your next favorite dish from NoKitchen's delicious collection.</p>
   <a href="#menu" class="hero-btn">Explore Menu</a>
 </section>
-
-
+{% endif %}
 
 <!-- Sticky Cart Preview -->
 <div class="sticky-cart d-none" id="stickyCart">
@@ -477,15 +480,42 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <div id="menu" class="container my-5">
+  <!-- Search Results Header -->
+  {% if query %}
+  <div class="menu-heading">
+    <h2>🔍 Search Results for "{{ query }}"</h2>
+    {% if not items %}
+      <p class="text-muted">No items found matching your search.</p>
+      <a href="{% url 'menu' %}" class="btn btn-warning mt-2">View Full Menu</a>
+    {% else %}
+      <p class="text-muted">{{ items|length }} item(s) found</p>
+    {% endif %}
+  </div>
+  {% elif meal_type %}
+  <!-- Meal Type Header -->
+  <div class="menu-heading">
+    <h2>🍽️ {{ meal_type|title }} Menu</h2>
+    {% if not items %}
+      <p class="text-muted">No {{ meal_type }} items available.</p>
+      <a href="{% url 'menu' %}" class="btn btn-warning mt-2">View Full Menu</a>
+    {% else %}
+      <p class="text-muted">{{ items|length }} {{ meal_type }} item(s)</p>
+    {% endif %}
+  </div>
+  {% else %}
+  <!-- Regular Menu Header -->
   <div class="menu-heading">
     <h2>🍽️ Discover the Best Dishes</h2>
   </div>
+  {% endif %}
 
   {% if not items %}
+    {% if not query and not meal_type %}
     <div class="text-center">
       <h3>No menu items available.</h3>
       <p>We'll be serving something great soon!</p>
     </div>
+    {% endif %}
   {% else %}
     <div class="row">
       {% for item in items %}
@@ -511,142 +541,149 @@
               <span>{{ item.quantity }}</span>
             </div>
             <div class="card-actions">
-              <a href="{% url 'add_to_cart' item.id %}" class="btn btn-sm btn-success">Add</a>
-              <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#customModal{{ item.id }}">Customize</button>
+              {% if user.is_authenticated %}
+                <a href="{% url 'add_to_cart' item.id %}" class="btn btn-sm btn-success">Add</a>
+                <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#customModal{{ item.id }}">Customize</button>
+              {% else %}
+                <a href="{% url 'login' %}" class="btn btn-sm btn-success">Login to Order</a>
+              {% endif %}
             </div>
           </div>
         </div>
       </div>
 
       <!-- Customize Modal Template -->
-<div class="modal fade" id="customModal{{ item.id }}" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content p-4 shadow-lg rounded-4">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-semibold fs-4 text-dark-emphasis">Customize "{{ item.item_name }}"</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal fade" id="customModal{{ item.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content p-4 shadow-lg rounded-4">
+            <div class="modal-header border-0">
+              <h5 class="modal-title fw-semibold fs-4 text-dark-emphasis">Customize "{{ item.item_name }}"</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" action="{% url 'customize_meal' item.id %}">
+              {% csrf_token %}
+              <input type="hidden" id="basePrice{{ item.id }}" value="{{ item.price }}">
+
+              <div class="modal-body">
+                <!-- Dates -->
+                <div class="row mb-3">
+                  <div class="col">
+                    <label class="form-label">Start Date:</label>
+                    <input type="date" name="start_date" class="form-control rounded-3 shadow-sm" required>
+                  </div>
+                  <div class="col">
+                    <label class="form-label">End Date:</label>
+                    <input type="date" name="end_date" class="form-control rounded-3 shadow-sm" required>
+                  </div>
+                </div>
+
+                <!-- Notes -->
+                <textarea class="form-control mb-3 rounded-3 shadow-sm" name="notes" rows="3" placeholder="e.g. less rice, add chicken curry"></textarea>
+
+                <!-- Veg/Non-Veg Toggle -->
+                <div class="d-flex gap-3 mb-3">
+                  <button type="button" class="btn btn-outline-success veg-tab rounded-pill px-4" data-item-id="{{ item.id }}">
+                    <i class="fas fa-leaf me-1"></i> Veg
+                  </button>
+                  <button type="button" class="btn btn-outline-danger nonveg-tab rounded-pill px-4" data-item-id="{{ item.id }}">
+                    <i class="fas fa-drumstick-bite me-1"></i> Non-Veg
+                  </button>
+                </div>
+
+                <!-- Horizontal Scroll Curries Section -->
+                <div class="horizontal-scroll mb-3">
+                  <div class="d-flex flex-nowrap gap-3 scroll-snap-x" id="veg-curries-{{ item.id }}">
+                    {% for curry in veg_curries %}
+                    <div class="card curry-card text-center rounded-4">
+                      {% if curry.image %}
+                        <img src="{{ curry.image.url }}" class="card-img-top curry-img rounded-top-4">
+                      {% else %}
+                        <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
+                      {% endif %}
+                      <div class="card-body p-2">
+                        <h6 class="small fw-semibold mb-1">{{ curry.curry_name }}</h6>
+                        <p class="text-warning fw-bold small">₹{{ curry.price }}</p>
+                        <input type="checkbox" name="custom_items" value="curry_{{ curry.id }}" id="chk{{ item.id }}_curry_{{ curry.id }}" onchange="toggleQty('{{ item.id }}', 'curry_{{ curry.id }}')">
+                        <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
+                          <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', -1)">−</button>
+                          <input type="number" name="quantities_curry_{{ curry.id }}" value="1" min="1" disabled class="form-control" id="qty{{ item.id }}_curry_{{ curry.id }}" style="width: 36px;">
+
+                          <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', 1)">+</button>
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+
+                  <div class="d-flex flex-nowrap gap-3 d-none scroll-snap-x" id="nonveg-curries-{{ item.id }}">
+                    {% for curry in nonveg_curries %}
+                    <div class="card curry-card text-center rounded-4">
+                      {% if curry.image %}
+                        <img src="{{ curry.image.url }}" class="card-img-top curry-img rounded-top-4">
+                      {% else %}
+                        <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
+                      {% endif %}
+                      <div class="card-body p-2">
+                        <h6 class="small fw-semibold mb-1">{{ curry.curry_name }}</h6>
+                        <p class="text-warning fw-bold small">₹{{ curry.price }}</p>
+                        <input type="checkbox" name="custom_items" value="curry_{{ curry.id }}" id="chk{{ item.id }}_curry_{{ curry.id }}" onchange="toggleQty('{{ item.id }}', 'curry_{{ curry.id }}')">
+                        <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
+                          <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', -1)">−</button>
+                          <input type="number" name="quantities_curry_{{ curry.id }}" value="1" min="1" disabled class="form-control" id="qty{{ item.id }}_curry_{{ curry.id }}" style="width: 36px;">
+
+                          <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', 1)">+</button>
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Additional Items -->
+                <div class="mt-4">
+                  <h6 class="text-primary fw-semibold">All Menu Items</h6>
+                  <div class="scroll-section d-flex flex-wrap gap-3">
+                    {% for extra in all_items %}
+                    <div class="card curry-card text-center rounded-4">
+                      {% if extra.image %}
+                        <img src="{{ extra.image.url }}" class="card-img-top curry-img rounded-top-4">
+                      {% else %}
+                        <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
+                      {% endif %}
+                      <div class="card-body p-2">
+                        <h6 class="small fw-semibold mb-1">{{ extra.item_name }}</h6>
+                        <p class="text-warning fw-bold small">₹{{ extra.price }}</p>
+                        <input type="checkbox" name="custom_items" value="{{ extra.id }}" id="chk{{ item.id }}_{{ extra.id }}" onchange="toggleQty('{{ item.id }}', '{{ extra.id }}')">
+                        <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
+                          <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ extra.id }}', -1)">−</button>
+                          <input type="number" name="quantities_{{ extra.id }}" value="1" min="1" disabled class="form-control form-control-sm text-center border-0 bg-light fw-bold small rounded-2 shadow-none" id="qty{{ item.id }}_{{ extra.id }}" style="width: 36px;">
+                          <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ extra.id }}', 1)">+</button>
+                        </div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer border-0 justify-content-between">
+                <div class="text-end w-100">
+                  <div class="text-end">
+                    <span class="me-3 fw-semibold text-dark">Total Price:</span>
+                    <span class="text-warning fw-bold fs-5 glow-price">₹<span id="totalPrice{{ item.id }}">{{ item.price }}</span></span>
+                  </div>
+                  <button type="submit" class="btn btn-warning fw-semibold px-4 py-2 mt-3 rounded-pill">Save Customization</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
-
-      <form method="POST" action="{% url 'customize_meal' item.id %}">
-        {% csrf_token %}
-        <input type="hidden" id="basePrice{{ item.id }}" value="{{ item.price }}">
-
-        <div class="modal-body">
-          <!-- Dates -->
-          <div class="row mb-3">
-            <div class="col">
-              <label class="form-label">Start Date:</label>
-              <input type="date" name="start_date" class="form-control rounded-3 shadow-sm" required>
-            </div>
-            <div class="col">
-              <label class="form-label">End Date:</label>
-              <input type="date" name="end_date" class="form-control rounded-3 shadow-sm" required>
-            </div>
-          </div>
-
-          <!-- Notes -->
-          <textarea class="form-control mb-3 rounded-3 shadow-sm" name="notes" rows="3" placeholder="e.g. less rice, add chicken curry"></textarea>
-
-          <!-- Veg/Non-Veg Toggle -->
-          <div class="d-flex gap-3 mb-3">
-            <button type="button" class="btn btn-outline-success veg-tab rounded-pill px-4" data-item-id="{{ item.id }}">
-              <i class="fas fa-leaf me-1"></i> Veg
-            </button>
-            <button type="button" class="btn btn-outline-danger nonveg-tab rounded-pill px-4" data-item-id="{{ item.id }}">
-              <i class="fas fa-drumstick-bite me-1"></i> Non-Veg
-            </button>
-          </div>
-
-          <!-- Horizontal Scroll Curries Section -->
-          <div class="horizontal-scroll mb-3">
-            <div class="d-flex flex-nowrap gap-3 scroll-snap-x" id="veg-curries-{{ item.id }}">
-              {% for curry in veg_curries %}
-              <div class="card curry-card text-center rounded-4">
-                {% if curry.image %}
-                  <img src="{{ curry.image.url }}" class="card-img-top curry-img rounded-top-4">
-                {% else %}
-                  <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
-                {% endif %}
-                <div class="card-body p-2">
-                  <h6 class="small fw-semibold mb-1">{{ curry.curry_name }}</h6>
-                  <p class="text-warning fw-bold small">₹{{ curry.price }}</p>
-                  <input type="checkbox" name="custom_items" value="curry_{{ curry.id }}" id="chk{{ item.id }}_curry_{{ curry.id }}" onchange="toggleQty('{{ item.id }}', 'curry_{{ curry.id }}')">
-                  <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', -1)">−</button>
-                    <input type="number" name="quantities_curry_{{ curry.id }}" value="1" min="1" disabled class="form-control" id="qty{{ item.id }}_curry_{{ curry.id }}" style="width: 36px;">
-
-                    <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', 1)">+</button>
-                  </div>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-
-            <div class="d-flex flex-nowrap gap-3 d-none scroll-snap-x" id="nonveg-curries-{{ item.id }}">
-              {% for curry in nonveg_curries %}
-              <div class="card curry-card text-center rounded-4">
-                {% if curry.image %}
-                  <img src="{{ curry.image.url }}" class="card-img-top curry-img rounded-top-4">
-                {% else %}
-                  <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
-                {% endif %}
-                <div class="card-body p-2">
-                  <h6 class="small fw-semibold mb-1">{{ curry.curry_name }}</h6>
-                  <p class="text-warning fw-bold small">₹{{ curry.price }}</p>
-                  <input type="checkbox" name="custom_items" value="curry_{{ curry.id }}" id="chk{{ item.id }}_curry_{{ curry.id }}" onchange="toggleQty('{{ item.id }}', 'curry_{{ curry.id }}')">
-                  <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', -1)">−</button>
-                    <input type="number" name="quantities_curry_{{ curry.id }}" value="1" min="1" disabled class="form-control" id="qty{{ item.id }}_curry_{{ curry.id }}" style="width: 36px;">
-
-                    <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ curry.id }}', 1)">+</button>
-                  </div>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Additional Items -->
-          <div class="mt-4">
-            <h6 class="text-primary fw-semibold">All Menu Items</h6>
-            <div class="scroll-section d-flex flex-wrap gap-3">
-              {% for extra in all_items %}
-              <div class="card curry-card text-center rounded-4">
-                {% if extra.image %}
-                  <img src="{{ extra.image.url }}" class="card-img-top curry-img rounded-top-4">
-                {% else %}
-                  <img src="https://via.placeholder.com/100x100?text=No+Image" class="card-img-top curry-img rounded-top-4">
-                {% endif %}
-                <div class="card-body p-2">
-                  <h6 class="small fw-semibold mb-1">{{ extra.item_name }}</h6>
-                  <p class="text-warning fw-bold small">₹{{ extra.price }}</p>
-                  <input type="checkbox" name="custom_items" value="{{ extra.id }}" id="chk{{ item.id }}_{{ extra.id }}" onchange="toggleQty('{{ item.id }}', '{{ extra.id }}')">
-                  <div class="qty-control mt-2 d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ extra.id }}', -1)">−</button>
-                    <input type="number" name="quantities_{{ extra.id }}" value="1" min="1" disabled class="form-control form-control-sm text-center border-0 bg-light fw-bold small rounded-2 shadow-none" id="qty{{ item.id }}_{{ extra.id }}" style="width: 36px;">
-                    <button type="button" class="btn btn-sm btn-outline-success rounded-circle" onclick="adjustQty('{{ item.id }}', '{{ extra.id }}', 1)">+</button>
-                  </div>
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer border-0 justify-content-between">
-          <div class="text-end w-100">
-            <div class="text-end">
-              <span class="me-3 fw-semibold text-dark">Total Price:</span>
-              <span class="text-warning fw-bold fs-5 glow-price">₹<span id="totalPrice{{ item.id }}">{{ item.price }}</span></span>
-            </div>
-            <button type="submit" class="btn btn-warning fw-semibold px-4 py-2 mt-3 rounded-pill">Save Customization</button>
-          </div>
-        </div>
-      </form>
+      {% endfor %}
     </div>
-  </div>
+  {% endif %}
 </div>
-
 
 <script>
 // DOM Ready
@@ -712,6 +749,10 @@ function updateTotal(mealId) {
   document.getElementById(`totalPrice${mealId}`).innerText = total.toFixed(2);
 }
 </script>
+
+
+
+
 
 <!-- Updated Swiggy-like CSS -->
 <style>
@@ -943,6 +984,5 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 
-{% endfor %}
-{% endif %}
+
 {% endblock %}

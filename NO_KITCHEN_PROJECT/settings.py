@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-+9n9y_&5y8)ih+3cfr_)gzb!7_%$*9w&#sbsc#k*i&h!&u@_z0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.0.10', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.0.9', '192.168.0.10', 'localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -84,6 +84,8 @@ DATABASES = {
         'PORT': '5432',      
     }
 }
+
+LOGIN_URL = '/login/'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -174,3 +176,17 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
+
+# Google api geolocation api
+
+
+import os
+from decouple import config
+GOOGLE_MAPS_API_KEY = config("GOOGLE_MAPS_API_KEY")   # ✅ cleaned

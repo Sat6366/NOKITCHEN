@@ -44,85 +44,82 @@
       margin-top: 10px;
     }
 
-    
-.login-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 90vh;
-  background: linear-gradient(135deg, #e0f7fa, #ffffff);
-  padding: 30px;
-}
+    .login-section {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 90vh;
+      background: linear-gradient(135deg, #e0f7fa, #ffffff);
+      padding: 30px;
+    }
 
-.login-card {
-  background-color: #ffffff;
-  padding: 40px 30px;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-}
+    .login-card {
+      background-color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
 
-.login-card h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  color: #00796b;
-}
+    .login-card h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #00796b;
+    }
 
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
-}
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
 
-input[type="tel"],
-input[type="text"] {
-  width: 100%;
-  padding: 12px 15px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  outline: none;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-}
+    input[type="tel"],
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      outline: none;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
 
-input[type="tel"]:focus,
-input[type="text"]:focus {
-  border-color: #26a69a;
-}
+    input[type="tel"]:focus,
+    input[type="text"]:focus {
+      border-color: #26a69a;
+    }
 
-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #26a69a;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
-}
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #26a69a;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 10px;
+    }
 
-button:hover {
-  background-color: #1e8880;
-}
+    button:hover {
+      background-color: #1e8880;
+    }
 
-.otp-box {
-  margin-top: 20px;
-  animation: fadeIn 0.3s ease-in-out;
-}
+    .otp-box {
+      margin-top: 20px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
-
-  
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
 
@@ -136,34 +133,33 @@ button:hover {
     </div>
   </section>
 
-
   <section class="login-section">
-  <div class="login-card">
-    <h2>Store Admin Login</h2>
+    <div class="login-card">
+      <h2>Store Admin Login</h2>
 
-    <label for="mobile">Mobile Number</label>
-    <input type="tel" id="mobile" maxlength="10" placeholder="Enter your number" />
+      <label for="mobile">Mobile Number</label>
+      <input type="tel" id="mobile" maxlength="10" placeholder="Enter your number" />
 
-    <button onclick="sendOTP()">Send OTP</button>
+      <button onclick="sendOTP()">Send OTP</button>
 
-    <div class="otp-box" id="otp-box" style="display:none;">
-      <label>Enter OTP</label>
-      <input type="text" id="otp" maxlength="6" placeholder="Enter 6-digit OTP">
-      <button onclick="verifyOTP()">Login to Dashboard</button>
+      <div class="otp-box" id="otp-box" style="display:none;">
+        <label>Enter OTP</label>
+        <input type="text" id="otp" maxlength="6" placeholder="Enter 6-digit OTP">
+        <button onclick="verifyOTP()">Login to Dashboard</button>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
 <script>
 function sendOTP() {
   const mobile = document.getElementById("mobile").value;
-  fetch("{% url 'send_otp' %}", {
+  fetch("{% url 'storeadmin_send_otp' %}", {  // ✅ Use StoreAdmin-only URL
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       "X-CSRFToken": "{{ csrf_token }}"
     },
-    body: "mobile=" + mobile
+    body: new URLSearchParams({ mobile: mobile })
   })
   .then(res => res.json())
   .then(data => {
@@ -177,13 +173,13 @@ function sendOTP() {
 
 function verifyOTP() {
   const otp = document.getElementById("otp").value;
-  fetch("{% url 'verify_otp' %}", {
+  fetch("{% url 'storeadmin_verify_otp' %}", {  // ✅ Use StoreAdmin-only URL
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       "X-CSRFToken": "{{ csrf_token }}"
     },
-    body: "otp=" + otp
+    body: new URLSearchParams({ otp: otp })
   })
   .then(res => res.json())
   .then(data => {
@@ -195,7 +191,6 @@ function verifyOTP() {
   });
 }
 </script>
-
 
 </body>
 </html>
