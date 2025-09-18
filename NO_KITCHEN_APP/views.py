@@ -3055,17 +3055,58 @@ def check_nearby_store(request):
 
 
 def delivery_myearnings(request):
-    return render(request, 'pages/delivery_myearnings.html')
+    partner_id = request.session.get('delivery_partner_id')
+    if not partner_id:
+        return redirect('delivery_agentstep2')
+
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return redirect('delivery_agentstep2')
+
+    return render(request, 'pages/delivery_myearnings.html', {
+        'partner': partner
+    })
+
 
 def delivery_myorders(request):
-    return render(request, 'pages/delivery_myorders.html')
+    partner_id = request.session.get('delivery_partner_id')
+    if not partner_id:
+        return redirect('delivery_agentstep2')
+
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return redirect('delivery_agentstep2')
+
+    return render(request, 'pages/delivery_myorders.html', {
+        'partner': partner
+    })
+
+
 
 def delivery_profile(request):
-    return render(request, 'pages/delivery_profile.html')
+    partner_id = request.session.get('delivery_partner_id')
+    if not partner_id:
+        return redirect('delivery_agentstep2')
+
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return redirect('delivery_agentstep2')
+
+    return render(request, 'pages/delivery_profile.html', {
+        'partner': partner
+    })
 
 
+from django.shortcuts import render, redirect
 
-
+def delivery_logout(request):
+    # Clear the delivery partner session
+    if 'delivery_partner_id' in request.session:
+        del request.session['delivery_partner_id']
+    return redirect('delivery_agentstep2')
 
 
 
@@ -3299,6 +3340,7 @@ class VerifyOtpAPI(APIView):
             return Response({"success": False, "message": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
 # views.py
 import json
 from math import radians, sin, cos, sqrt, atan2
@@ -3364,3 +3406,165 @@ def check_location(request):
         "store_lon": nearest.longitude,
         "message": "Within delivery radius." if available else "Out of delivery radius."
     })
+
+
+# NO_KITCHEN_APP/views_location.py
+import math
+import requests
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import DeliveryPartner, DetectedLocation
+from .serializers import ToggleOnlineSerializer, LiveLocationSerializer
+
+# Radius within which partner can go online (meters)
+RADIUS_METERS = 200
+
+
+def haversine_distance_m(lat1, lon1, lat2, lon2):
+    """
+    Return distance between two lat/lon pairs in meters (Haversine formula).
+    """
+    R = 6371000  # Earth radius in meters
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+def reverse_geocode(lat, lon):
+    """
+    Get address components using Google Geocoding API.
+    Returns a short dict or None on failure.
+    """
+    api_key = getattr(settings, "GOOGLE_MAPS_API_KEY", None)
+    if not api_key:
+        return None
+
+    try:
+        url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lon}&key={api_key}"
+        r = requests.get(url, timeout=6)
+        r.raise_for_status()
+        j = r.json()
+        if j.get("results"):
+            res0 = j["results"][0]
+            formatted = res0.get("formatted_address")
+            return {"formatted_address": formatted, "raw": res0}
+    except Exception:
+        return None
+    return None
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])  # change to IsAuthenticated in production
+def toggle_online_status(request):
+    """
+    Toggle partner online/offline using agent_code and GPS coordinates.
+
+    Request JSON:
+    {
+      "agent_code": "DLRXXXX",
+      "latitude": 12.97,
+      "longitude": 77.59
+    }
+    """
+    serializer = ToggleOnlineSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    data = serializer.validated_data
+    agent_code = data["agent_code"]
+    lat = data["latitude"]
+    lon = data["longitude"]
+
+    try:
+        partner = DeliveryPartner.objects.get(agent_code=agent_code)
+    except DeliveryPartner.DoesNotExist:
+        return Response({"success": False, "message": "Invalid agent_code"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Save latest coordinates
+    partner.latitude = lat
+    partner.longitude = lon
+    partner.save(update_fields=["latitude", "longitude"])
+
+    if not partner.selected_store:
+        return Response(
+            {"success": False, "allowed": False, "message": "No store selected for your account."},
+            status=status.HTTP_200_OK,
+        )
+
+    store_lat = partner.selected_store.latitude
+    store_lon = partner.selected_store.longitude
+    distance_m = haversine_distance_m(lat, lon, store_lat, store_lon)
+
+    # If within radius -> allow online
+    if distance_m <= RADIUS_METERS:
+        partner.is_online = True
+        partner.save(update_fields=["is_online"])
+
+        # Log detected location
+        DetectedLocation.objects.create(delivery_partner=partner, latitude=lat, longitude=lon)
+
+        geoinfo = reverse_geocode(lat, lon)
+        return Response(
+            {
+                "success": True,
+                "allowed": True,
+                "message": "You are now Online.",
+                "distance_m": round(distance_m, 1),
+                "geo": geoinfo,
+            },
+            status=status.HTTP_200_OK,
+        )
+    else:
+        # Friendly message — do not set is_online
+        return Response(
+            {
+                "success": False,
+                "allowed": False,
+                "message": "Please reach the store and go to online.",
+                "distance_m": round(distance_m, 1),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])  # change to IsAuthenticated in production
+def update_live_location(request):
+    """
+    Save continuous live location updates.
+
+    Request JSON:
+    {
+      "agent_code": "DLRXXX",
+      "latitude": 12.97,
+      "longitude": 77.59
+    }
+    """
+    serializer = LiveLocationSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    data = serializer.validated_data
+    agent_code = data["agent_code"]
+    lat = data["latitude"]
+    lon = data["longitude"]
+
+    try:
+        partner = DeliveryPartner.objects.get(agent_code=agent_code)
+    except DeliveryPartner.DoesNotExist:
+        return Response({"success": False, "message": "Invalid agent_code"}, status=status.HTTP_404_NOT_FOUND)
+
+    partner.latitude = lat
+    partner.longitude = lon
+    partner.save(update_fields=["latitude", "longitude"])
+
+    DetectedLocation.objects.create(delivery_partner=partner, latitude=lat, longitude=lon)
+
+    return Response({"success": True, "message": "Location updated."}, status=status.HTTP_200_OK)

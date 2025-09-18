@@ -938,7 +938,9 @@ class DeliveryPartner(models.Model):
 
     # ✅ Add this field
     agent_code = models.CharField(max_length=20, unique=True, blank=True, null=True)
-
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    is_online = models.BooleanField(default=False)
     # Document fields
     pan_number = models.CharField(max_length=20, blank=True, null=True)
     pan_card_image = models.ImageField(upload_to='delivery_docs/', blank=True, null=True)

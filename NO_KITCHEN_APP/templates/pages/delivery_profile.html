@@ -215,16 +215,22 @@
 
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar">
-  <img src="https://i.pravatar.cc/100?img=11" alt="Profile Image" />
-  <div class="user-id">DLR12345</div>
+  <img src="{{ partner.selfie.url }}" alt="Profile Image" onerror="this.src='https://i.pravatar.cc/100?u={{ partner.mobile }}'" />
+  <div class="user-id">
+    {{ partner.first_name }} {{ partner.last_name }}
+    <div style="font-size: 12px; color: #ccc;">
+      ID: {{ partner.agent_code }}
+    </div>
+  </div>
   <a href="{% url 'delivery_dashboard' %}" class="nav-link active"><i class="bi bi-speedometer2"></i>Dashboard</a>
   <a href="{% url 'delivery_myorders' %}" class="nav-link"><i class="bi bi-box-seam"></i>My Orders</a>
   <a href="{% url 'delivery_myearnings' %}" class="nav-link"><i class="bi bi-wallet2"></i>Earnings</a>
-  <a href="#" class="nav-link"><i class="bi bi-star-fill"></i>Ratings</a>
+  
   <a href="{% url 'delivery_profile' %}" class="nav-link"><i class="bi bi-person-circle"></i>Profile</a>
-  <a href="#" class="nav-link"><i class="bi bi-box-arrow-right"></i>Logout</a>
+  <a href="{% url 'delivery_logout' %}" class="nav-link">
+  <i class="bi bi-box-arrow-right"></i>Logout
+</a>
 </div>
 
 <!-- Main Content -->

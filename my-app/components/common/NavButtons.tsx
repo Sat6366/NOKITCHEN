@@ -1,6 +1,6 @@
 // components/common/NavButtons.tsx
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Animated } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { BlurView } from "expo-blur"; // Glassy premium effect
 
@@ -12,48 +12,51 @@ type Props = {
 };
 
 export default function NavButtons({ onNavigate, active }: Props) {
+  const tabs: { key: Screen; icon: string; outline: string }[] = [
+    { key: "main", icon: "home", outline: "home-outline" },
+    { key: "orders", icon: "cube", outline: "cube-outline" },
+    { key: "earnings", icon: "wallet", outline: "wallet-outline" },
+    { key: "profile", icon: "person", outline: "person-outline" },
+  ];
+
   return (
     <View style={styles.wrapper}>
       <BlurView intensity={70} tint="dark" style={styles.container}>
-        <TouchableOpacity onPress={() => onNavigate("main")} style={styles.tab}>
-          <View style={[styles.iconWrapper, active === "main" && styles.activeIconBg]}>
-            <Ionicons
-              name={active === "main" ? "home" : "home-outline"}
-              size={24}
-              color={active === "main" ? "#fff" : "#bbb"}
-            />
-          </View>
-        </TouchableOpacity>
+        {tabs.map((tab) => {
+          const isActive = active === tab.key;
+          const scaleAnim = new Animated.Value(isActive ? 1.1 : 1);
 
-        <TouchableOpacity onPress={() => onNavigate("orders")} style={styles.tab}>
-          <View style={[styles.iconWrapper, active === "orders" && styles.activeIconBg]}>
-            <Ionicons
-              name={active === "orders" ? "cube" : "cube-outline"}
-              size={24}
-              color={active === "orders" ? "#fff" : "#bbb"}
-            />
-          </View>
-        </TouchableOpacity>
+          if (isActive) {
+            Animated.spring(scaleAnim, {
+              toValue: 1.2,
+              friction: 3,
+              useNativeDriver: true,
+            }).start();
+          }
 
-        <TouchableOpacity onPress={() => onNavigate("earnings")} style={styles.tab}>
-          <View style={[styles.iconWrapper, active === "earnings" && styles.activeIconBg]}>
-            <Ionicons
-              name={active === "earnings" ? "wallet" : "wallet-outline"}
-              size={24}
-              color={active === "earnings" ? "#fff" : "#bbb"}
-            />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => onNavigate("profile")} style={styles.tab}>
-          <View style={[styles.iconWrapper, active === "profile" && styles.activeIconBg]}>
-            <Ionicons
-              name={active === "profile" ? "person" : "person-outline"}
-              size={24}
-              color={active === "profile" ? "#fff" : "#bbb"}
-            />
-          </View>
-        </TouchableOpacity>
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              onPress={() => onNavigate(tab.key)}
+              style={styles.tab}
+              activeOpacity={0.8}
+            >
+              <Animated.View
+                style={[
+                  styles.iconWrapper,
+                  isActive && styles.activeIconBg,
+                  { transform: [{ scale: scaleAnim }] },
+                ]}
+              >
+                <Ionicons
+                  name={isActive ? tab.icon : tab.outline}
+                  size={26}
+                  color={isActive ? "#fff" : "#bbb"}
+                />
+              </Animated.View>
+            </TouchableOpacity>
+          );
+        })}
       </BlurView>
     </View>
   );
@@ -69,32 +72,34 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingVertical: 10,
-    backgroundColor: "rgba(20,20,20,0.7)",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    backgroundColor: "rgba(18,18,18,0.8)",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 10,
   },
   tab: {
     alignItems: "center",
     flex: 1,
   },
   iconWrapper: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.05)", // subtle base for inactive
   },
   activeIconBg: {
     backgroundColor: "#ff9800",
     shadowColor: "#ff9800",
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });

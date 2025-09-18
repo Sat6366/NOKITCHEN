@@ -1,6 +1,6 @@
 // components/screens/Main.tsx
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native"; // ⬅️ swapped ScrollView -> FlatList
 import GradientBackground from "../home/GradientBackground";
 import CustomHeaderOptions from "../common/CustomHeaderOptions";
 import DeliveryBenefitsBanner from "../common/DeliveryBenefitsBanner";
@@ -9,35 +9,30 @@ import NavButtons from "../common/NavButtons";
 import WeatherBanner from "../common/WeatherBanner";
 
 export default function Main() {
+  // dummy list items just to render your <View style={styles.box} />
+  const dummyData = [1, 2];
+
   return (
     <GradientBackground style={styles.gradient}>
       {/* Fixed Header with Back Arrow */}
       <CustomHeaderOptions title="Home" showBack />
 
-      {/* Fixed top content */}
-      
-
       {/* Scrollable middle content only */}
-      <ScrollView
-        style={styles.scrollContainer}
+      <FlatList
+        data={dummyData}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={() => <View style={styles.box} />}
+        ListHeaderComponent={
+          <View style={styles.page}>
+            <ProfileWithToggle />
+            <WeatherBanner />
+            <Text style={styles.text}></Text>
+            <DeliveryBenefitsBanner />
+          </View>
+        }
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-      >
-        <ProfileWithToggle />
-      
-        <WeatherBanner />
-        <View style={styles.page}>
-          <Text style={styles.text}></Text>
-          <DeliveryBenefitsBanner />
-
-          {/* Example scrollable items */}
-          <View style={styles.box} />
-          <View style={styles.box} />
-          <View style={styles.box} />
-          <View style={styles.box} />
-          <View style={styles.box} />
-        </View>
-      </ScrollView>
+      />
 
       {/* Fixed Bottom Navigation */}
       <NavButtons />

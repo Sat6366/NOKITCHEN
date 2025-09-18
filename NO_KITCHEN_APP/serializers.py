@@ -74,3 +74,18 @@ class DeliveryPartnerSerializer(serializers.ModelSerializer):
         if obj.selfie:
             return request.build_absolute_uri(obj.selfie.url)
         return None
+
+
+
+# NO_KITCHEN_APP/serializers.py
+from rest_framework import serializers
+
+class ToggleOnlineSerializer(serializers.Serializer):
+    agent_code = serializers.CharField(max_length=50)
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+
+class LiveLocationSerializer(serializers.Serializer):
+    agent_code = serializers.CharField(max_length=50)
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()

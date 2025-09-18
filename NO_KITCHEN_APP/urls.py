@@ -71,6 +71,7 @@ urlpatterns = [
     path('delivery_myearnings/', views.delivery_myearnings, name='delivery_myearnings'),
     path('delivery_myorders/', views.delivery_myorders, name='delivery_myorders'),
     path('delivery_profile/', views.delivery_profile, name='delivery_profile'),
+    path('delivery_logout/', views.delivery_logout, name='delivery_logout'),
     path('add_to_cart/<int:item_id>/', views.add_to_cart, name='add_to_cart'),
     path('save_weekly_menu/', views.save_weekly_menu, name='save_weekly_menu'),
     path('menu/delete/<int:item_id>/', views.delete_menu_item, name='delete_menu_item'),
@@ -116,8 +117,9 @@ urlpatterns = [
     path('get_city_from_coords/', views.get_city_from_coords, name='get_city_from_coords'),
     path('get_stores_by_city/', views.get_stores_by_city, name='get_stores_by_city'),
     path('check_nearby_store/', views.check_nearby_store, name='check_nearby_store'),
-    path("send-otp/",views.SendOtpAPI.as_view(), name="send-otp"),
-    path("verify-otp/",views.VerifyOtpAPI.as_view(), name="verify-otp"),
-
+    path("send-otp/", views.SendOtpAPI.as_view(), name="send-otp"),
+    path("verify-otp/", views.VerifyOtpAPI.as_view(), name="verify-otp"),
+    path("delivery/toggle-online/",views. toggle_online_status, name="toggle_online"),
+    path("delivery/update-live-location/",views. update_live_location, name="update_live_location"),
 
 ]
