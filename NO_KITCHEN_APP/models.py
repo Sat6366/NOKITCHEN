@@ -925,6 +925,7 @@ class StoreLocation(models.Model):
 
 
 
+
 # Delivery Person 
 
 from django.db import models

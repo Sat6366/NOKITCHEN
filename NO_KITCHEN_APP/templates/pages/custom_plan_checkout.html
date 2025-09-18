@@ -133,6 +133,21 @@
       {% csrf_token %}
       <input type="hidden" name="address_type" id="address_type" value="Home">
 
+      <div style="margin-bottom: 12px;">
+  <button id="use-location-btn" type="button" class="btn-subscription" style="background:#1976d2;">
+    📍 Use Current Location
+  </button>
+  <span id="location-status" style="margin-left:12px; font-weight:600;"></span>
+</div>
+
+<div id="location-info" style="margin-bottom:12px; display:none;">
+  <div id="display-address" style="font-size:0.95rem; color:#333;"></div>
+  <div id="display-distance" style="font-size:0.95rem; color:#666; margin-top:6px;"></div>
+</div>
+
+<input type="hidden" name="user_lat" id="user_lat">
+<input type="hidden" name="user_lon" id="user_lon">
+
       <div class="form-group">
         <label>Flat / Apartment Number</label>
         <input type="text" name="flat_number" class="form-control" placeholder="E.g. 2B - Skyline Apartments" required>
@@ -266,6 +281,149 @@
       Swal.fire({ icon: 'error', title: 'Server Error', text: 'Please try again later.' });
     });
   };
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.querySelector("form");
+  const useBtn = document.getElementById("use-location-btn");
+  const statusSpan = document.getElementById("location-status");
+  const locInfo = document.getElementById("location-info");
+  const displayAddress = document.getElementById("display-address");
+  const displayDistance = document.getElementById("display-distance");
+  const userLatInput = document.getElementById("user_lat");
+  const userLonInput = document.getElementById("user_lon");
+
+  function setFormEnabled(enabled) {
+    form.querySelectorAll("input, select, textarea, button[type=submit]").forEach(el => {
+      if (el.id === "user_lat" || el.id === "user_lon" || el.id === "use-location-btn") {
+        el.disabled = false;
+      } else {
+        el.disabled = !enabled;
+      }
+    });
+  }
+
+  async function reverseGeocode(lat, lon) {
+    try {
+      const key = "{{ GOOGLE_MAPS_API_KEY }}";
+      if (!key) return null;
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${key}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data && data.results && data.results.length) {
+        return data.results[0].formatted_address;
+      }
+    } catch (e) {
+      console.error("Reverse geocode error:", e);
+    }
+    return null;
+  }
+
+  async function checkWithBackend(lat, lon) {
+    const csrftoken = getCookie('csrftoken');
+    try {
+      const resp = await fetch("{% url 'ajax_check_location' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({ lat: lat, lon: lon })
+      });
+      return await resp.json();
+    } catch (e) {
+      console.error("Error calling check-location endpoint", e);
+      return { available: false, message: "Server error" };
+    }
+  }
+
+  function saveSession(lat, lon, storeName, distance) {
+    sessionStorage.setItem("delivery_verified", "true");
+    sessionStorage.setItem("user_lat", lat);
+    sessionStorage.setItem("user_lon", lon);
+    sessionStorage.setItem("store_name", storeName);
+    sessionStorage.setItem("distance", distance);
+  }
+
+  async function restoreSession() {
+    if (sessionStorage.getItem("delivery_verified") === "true") {
+      const lat = sessionStorage.getItem("user_lat");
+      const lon = sessionStorage.getItem("user_lon");
+      const storeName = sessionStorage.getItem("store_name");
+      const distance = sessionStorage.getItem("distance");
+
+      userLatInput.value = lat;
+      userLonInput.value = lon;
+
+      const address = await reverseGeocode(lat, lon);
+      displayAddress.textContent = address ? "Detected address: " + address : "Coordinates: " + lat + ", " + lon;
+      displayDistance.textContent = "Distance to store (" + storeName + "): " + distance + " km";
+      locInfo.style.display = "block";
+
+      statusSpan.textContent = "✅ Delivery already verified";
+      setFormEnabled(true);
+      return true;
+    }
+    return false;
+  }
+
+  setFormEnabled(false);
+  if (!restoreSession()) {
+    statusSpan.textContent = "Click 'Use Current Location' to enable delivery fields";
+  }
+
+  useBtn.addEventListener("click", function () {
+    statusSpan.textContent = "Requesting location permission...";
+    if (!navigator.geolocation) {
+      statusSpan.textContent = "Geolocation not supported.";
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async function (position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      userLatInput.value = lat;
+      userLonInput.value = lon;
+
+      statusSpan.textContent = "Checking delivery availability...";
+      const address = await reverseGeocode(lat, lon);
+      if (address) {
+        displayAddress.textContent = "Detected address: " + address;
+        locInfo.style.display = "block";
+      }
+
+      const result = await checkWithBackend(lat, lon);
+      if (result && result.available) {
+        statusSpan.textContent = "✅ Delivery available from " + (result.store_name || "store");
+        displayDistance.textContent = "Distance: " + result.distance_km + " km";
+        locInfo.style.display = "block";
+        setFormEnabled(true);
+        saveSession(lat, lon, result.store_name, result.distance_km);
+      } else {
+        statusSpan.textContent = "❌ Out of delivery radius.";
+        displayDistance.textContent = result && result.distance_km ? "Nearest: " + result.distance_km + " km" : "";
+        setFormEnabled(false);
+      }
+    }, function (err) {
+      console.error("Geolocation error", err);
+      statusSpan.textContent = "Unable to get location.";
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+  });
+});
 </script>
+
 
 {% endblock %}
