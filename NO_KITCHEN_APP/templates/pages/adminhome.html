@@ -5,40 +5,53 @@
     <title>Admin Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f6f9; color: #333; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
-        }
-
+        /* ================== Navbar ================== */
         .navbar {
-            background-color: #1e272e;
-            padding: 20px 40px;
+            width: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 0; /* full width, no rounding */
+        }
+        .navbar .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .navbar .nav-links {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 25px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            gap: 12px;
         }
-
         .navbar a {
-            color: #fff;
+            color: white;
             text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease, transform 0.2s ease;
+            padding: 8px 14px;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        .navbar a:hover { background: rgba(255,255,255,0.2); }
+        .navbar a.active { background: rgba(255,255,255,0.3); font-weight: bold; }
+
+        .hamburger { display: none; flex-direction: column; cursor: pointer; }
+        .hamburger span { height: 3px; width: 25px; background: white; margin: 4px 0; border-radius: 2px; }
+        @media screen and (max-width: 900px) {
+            .navbar .nav-links { display: none; flex-direction: column; width: 100%; }
+            .navbar.responsive .nav-links { display: flex; }
+            .navbar a.mobile-active { display: block; width: 100%; margin: 5px 0; }
+            .hamburger { display: flex; }
         }
 
-        .navbar a:hover {
-            color: #f6b01e;
-            transform: scale(1.05);
-        }
-
+        /* ================== Top Section ================== */
         .top-section {
             display: flex;
             justify-content: space-between;
@@ -47,7 +60,6 @@
             margin: 30px auto 10px;
             padding: 0 20px;
         }
-
         .add-admin-btn {
             background: #2e86de;
             color: white;
@@ -58,11 +70,9 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
+        .add-admin-btn:hover { background: #1b5dbf; }
 
-        .add-admin-btn:hover {
-            background: #1b5dbf;
-        }
-
+        /* ================== Store Admin Form ================== */
         .store-admin-form {
             display: none;
             background: white;
@@ -73,24 +83,15 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             animation: fadeIn 0.3s ease;
         }
-
-        .store-admin-form h3 {
-            margin-bottom: 20px;
-            color: #2f3640;
-        }
-
-        .store-admin-form label {
-            font-weight: 600;
-        }
-
-        .store-admin-form input {
+        .store-admin-form h3 { margin-bottom: 20px; color: #2f3640; }
+        .store-admin-form label { font-weight: 600; }
+        .store-admin-form input, .store-admin-form select {
             width: 100%;
             padding: 10px;
             margin: 8px 0 18px;
             border-radius: 6px;
             border: 1px solid #ccc;
         }
-
         .store-admin-form button {
             background: #28a745;
             color: white;
@@ -101,12 +102,8 @@
             cursor: pointer;
         }
 
-        .section {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
+        /* ================== Sections ================== */
+        .section { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .download-btn {
             display: inline-block;
             background: linear-gradient(to right, #00c853, #00bfa5);
@@ -116,22 +113,14 @@
             border-radius: 8px;
             font-weight: 600;
             margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             transition: background 0.3s ease, transform 0.2s ease;
         }
+        .download-btn:hover { background: linear-gradient(to right, #00bfa5, #00c853); transform: translateY(-2px); }
 
-        .download-btn:hover {
-            background: linear-gradient(to right, #00bfa5, #00c853);
-            transform: translateY(-2px);
-        }
+        h2 { font-size: 30px; font-weight: 700; color: #2f3640; margin-bottom: 25px; }
 
-        h2 {
-            font-size: 30px;
-            font-weight: 700;
-            color: #2f3640;
-            margin-bottom: 25px;
-        }
-
+        /* ================== Table ================== */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -141,125 +130,67 @@
             overflow: hidden;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
         }
+        thead { background-color: #f6b01e; color: white; }
+        th, td { padding: 18px 20px; text-align: left; font-size: 15px; }
+        tbody tr { border-bottom: 1px solid #eee; transition: background 0.2s ease; }
+        tbody tr:hover { background-color: #f9f9f9; }
+        .empty-msg { text-align: center; padding: 40px; font-size: 18px; color: #888; }
 
-        thead {
-            background-color: #f6b01e;
-            color: white;
-        }
+        /* ================== Messages ================== */
+        .messages { max-width: 800px; margin: 20px auto; }
+        .messages div { padding: 12px; margin-bottom: 12px; border-radius: 6px; font-weight: 600; }
+        .messages .success { background: #d4edda; color: #155724; }
+        .messages .error { background: #f8d7da; color: #721c24; }
 
-        th, td {
-            padding: 18px 20px;
-            text-align: left;
-            font-size: 15px;
-        }
-
-        tbody tr {
-            border-bottom: 1px solid #eee;
-            transition: background 0.2s ease;
-        }
-
-        tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        .empty-msg {
-            text-align: center;
-            padding: 40px;
-            font-size: 18px;
-            color: #888;
-        }
-
-        .messages {
-            max-width: 800px;
-            margin: 20px auto;
-        }
-
-        .messages div {
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-
-        .messages .success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .messages .error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                align-items: center;
-                gap: 15px;
-            }
-
-            th, td {
-                font-size: 14px;
-                padding: 12px;
-            }
-
-            h2 {
-                font-size: 24px;
-            }
-
-            .download-btn {
-                width: 100%;
-                text-align: center;
-            }
-
-            .top-section {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
+            th, td { font-size: 14px; padding: 12px; }
+            h2 { font-size: 24px; }
+            .download-btn { width: 100%; text-align: center; }
+            .top-section { flex-direction: column; align-items: flex-start; gap: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <a href="{% url 'adminhome' %}">🏠 Home</a>
-        <a href="{% url 'admin_cartpayments' %}">🛒 Cart Payments</a>
-        <a href="{% url 'admin_contact' %}">📞 Contacts</a>
-        <a href="{% url 'add_food' %}">🍽️ Foods</a>
-        <a href="{% url 'admin_payment' %}">💳 Payments</a>
-        <a href="{% url 'all_subscriptions' %}">📦 Subscriptions</a>
-         <a href="{% url 'storeadmin_list' %}">👤 Store Admin</a>
-         <a href="{% url 'manage_stores' %}">📍 Add Store</a>
-
+<!-- ================== Navbar ================== -->
+<nav class="navbar" id="navbar">
+    <a href="{% url 'adminhome' %}" class="logo">Admin Panel</a>
+    <div class="nav-links">
+        <a href="{% url 'adminhome' %}" class="{% if request.path == '/adminhome/' %}active{% endif %}">Home</a>
+        <a href="{% url 'admin_cartpayments' %}" class="{% if request.path == '/admin_cartpayments/' %}active{% endif %}">Cart Payments</a>
+        <a href="{% url 'admin_contact' %}" class="{% if request.path == '/admin_contact/' %}active{% endif %}">Contacts</a>
+        <a href="{% url 'add_food' %}" class="{% if request.path == '/add_food/' %}active{% endif %}">Foods</a>
+        <a href="{% url 'admin_payment' %}" class="{% if request.path == '/admin_payment/' %}active{% endif %}">Payments</a>
+        <a href="{% url 'all_subscriptions' %}" class="{% if request.path == '/all_subscriptions/' %}active{% endif %}">Subscriptions</a>
+        <a href="{% url 'storeadmin_list' %}" class="{% if request.path == '/storeadmin_list/' %}active{% endif %}">Store Admin</a>
+        <a href="{% url 'manage_stores' %}" class="{% if request.path == '/manage_stores/' %}active{% endif %}">Add Store</a>
+        <a href="{% url 'admin_deliverylist' %}" class="{% if request.path == '/api/admin_deliverylist/' %}active{% endif %}">Captain</a>
     </div>
+    <div class="hamburger" onclick="toggleNavbar()"><span></span><span></span><span></span></div>
+</nav>
 
-    <!-- Messages -->
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            <div class="{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
+<!-- ================== Messages ================== -->
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+        <div class="{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
 
-    
-    <div class="top-section">
+<!-- ================== Top Section ================== -->
+<div class="top-section">
     <h2>Admin Dashboard</h2>
     <button class="add-admin-btn" onclick="toggleStoreForm()">➕ Add Store Admin</button>
 </div>
 
-<!-- Store Admin Form -->
+<!-- ================== Store Admin Form ================== -->
 <div class="store-admin-form" id="storeAdminForm">
     <h3>Add Store Admin</h3>
     <form method="post" action="{% url 'add_storeadmin_backend' %}">
         {% csrf_token %}
-
         <label for="store_id">Select Store</label>
         <select name="store_id" id="store_id" required>
             <option value="">-- Select a Store --</option>
@@ -267,18 +198,44 @@
                 <option value="{{ store.id }}">{{ store.name }} - {{ store.city }}</option>
             {% endfor %}
         </select>
-
         <label>Name</label>
         <input type="text" name="name" required>
-
         <label>Mobile</label>
         <input type="text" name="mobile" required>
-
         <label>Email</label>
         <input type="email" name="email" required>
-
         <button type="submit">Save Store Admin</button>
     </form>
+</div>
+
+<!-- ================== User Table ================== -->
+<div class="section">
+    <a href="{% url 'download_users_pdf' %}" class="download-btn" download>📥 Download Users PDF</a>
+    <h2>All Registered Users</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Mobile Number</th>
+                <th>Address</th>
+                <th>Pincode</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in profiles %}
+            <tr>
+                <td>{{ profile.user.username }}</td>
+                <td>{{ profile.user.email }}</td>
+                <td>{{ profile.mobile_number }}</td>
+                <td>{{ profile.address }}</td>
+                <td>{{ profile.pincode }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty-msg">No users found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 <script>
@@ -286,44 +243,13 @@ function toggleStoreForm() {
     const form = document.getElementById("storeAdminForm");
     form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
 }
+
+function toggleNavbar() {
+    const navbar = document.getElementById('navbar');
+    navbar.classList.toggle('responsive');
+    const links = navbar.querySelectorAll('.nav-links a');
+    links.forEach(link => link.classList.toggle('mobile-active'));
+}
 </script>
-
-    <!-- User Table -->
-    <div class="section">
-        <a href="{% url 'download_users_pdf' %}" class="download-btn" download>
-            📥 Download Users PDF
-        </a>
-
-        <h2>All Registered Users</h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Mobile Number</th>
-                    <th>Address</th>
-                    <th>Pincode</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for profile in profiles %}
-                <tr>
-                    <td>{{ profile.user.username }}</td>
-                    <td>{{ profile.user.email }}</td>
-                    <td>{{ profile.mobile_number }}</td>
-                    <td>{{ profile.address }}</td>
-                    <td>{{ profile.pincode }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="empty-msg">No users found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-  
 </body>
 </html>

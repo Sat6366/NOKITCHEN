@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delivery Partners List</title>
+<style>
+  body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+  }
+
+  /* Navbar */
+  .navbar {
+      background: linear-gradient(90deg, #e74c3c, #c0392b);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .navbar .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+  }
+
+  .navbar a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+      padding: 8px 14px;
+      border-radius: 5px;
+      transition: all 0.2s ease;
+      font-size: 14px;
+  }
+
+  .navbar a:hover { background: rgba(255,255,255,0.2); }
+  .navbar a.active { background: rgba(255,255,255,0.3); font-weight: bold; }
+
+  .hamburger { display: none; flex-direction: column; cursor: pointer; }
+  .hamburger span { height: 3px; width: 25px; background: white; margin: 4px 0; border-radius: 2px; }
+
+  @media screen and (max-width: 900px) {
+      .navbar a { display: none; }
+      .navbar a.mobile-active { display: block; margin: 10px 0; }
+      .hamburger { display: flex; }
+      .navbar.responsive { flex-direction: column; align-items: flex-start; }
+  }
+
+  /* Container */
+  .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 20px auto;
+  }
+
+  h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+  }
+
+  /* Table */
+  table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+  }
+
+  th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+  }
+
+  th {
+      background: #e74c3c;
+      color: white;
+      text-transform: uppercase;
+      font-size: 13px;
+  }
+
+  tr:hover { background: #f9f9f9; }
+
+  .status-online { color: #27ae60; font-weight: bold; }
+  .status-offline { color: #c0392b; font-weight: bold; }
+
+  .actions { display: flex; gap: 8px; }
+  .btn { padding: 6px 12px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+  .btn-block { background: #f39c12; color: white; }
+  .btn-block:hover { background: #d68910; }
+  .btn-delete { background: #c0392b; color: white; }
+  .btn-delete:hover { background: #922b21; }
+
+  /* Toast Notifications */
+  .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+  }
+
+  .toast {
+      min-width: 280px;
+      max-width: 400px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeInRight 0.5s ease forwards;
+  }
+
+  .toast .msg { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .toast i { font-size: 18px; flex-shrink: 0; }
+
+  .toast-success { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+  .toast-error { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+  .toast-warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  .toast-info { background: linear-gradient(135deg, #3498db, #2980b9); }
+
+  .toast button {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 12px;
+  }
+
+  @keyframes fadeInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(50px); } }
+</style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+    <a href="{% url 'adminhome' %}" class="logo">Admin Panel</a>
+    <div class="nav-links">
+        <a href="{% url 'adminhome' %}" class="{% if request.path == '/adminhome/' %}active{% endif %}">Home</a>
+        <a href="{% url 'admin_cartpayments' %}" class="{% if request.path == '/admin_cartpayments/' %}active{% endif %}">Cart Payments</a>
+        <a href="{% url 'admin_contact' %}" class="{% if request.path == '/admin_contact/' %}active{% endif %}">Contacts</a>
+        <a href="{% url 'add_food' %}" class="{% if request.path == '/add_food/' %}active{% endif %}">Foods</a>
+        <a href="{% url 'admin_payment' %}" class="{% if request.path == '/admin_payment/' %}active{% endif %}">Payments</a>
+        <a href="{% url 'all_subscriptions' %}" class="{% if request.path == '/all_subscriptions/' %}active{% endif %}">Subscriptions</a>
+        <a href="{% url 'storeadmin_list' %}" class="{% if request.path == '/storeadmin_list/' %}active{% endif %}">Store Admin</a>
+        <a href="{% url 'manage_stores' %}" class="{% if request.path == '/manage_stores/' %}active{% endif %}">Add Store</a>
+        <a href="{% url 'admin_deliverylist' %}" class="{% if request.path == '/api/admin_deliverylist/' %}active{% endif %}">Captain</a>
+    </div>
+    <div class="hamburger" onclick="toggleNavbar()"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="container">
+    <h1>Delivery Partners</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Agent Code</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Registered On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for partner in delivery_partners %}
+            <tr>
+                <td>{{ partner.id }}</td>
+                <td>{{ partner.agent_code }}</td>
+                <td>{{ partner.first_name }} {{ partner.last_name }}</td>
+                <td>{{ partner.email }}</td>
+                <td>{{ partner.mobile }}</td>
+                <td>{{ partner.location|default:"-" }}</td>
+                <td>{% if partner.is_online %}<span class="status-online">Online</span>{% else %}<span class="status-offline">Offline</span>{% endif %}</td>
+                <td>{{ partner.registered_on|date:"d M Y, H:i" }}</td>
+                <td>
+                    <div class="actions">
+                        <form method="post" action="{% url 'block_deliverypartner' partner.id %}">{% csrf_token %}
+                            <button type="submit" class="btn btn-block">Block</button>
+                        </form>
+                        <form method="post" action="{% url 'delete_deliverypartner' partner.id %}">{% csrf_token %}
+                            <button type="submit" class="btn btn-delete">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9" style="text-align:center;">No delivery partners found</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Toast Notifications -->
+<div class="toast-container" id="toast-container">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="toast toast-{{ message.tags }}">
+          <div class="msg">
+            {% if message.tags == "success" %}<i>✔️</i>{% elif message.tags == "error" %}<i>❌</i>{% elif message.tags == "warning" %}<i>⚠️</i>{% else %}<i>ℹ️</i>{% endif %}
+            <span>{{ message }}</span>
+          </div>
+          <button onclick="this.parentElement.remove()">&times;</button>
+        </div>
+      {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+  function toggleNavbar() {
+      const navbar = document.getElementById('navbar');
+      navbar.classList.toggle('responsive');
+      const links = navbar.querySelectorAll('.nav-links a');
+      links.forEach(link => link.classList.toggle('mobile-active'));
+  }
+
+  setTimeout(() => {
+      document.querySelectorAll('.toast').forEach(toast => {
+          toast.style.animation = "fadeOutRight 0.5s ease forwards";
+          setTimeout(() => toast.remove(), 500);
+      });
+  }, 3000);
+</script>
+
+</body>
+</html>

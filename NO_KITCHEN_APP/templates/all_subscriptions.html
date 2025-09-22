@@ -1,93 +1,88 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>All Subscriptions</title>
+    <meta charset="UTF-8">
+    <title>Admin - All Subscriptions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: Arial, sans-serif;
-            padding: 40px;
-            background-color: #f9f9f9;
-        }
-        h1 {
-            text-align: center;
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f9;
             color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .active {
-            color: green;
-            font-weight: bold;
-        }
-        .inactive {
-            color: red;
-            font-weight: bold;
-        }
-         body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f9fb;
-            margin: 0;
-            padding: 0;
+            padding: 20px;
         }
 
+        /* ================== Navbar ================== */
         .navbar {
-            background-color: #2e86de;
-            padding: 15px;
+            width: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            padding: 12px 24px;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
-            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
-
+        .navbar .logo { font-size: 20px; font-weight: bold; color: white; text-decoration: none; }
+        .navbar .nav-links { display: flex; flex-wrap: wrap; gap: 12px; }
         .navbar a {
-            color: white;
-            text-decoration: none;
-            margin: 10px 15px;
-            font-weight: bold;
+            color: white; text-decoration: none; padding: 8px 14px; border-radius: 5px; font-size: 14px; transition: all 0.2s ease;
+        }
+        .navbar a:hover { background: rgba(255,255,255,0.2); }
+        .navbar a.active { background: rgba(255,255,255,0.3); font-weight: bold; }
+        .hamburger { display: none; flex-direction: column; cursor: pointer; }
+        .hamburger span { height: 3px; width: 25px; background: white; margin: 4px 0; border-radius: 2px; }
+        @media screen and (max-width: 900px) {
+            .navbar .nav-links { display: none; flex-direction: column; width: 100%; }
+            .navbar.responsive .nav-links { display: flex; }
+            .navbar a.mobile-active { display: block; width: 100%; margin: 5px 0; }
+            .hamburger { display: flex; }
         }
 
-        .navbar a:hover {
-            text-decoration: underline;
-        }
+        h2 { color: #e74c3c; margin-bottom: 20px; text-align: center; }
 
+        /* ================== Table ================== */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+        th { background: #e74c3c; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+
+        .active { color: green; font-weight: bold; }
+        .inactive { color: red; font-weight: bold; }
+
+        .btn { display: inline-block; margin-bottom: 15px; padding: 10px 18px; background: #27ae60; color: #fff; text-decoration: none; border-radius: 5px; font-weight: 600; transition: background 0.3s ease; }
+        .btn:hover { background: #219150; }
+
+        @media (max-width: 768px) {
+            th, td { font-size: 12px; padding: 10px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <a href="{% url 'adminhome' %}">Home</a>
-       
-        <a href="{% url 'admin_cartpayments' %}">Cart Payments</a>
-       
-        <a href="{% url 'admin_contact' %}">Contacts</a>
-        <a href="{% url 'add_food' %}">Foods</a>
-        <a href="{% url 'admin_payment' %}">Payments</a>
-        
-        <a href="{% url 'all_subscriptions' %}">Subscriptions</a>
+<!-- ================== Navbar ================== -->
+ <nav class="navbar" id="navbar">
+    <a href="{% url 'adminhome' %}" class="logo">Admin Panel</a>
+    <div class="nav-links">
+        <a href="{% url 'adminhome' %}" class="{% if request.path == '/adminhome/' %}active{% endif %}">Home</a>
+        <a href="{% url 'admin_cartpayments' %}" class="{% if request.path == '/admin_cartpayments/' %}active{% endif %}">Cart Payments</a>
+        <a href="{% url 'admin_contact' %}" class="{% if request.path == '/admin_contact/' %}active{% endif %}">Contacts</a>
+        <a href="{% url 'add_food' %}" class="{% if request.path == '/add_food/' %}active{% endif %}">Foods</a>
+        <a href="{% url 'admin_payment' %}" class="{% if request.path == '/admin_payment/' %}active{% endif %}">Payments</a>
+        <a href="{% url 'all_subscriptions' %}" class="{% if request.path == '/all_subscriptions/' %}active{% endif %}">Subscriptions</a>
+        <a href="{% url 'storeadmin_list' %}" class="{% if request.path == '/storeadmin_list/' %}active{% endif %}">Store Admin</a>
+        <a href="{% url 'manage_stores' %}" class="{% if request.path == '/manage_stores/' %}active{% endif %}">Add Store</a>
+        <a href="{% url 'admin_deliverylist' %}" class="{% if request.path == '/api/admin_deliverylist/' %}active{% endif %}">Captain</a>
     </div>
+    <div class="hamburger" onclick="toggleNavbar()"><span></span><span></span><span></span></div>
+</nav>
 
-
-<h1>All Subscriptions</h1>
-<a href="{% url 'subscription_report_pdf' %}" class="btn btn-success" target="_blank">📄 Download Subscription PDF</a>
-
-
-
+<h2>All Subscriptions</h2>
+<a href="{% url 'subscription_report_pdf' %}" class="btn" target="_blank">📄 Download Subscription PDF</a>
 
 <table>
     <thead>
@@ -118,11 +113,20 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="6">No subscriptions found.</td>
+            <td colspan="6" style="text-align:center; color:#888;">No subscriptions found.</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+function toggleNavbar() {
+    const navbar = document.getElementById('navbar');
+    navbar.classList.toggle('responsive');
+    const links = navbar.querySelectorAll('.nav-links a');
+    links.forEach(link => link.classList.toggle('mobile-active'));
+}
+</script>
 
 </body>
 </html>

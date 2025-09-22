@@ -525,28 +525,11 @@ def cart_remove_product(request, product_id):
 
 
 
-from django.shortcuts import render, get_object_or_404
-from django.utils import timezone
-from .models import NoKitchenCart, NoKitchenCartItem
-from .views import _cart_id  # Make sure to import or define this if not present
-
 # views.py
-from django.shortcuts import render, get_object_or_404, redirect
-from django.utils import timezone
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
-import razorpay
-from .models import NoKitchenCart, NoKitchenCartItem, CustomMealPlan, DeliveryAddress
-from .views import _cart_id
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.utils import timezone
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
-import razorpay
-from .models import NoKitchenCart, NoKitchenCartItem, CustomMealPlan, DeliveryAddress
-from .views import _cart_id  # Make sure this is defined
+
+
 
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -819,9 +802,7 @@ def customize_meal(request, meal_id):
 
 
 
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import CustomMealPlan
+
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -1876,6 +1857,36 @@ from .models import CartPayment
 def admin_payment(request):
     payments = CartPayment.objects.all().order_by('-created_at')  # Latest first
     return render(request, 'pages/admin_payment.html', {'payments': payments})
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import DeliveryPartner
+
+# Admin List
+def admin_deliverylist(request):
+    delivery_partners = DeliveryPartner.objects.all().order_by('-created_at')
+    return render(request, 'pages/admin_deliverylist.html', {
+        'delivery_partners': delivery_partners
+    })
+
+# Block Partner
+def block_deliverypartner(request, partner_id):
+    partner = get_object_or_404(DeliveryPartner, id=partner_id)
+    if request.method == "POST":
+        partner.is_online = False   # mark offline / blocked
+        partner.save()
+        messages.success(request, f"{partner.first_name} {partner.last_name} has been blocked.")
+    return redirect('admin_deliverylist')
+
+# Delete Partner
+def delete_deliverypartner(request, partner_id):
+    partner = get_object_or_404(DeliveryPartner, id=partner_id)
+    if request.method == "POST":
+        partner.delete()
+        messages.success(request, "Delivery partner deleted successfully.")
+    return redirect('admin_deliverylist')
+
 
 
 # views.py

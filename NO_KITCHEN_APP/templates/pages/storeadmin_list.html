@@ -13,22 +13,28 @@
             padding: 0;
         }
 
+        /* Navbar */
         .navbar {
-            background-color: #1e272e;
+            width: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
             padding: 20px 40px;
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             gap: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .navbar a {
             color: #fff;
             text-decoration: none;
             font-weight: 600;
+            transition: color 0.3s ease, transform 0.2s ease;
         }
 
         .navbar a:hover {
             color: #f6b01e;
+            transform: scale(1.05);
         }
 
         .container {
@@ -43,17 +49,18 @@
             margin-bottom: 25px;
         }
 
+        /* Table */
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
         }
 
         thead {
-            background-color: #f6b01e;
+            background-color: #f33942;
             color: white;
         }
 
@@ -66,6 +73,7 @@
             background-color: #f9f9f9;
         }
 
+        /* Status badges */
         .status {
             padding: 6px 12px;
             border-radius: 12px;
@@ -78,6 +86,7 @@
         .pending { background: #fff3cd; color: #856404; }
         .deactivated { background: #f8d7da; color: #721c24; }
 
+        /* Action buttons */
         .btn-group form {
             display: inline-block;
             margin-right: 6px;
@@ -96,6 +105,7 @@
         .btn-deactivate { background: #ffc107; color: #000; }
         .btn-remove { background: #dc3545; color: white; }
 
+        /* Messages */
         .message {
             max-width: 1100px;
             margin: 20px auto;
@@ -109,29 +119,28 @@
         .error { background-color: #f8d7da; color: #721c24; }
 
         @media (max-width: 768px) {
-            th, td {
-                font-size: 14px;
-                padding: 12px;
-            }
-
-            .btn-group form {
-                display: block;
-                margin-bottom: 6px;
-            }
-
-            .btn-group button {
-                width: 100%;
-            }
+            th, td { font-size: 14px; padding: 12px; }
+            .btn-group form { display: block; margin-bottom: 6px; }
+            .btn-group button { width: 100%; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Navbar -->
     <div class="navbar">
-        <a href="{% url 'adminhome' %}">🏠 Home</a>
-        <a href="{% url 'storeadmin_list' %}">👤 Store Admins</a>
+        <a href="{% url 'adminhome' %}">Home</a>
+        <a href="{% url 'admin_cartpayments' %}">Cart Payments</a>
+        <a href="{% url 'admin_contact' %}">Contacts</a>
+        <a href="{% url 'add_food' %}">Foods</a>
+        <a href="{% url 'admin_payment' %}">Payments</a>
+        <a href="{% url 'all_subscriptions' %}">Subscriptions</a>
+        <a href="{% url 'storeadmin_list' %}">Store Admin</a>
+        <a href="{% url 'manage_stores' %}">Add Store</a>
+        <a href="{% url 'admin_deliverylist' %}">Captain</a>
     </div>
 
+    <!-- Messages -->
     {% if messages %}
         {% for message in messages %}
             <div class="message {{ message.tags }}">{{ message }}</div>

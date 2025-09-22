@@ -44,6 +44,7 @@ urlpatterns = [
     path('all_subscriptions/', views.all_subscriptions, name='all_subscriptions'),
     path('admin_payment/',views.admin_payment, name='admin_payment'),
     path('admin_contact/',views.admin_contact, name='admin_contact'),
+    path('admin_deliverylist/',views.admin_deliverylist, name='admin_deliverylist'),
     path('download/users-report/', views.download_users_pdf, name='download_users_pdf'),
     path('cart_payments_pdf/', views.cart_payment_pdf, name='cart_payment_pdf'),
     path('subscription_report_pdf/',views.subscription_report_pdf, name='subscription_report_pdf'),
@@ -121,5 +122,9 @@ urlpatterns = [
     path("verify-otp/", views.VerifyOtpAPI.as_view(), name="verify-otp"),
     path("delivery/toggle-online/",views. toggle_online_status, name="toggle_online"),
     path("delivery/update-live-location/",views. update_live_location, name="update_live_location"),
+    path('block_deliverypartner/<int:partner_id>/', views.block_deliverypartner, name='block_deliverypartner'),
+
+    path('delete_deliverypartner/<int:partner_id>/', views.delete_deliverypartner, name='delete_deliverypartner'),
+
 
 ]

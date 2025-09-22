@@ -4,70 +4,120 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin - Contact Submissions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        h1 {
-            text-align: center;
-            margin-top: 30px;
-        }
-         body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f9fb;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #f4f6f9; color: #333; padding: 20px; }
 
+        /* ================== Navbar ================== */
         .navbar {
-            background-color: #2e86de;
-            padding: 15px;
+            width: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .navbar .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .navbar .nav-links {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            gap: 12px;
         }
-
         .navbar a {
             color: white;
             text-decoration: none;
-            margin: 10px 15px;
-            font-weight: bold;
+            padding: 8px 14px;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        .navbar a:hover { background: rgba(255,255,255,0.2); }
+        .navbar a.active { background: rgba(255,255,255,0.3); font-weight: bold; }
+
+        .hamburger { display: none; flex-direction: column; cursor: pointer; }
+        .hamburger span { height: 3px; width: 25px; background: white; margin: 4px 0; border-radius: 2px; }
+        @media screen and (max-width: 900px) {
+            .navbar .nav-links { display: none; flex-direction: column; width: 100%; }
+            .navbar.responsive .nav-links { display: flex; }
+            .navbar a.mobile-active { display: block; width: 100%; margin: 5px 0; }
+            .hamburger { display: flex; }
         }
 
-        .navbar a:hover {
-            text-decoration: underline;
+        /* ================== Page Heading ================== */
+        h1 {
+            color: #e74c3c;
+            text-align: center;
+            margin: 30px 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(to right, #27ae60, #2ecc71);
+            color: #fff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .btn:hover { background: linear-gradient(to right, #2ecc71, #27ae60); transform: translateY(-2px); }
+
+        /* ================== Table ================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            margin-top: 20px;
+        }
+        thead { background-color: #e74c3c; color: white; }
+        th, td { padding: 14px 16px; text-align: left; font-size: 14px; }
+        tbody tr { border-bottom: 1px solid #eee; transition: background 0.2s ease; }
+        tbody tr:hover { background-color: #f9f9f9; }
+        tbody tr td[colspan] { text-align: center; padding: 20px; color: #888; }
+
+        @media (max-width: 768px) {
+            th, td { font-size: 12px; padding: 10px; }
+            .btn { width: 100%; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-    
-    <div class="navbar">
-        <a href="{% url 'adminhome' %}">Home</a>
-       
-        <a href="{% url 'admin_cartpayments' %}">Cart Payments</a>
-       
-        <a href="{% url 'admin_contact' %}">Contacts</a>
-        <a href="{% url 'add_food' %}">Foods</a>
-        <a href="{% url 'admin_payment' %}">Payments</a>
-        
-        <a href="{% url 'all_subscriptions' %}">Subscriptions</a>
+<!-- ================== Navbar ================== -->
+ <nav class="navbar" id="navbar">
+    <a href="{% url 'adminhome' %}" class="logo">Admin Panel</a>
+    <div class="nav-links">
+        <a href="{% url 'adminhome' %}" class="{% if request.path == '/adminhome/' %}active{% endif %}">Home</a>
+        <a href="{% url 'admin_cartpayments' %}" class="{% if request.path == '/admin_cartpayments/' %}active{% endif %}">Cart Payments</a>
+        <a href="{% url 'admin_contact' %}" class="{% if request.path == '/admin_contact/' %}active{% endif %}">Contacts</a>
+        <a href="{% url 'add_food' %}" class="{% if request.path == '/add_food/' %}active{% endif %}">Foods</a>
+        <a href="{% url 'admin_payment' %}" class="{% if request.path == '/admin_payment/' %}active{% endif %}">Payments</a>
+        <a href="{% url 'all_subscriptions' %}" class="{% if request.path == '/all_subscriptions/' %}active{% endif %}">Subscriptions</a>
+        <a href="{% url 'storeadmin_list' %}" class="{% if request.path == '/storeadmin_list/' %}active{% endif %}">Store Admin</a>
+        <a href="{% url 'manage_stores' %}" class="{% if request.path == '/manage_stores/' %}active{% endif %}">Add Store</a>
+        <a href="{% url 'admin_deliverylist' %}" class="{% if request.path == '/api/admin_deliverylist/' %}active{% endif %}">Captain</a>
     </div>
+    <div class="hamburger" onclick="toggleNavbar()"><span></span><span></span><span></span></div>
+</nav>
 
-    <h1>All Contact Submissions</h1>
-    <a href="{% url 'contact_report_pdf' %}" class="btn btn-primary" target="_blank">📄 Download Contact Submissions PDF</a>
+<h1>All Contact Submissions</h1>
+<a href="{% url 'contact_report_pdf' %}" class="btn" target="_blank">📄 Download Contact Submissions PDF</a>
 
-    <table>
+<table>
+    <thead>
         <tr>
             <th>User</th>
             <th>Name</th>
@@ -76,6 +126,8 @@
             <th>Message</th>
             <th>Date</th>
         </tr>
+    </thead>
+    <tbody>
         {% for contact in contacts %}
         <tr>
             <td>{{ contact.user.username }}</td>
@@ -90,6 +142,17 @@
             <td colspan="6">No contact submissions found.</td>
         </tr>
         {% endfor %}
-    </table>
+    </tbody>
+</table>
+
+<script>
+function toggleNavbar() {
+    const navbar = document.getElementById('navbar');
+    navbar.classList.toggle('responsive');
+    const links = navbar.querySelectorAll('.nav-links a');
+    links.forEach(link => link.classList.toggle('mobile-active'));
+}
+</script>
+
 </body>
 </html>
