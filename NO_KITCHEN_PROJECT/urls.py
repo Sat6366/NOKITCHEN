@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path('nokitchen/', include('NO_KITCHEN_APP.urls')),  # frontend & admin pages
+    path('nokitchen/', include('NO_KITCHEN_APP.urls')),  # frontend & admin pages
     path('api/', include('NO_KITCHEN_APP.urls')),  # ✅ mount APIs under /api/
 ]
 
