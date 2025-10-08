@@ -2726,12 +2726,14 @@ def delivery_register(request):
     
     return render(request, 'pages/delivery_register.html')
 
-
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
+from django.http import JsonResponse
 from .models import DeliveryPartner, StoreLocation
 import requests
+
+# ---------------- Delivery Partner Step 1 ----------------
 def delivery_agentstep1(request):
     # ---------------- POST: Save Registration ----------------
     if request.method == 'POST':
@@ -2740,7 +2742,7 @@ def delivery_agentstep1(request):
             return redirect('delivery_register')
 
         pan_card_image = request.FILES.get('pan_card_image')
-        aadhar_file = request.FILES.get('aadhar_file')  # Ensure HTML input matches this name
+        aadhar_file = request.FILES.get('aadhar_file')
         selfie = request.FILES.get('selfie_image')
         user_location = request.POST.get('location')  # e.g., "17.4,78.4"
         selected_store_id = request.POST.get('selected_store')
@@ -2767,7 +2769,7 @@ def delivery_agentstep1(request):
 
     # ---------------- GET: Detect City/Locality ----------------
     location_str = request.GET.get('location')  # from JS
-    session_city = request.session.get('delivery_data', {}).get('city')  # fallback
+    session_city = request.session.get('delivery_data', {}).get('city')
 
     detected_locality = None
     detected_city = None
@@ -2799,16 +2801,27 @@ def delivery_agentstep1(request):
     stores = StoreLocation.objects.filter(is_active=True, status=True)
     active_stores = stores  # fallback reference
 
-    # Filter based on locality → city → session city
+    # Normalize city names for filtering
+    city_aliases = {
+        'hyderabad': ['hyderabad', 'hyd'],
+        'bengaluru': ['bengaluru', 'bangalore', 'blr'],
+        'chennai': ['chennai', 'madras']
+    }
+
+    def normalize_city(city_name):
+        city_lower = (city_name or '').lower()
+        for key, aliases in city_aliases.items():
+            if city_lower in aliases:
+                return key
+        return city_name
+
+    # Filter stores: locality -> city -> session city
     if detected_locality:
-        stores = stores.filter(city__iexact=detected_locality)
-
+        stores = stores.filter(city__iexact=normalize_city(detected_locality))
     if not stores.exists() and detected_city:
-        stores = stores.filter(city__iexact=detected_city)
-
+        stores = stores.filter(city__iexact=normalize_city(detected_city))
     if not stores.exists() and session_city:
-        stores = stores.filter(city__iexact=session_city)
-
+        stores = stores.filter(city__iexact=normalize_city(session_city))
     if not stores.exists():
         stores = active_stores
 
@@ -2840,6 +2853,17 @@ def get_city_from_coords(request):
 
         if 'data' in data and data['data']:
             city = data['data'][0].get('locality') or data['data'][0].get('region') or "Unknown"
+            # Normalize city
+            city_aliases = {
+                'hyderabad': ['hyderabad', 'hyd'],
+                'bengaluru': ['bengaluru', 'bangalore', 'blr'],
+                'chennai': ['chennai', 'madras']
+            }
+            city_lower = city.lower()
+            for key, aliases in city_aliases.items():
+                if city_lower in aliases:
+                    city = key
+                    break
             return JsonResponse({'city': city})
         return JsonResponse({'city': 'Unknown'})
 
@@ -2853,8 +2877,21 @@ def get_stores_by_city(request):
     if not city:
         return JsonResponse({'stores': []})
 
-    stores = StoreLocation.objects.filter(city__iexact=city, is_active=True, status=True)
+    # Normalize city
+    city_aliases = {
+        'hyderabad': ['hyderabad', 'hyd'],
+        'bengaluru': ['bengaluru', 'bangalore', 'blr'],
+        'chennai': ['chennai', 'madras']
+    }
+    city_lower = city.lower()
+    normalized_city = None
+    for key, aliases in city_aliases.items():
+        if city_lower in aliases:
+            normalized_city = key
+            break
+    normalized_city = normalized_city or city
 
+    stores = StoreLocation.objects.filter(city__iexact=normalized_city, is_active=True, status=True)
     store_list = [{'id': store.id, 'name': store.name} for store in stores]
 
     return JsonResponse({'stores': store_list})
@@ -3306,7 +3343,7 @@ class SendOtpAPI(APIView):
 
 class VerifyOtpAPI(APIView):
     """
-    Verify OTP, return JWT tokens and DeliveryPartner profile including ID
+    Verify OTP, log in the user using Django session, and return partner details including selected store
     """
     def post(self, request):
         serializer = VerifyOtpSerializer(data=request.data)
@@ -3318,38 +3355,72 @@ class VerifyOtpAPI(APIView):
 
         mobile = cache.get(session_id)
         if not mobile:
-            return Response({"success": False, "message": "Session expired"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, "message": "Session expired. Please resend OTP."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            # Verify OTP using 2factor.in API
             url = f"https://2factor.in/API/V1/{settings.TWO_FACTOR_API_KEY}/SMS/VERIFY/{session_id}/{otp}"
             resp = requests.get(url, timeout=10)
             data = resp.json()
 
-            if data.get("Status") == "Success":
-                # Get or create DeliveryPartner
-                partner = DeliveryPartner.objects.filter(mobile__in=[mobile, mobile.replace("+", "")]).first()
-                if not partner:
-                    partner = DeliveryPartner.objects.create(mobile=mobile)
+            if data.get("Status") != "Success":
+                return Response({"success": False, "message": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
-                # Create/get user for JWT
-                user, _ = User.objects.get_or_create(username=mobile.replace("+", ""))
-                refresh = RefreshToken.for_user(user)
+            # Get or create DeliveryPartner
+            partner = DeliveryPartner.objects.filter(mobile__in=[mobile, mobile.replace("+91", ""), mobile.replace("+", "")]).first()
+            if not partner:
+                partner = DeliveryPartner.objects.create(mobile=mobile)
 
-                # Serialize partner including ID
-                partner_serializer = DeliveryPartnerSerializer(partner, context={'request': request})
+            # Create or get Django User
+            user, created = User.objects.get_or_create(username=mobile.replace("+", "").replace("+91", ""))
 
-                return Response({
-                    "success": True,
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                    "partner": partner_serializer.data
-                })
+            # Log in session (optional if you use JWT for mobile)
+            login(request, user)
 
-            return Response({"success": False, "message": "OTP Mismatch"}, status=status.HTTP_400_BAD_REQUEST)
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
 
-        except Exception as exc:
-            return Response({"success": False, "message": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Serialize partner including all details and selected store
+            partner_serializer = DeliveryPartnerSerializer(partner, context={'request': request})
 
+            # Return response
+            return Response({
+                "success": True,
+                "message": "OTP Verified Successfully",
+                "access": access_token,
+                "refresh": str(refresh),
+                "partner": partner_serializer.data
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"success": False, "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+#profile view 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import DeliveryPartner
+from .serializers import DeliveryPartnerSerializer
+from django.shortcuts import get_object_or_404
+import traceback
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_logged_in_partner(request):
+    try:
+        # If you linked DeliveryPartner to User model, use:
+        # partner = get_object_or_404(DeliveryPartner, user=request.user)
+
+        # Otherwise, match mobile to username
+        partner = get_object_or_404(DeliveryPartner, mobile=request.user.username)
+        serializer = DeliveryPartnerSerializer(partner, context={'request': request})
+        return Response({"success": True, "partner": serializer.data})
+    except Exception as e:
+        print(traceback.format_exc())  # ✅ prints full error
+        return Response({"success": False, "message": str(e)}, status=500)
 
 
 # views.py

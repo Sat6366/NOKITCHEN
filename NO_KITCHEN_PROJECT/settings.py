@@ -25,7 +25,10 @@ SECRET_KEY = 'django-insecure-+9n9y_&5y8)ih+3cfr_)gzb!7_%$*9w&#sbsc#k*i&h!&u@_z0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.0.6', '192.168.0.10', 'localhost', '127.0.0.1']
+#ALLOWED_HOSTS = ['192.168.0.6', '192.168.0.10', 'localhost', '127.0.0.1']
+
+ALLOWED_HOSTS = ['*']
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -168,7 +171,11 @@ POSITIONSTACK_API_KEY = '885977b652c64cf5ad940b7492fa64a7'
 
 
 IPSTACK_API_KEY = '1a15f39095bf53df01c3d75f50ddb3d7'
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8081",   # replace with your React Native dev server IP/port
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 from datetime import timedelta
 

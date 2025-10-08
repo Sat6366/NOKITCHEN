@@ -1,6 +1,6 @@
 // components/screens/Main.tsx
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native"; // ⬅️ swapped ScrollView -> FlatList
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import GradientBackground from "../home/GradientBackground";
 import CustomHeaderOptions from "../common/CustomHeaderOptions";
 import DeliveryBenefitsBanner from "../common/DeliveryBenefitsBanner";
@@ -9,24 +9,25 @@ import NavButtons from "../common/NavButtons";
 import WeatherBanner from "../common/WeatherBanner";
 
 export default function Main() {
-  // dummy list items just to render your <View style={styles.box} />
   const dummyData = [1, 2];
 
   return (
     <GradientBackground style={styles.gradient}>
-      {/* Fixed Header with Back Arrow */}
+      {/* Fixed Header */}
       <CustomHeaderOptions title="Home" showBack />
 
-      {/* Scrollable middle content only */}
+      {/* Scrollable content */}
       <FlatList
         data={dummyData}
         keyExtractor={(item, index) => index.toString()}
         renderItem={() => <View style={styles.box} />}
         ListHeaderComponent={
           <View style={styles.page}>
+            {/* ✅ Safe: never mutate props inside ProfileWithToggle */}
             <ProfileWithToggle />
             <WeatherBanner />
             <Text style={styles.text}></Text>
+            {/* ✅ Safe: never mutate props inside DeliveryBenefitsBanner */}
             <DeliveryBenefitsBanner />
           </View>
         }
@@ -44,11 +45,8 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  scrollContainer: {
-    flex: 1,
-  },
   scrollContent: {
-    paddingBottom: 100, // space for bottom nav
+    paddingBottom: 100,
     alignItems: "center",
   },
   page: {

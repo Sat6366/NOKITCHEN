@@ -30,22 +30,42 @@ class PreparationStatusSerializer(serializers.ModelSerializer):
 
 
 # react end point serizilers
+from rest_framework import serializers
+from .models import DeliveryPartner, StoreLocation  # import your Store model
 
 from rest_framework import serializers
-from .models import StoreLocation, DeliveryPartner
+from .models import DeliveryPartner, StoreLocation
 
 class StoreLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreLocation
-        # use your real fields from the model:
-        fields = ["id", "name", "latitude", "longitude", "city", "status", "is_active"]
+        fields = ['id', 'name', 'city', 'address', 'status']
 
 class DeliveryPartnerSerializer(serializers.ModelSerializer):
+    selfie = serializers.SerializerMethodField()
+    selected_store = StoreLocationSerializer(read_only=True)
+
     class Meta:
         model = DeliveryPartner
-        fields = "__all__"
-        read_only_fields = ["agent_code", "created_at", "updated_at", "registered_on"]
+        # ✅ Removed gender & dob because they don't exist in model
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'mobile',
+            'selfie',
+            'agent_code',
+            'email',
+            'is_online',
+            'registered_on',
+            'selected_store',
+        ]
 
+    def get_selfie(self, obj):
+        request = self.context.get('request')
+        if obj.selfie:
+            return request.build_absolute_uri(obj.selfie.url)
+        return None
 
 
 from rest_framework import serializers

@@ -6,7 +6,7 @@ from . import views
 from .views import create_razorpay_order
 from rest_framework.routers import DefaultRouter
 from .views import StoreLocationViewSet, DeliveryPartnerViewSet
-
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 router = DefaultRouter()
 router.register(r"store-locations", StoreLocationViewSet, basename="store-locations")
@@ -125,6 +125,7 @@ urlpatterns = [
     path('block_deliverypartner/<int:partner_id>/', views.block_deliverypartner, name='block_deliverypartner'),
 
     path('delete_deliverypartner/<int:partner_id>/', views.delete_deliverypartner, name='delete_deliverypartner'),
-
+    path('delivery-partner/profile/', views.get_logged_in_partner, name='partner-profile'),
+    
 
 ]

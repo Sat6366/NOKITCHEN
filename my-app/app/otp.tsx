@@ -17,7 +17,7 @@ import AppHeader from "@/components/common/AppHeader";
 import CustomHeaderOptions from "@/components/common/CustomHeaderOptions";
 import { useAuth } from "@/components/context/AuthContext";
 
-const BASE_URL = "http://192.168.0.6:8000/api"; // replace with your server IP
+const BASE_URL = "http://192.168.0.5:8000/api"; // replace with your server IP
 
 // ================= OTP INPUT COMPONENT =================
 const OTPInput = ({

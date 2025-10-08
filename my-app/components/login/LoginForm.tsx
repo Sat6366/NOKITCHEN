@@ -13,7 +13,7 @@ import {
 import { useRouter } from "expo-router";
 
 const { width, height } = Dimensions.get("window");
-const BASE_URL = "http://192.168.0.6:8000/api"; // replace with your PC LAN IP
+const BASE_URL = "http://192.168.0.5:8000/api"; // replace with your PC LAN IP
 
 export default function LoginForm() {
   const router = useRouter();

@@ -238,30 +238,17 @@
   <div class="container-fluid">
     <h2 class="section-title">My Profile</h2>
 
-    <div class="row g-4">
+       <div class="row g-4">
 
       <!-- Personal Details -->
-      <div class="col-md-7">
+      <div class="col-md-12">
         <div class="profile-card shadow">
           <div class="card-header">👤 Personal Details</div>
           <ul class="detail-list">
-            <li><strong>Full Name:</strong> John Doe <i class="bi bi-pencil-square edit-icon"></i></li>
-            <li><strong>Email:</strong> john.doe@example.com <i class="bi bi-pencil-square edit-icon"></i></li>
-            <li><strong>Phone:</strong> +1 234 567 890 <i class="bi bi-pencil-square edit-icon"></i></li>
-            <li><strong>Address:</strong> 1234 Elm Street, Springfield, USA <i class="bi bi-pencil-square edit-icon"></i></li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Bank Details -->
-      <div class="col-md-5">
-        <div class="profile-card shadow">
-          <div class="card-header">🏦 Bank Details</div>
-          <ul class="detail-list">
-            <li><strong>Bank:</strong> First National Bank <i class="bi bi-pencil-square edit-icon"></i></li>
-            <li><strong>Account Holder:</strong> John Doe <i class="bi bi-pencil-square edit-icon"></i></li>
-            <li><strong>Account No.:</strong> 1234567890 <i class="bi bi-pencil-square edit-icon"></i></li>
-            <li><strong>IFSC Code:</strong> FNBS0001234 <i class="bi bi-pencil-square edit-icon"></i></li>
+            <li><strong>Full Name:</strong> {{ partner.full_name }} <i class="bi bi-pencil-square edit-icon"></i></li>
+            <li><strong>Email:</strong> {{ partner.email }} <i class="bi bi-pencil-square edit-icon"></i></li>
+            <li><strong>Phone:</strong> {{ partner.phone }} <i class="bi bi-pencil-square edit-icon"></i></li>
+            <li><strong>Address:</strong> {{ partner.address }} <i class="bi bi-pencil-square edit-icon"></i></li>
           </ul>
         </div>
       </div>

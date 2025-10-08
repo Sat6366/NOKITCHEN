@@ -1,5 +1,4 @@
-// components/ProfileWithToggle.tsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,9 +13,9 @@ import {
 import * as Location from "expo-location";
 import { useAuth } from "../context/AuthContext";
 
-const BACKEND = "http://192.168.0.6:8000"; // <- change if your PC IP is different
+const BACKEND = "http://192.168.0.5:8000";
 const TOAST_DURATION = 3000;
-const LIVE_UPDATE_INTERVAL_MS = 15000; // 15s
+const LIVE_UPDATE_INTERVAL_MS = 15000;
 
 type ToastType = "success" | "warning" | "error" | "offline";
 
@@ -25,16 +24,19 @@ export default function ProfileWithToggle() {
   const [isOnline, setIsOnline] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [modalMessage, setModalMessage] = useState<string | null>(null);
-  const toastTimerRef = useRef<number | null>(null);
-  const intervalRef = useRef<number | null>(null);
+  const [showOfflineConfirm, setShowOfflineConfirm] = useState(false); // 👈 new confirm modal state
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const animatedValue = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
-    Animated.timing(animatedValue, {
+    const timing = Animated.timing(animatedValue, {
       toValue: isOnline ? 1 : 0,
       duration: 250,
       useNativeDriver: false,
-    }).start();
+    });
+    timing.start();
 
     if (isOnline) startLiveUpdates();
     else stopLiveUpdates();
@@ -46,32 +48,28 @@ export default function ProfileWithToggle() {
     inputRange: [0, 1],
     outputRange: [2, 70 - 18],
   });
+
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["#FFA500", "#4CAF50"],
+    outputRange: ["#FFA500", "#4CAF50"], // 👈 yellow when offline, green when online
   });
-  const glowColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["#FFA50066", "#4CAF5066"],
-  });
+
+  const glowColor = isOnline ? "#4CAF5066" : "#FFA50066";
   const toggleText = isOnline ? "Online" : "Offline";
 
-  const profileImage = user?.profile_image
-    ? user.profile_image.startsWith("http")
+  const profileImage =
+    user?.profile_image &&
+    (user.profile_image.startsWith("http")
       ? user.profile_image
-      : `${BACKEND}${user.profile_image}`
-    : null;
+      : `${BACKEND}${user.profile_image}`);
 
-  const showToast = (message: string, type: ToastType) => {
+  const showToast = useCallback((message: string, type: ToastType) => {
     setToast({ message, type });
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = (setTimeout(
-      () => setToast(null),
-      TOAST_DURATION
-    ) as unknown) as number;
-  };
+    toastTimerRef.current = setTimeout(() => setToast(null), TOAST_DURATION);
+  }, []);
 
-  async function sendToggleRequest(agent_code: string, lat: number, lon: number) {
+  const sendToggleRequest = useCallback(async (agent_code: string, lat: number, lon: number) => {
     try {
       const res = await fetch(`${BACKEND}/api/delivery/toggle-online/`, {
         method: "POST",
@@ -83,59 +81,64 @@ export default function ProfileWithToggle() {
       console.error("toggle request failed", err);
       return { success: false, allowed: false, message: "Network error" };
     }
-  }
+  }, []);
 
-  async function toggleDuty() {
+  // ✅ Main toggle logic
+  const toggleDuty = useCallback(async () => {
     if (!user?.agent_code) {
       setModalMessage("User agent code missing");
       return;
     }
 
-    if (!isOnline) {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setModalMessage("Please allow location access to go Online.");
-        return;
-      }
-
-      try {
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        });
-        const lat = location.coords.latitude;
-        const lon = location.coords.longitude;
-
-        const data = await sendToggleRequest(user.agent_code, lat, lon);
-
-        // Show backend message in modal
-        setModalMessage(data.message || (data.allowed ? "You are now Online!" : "Cannot go Online."));
-
-        if (data && data.allowed) {
-          setIsOnline(true);
-        } else {
-          setIsOnline(false);
-        }
-      } catch (err) {
-        console.error("location error", err);
-        setModalMessage("Unable to get location. Try again.");
-      }
-    } else {
-      // Go offline
-      try {
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Lowest,
-        });
-        await sendToggleRequest(user.agent_code, location.coords.latitude, location.coords.longitude);
-      } catch (err) {
-        // ignore
-      }
-      setIsOnline(false);
-      setModalMessage("You are now Offline.");
+    // If currently online, ask for confirmation before going offline
+    if (isOnline) {
+      setShowOfflineConfirm(true);
+      return;
     }
-  }
 
-  // Live updates
-  async function startLiveUpdates() {
+    // Going Online
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setModalMessage("Please allow location access to go Online.");
+      return;
+    }
+
+    try {
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      const { latitude, longitude } = location.coords;
+      const data = await sendToggleRequest(user.agent_code, latitude, longitude);
+      setModalMessage(data.message || (data.allowed ? "You are now Online!" : "Cannot go Online."));
+      setIsOnline(!!data.allowed);
+    } catch (err) {
+      console.error("location error", err);
+      setModalMessage("Unable to get location. Try again.");
+    }
+  }, [isOnline, user]);
+
+  // ✅ Confirm Offline
+  const confirmGoOffline = useCallback(async () => {
+    try {
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Lowest,
+      });
+      await sendToggleRequest(user.agent_code, loc.coords.latitude, loc.coords.longitude);
+    } catch {
+      // ignore
+    }
+    setIsOnline(false);
+    setShowOfflineConfirm(false);
+    setModalMessage("You are now Offline.");
+  }, [user]);
+
+  // ✅ Cancel Offline
+  const cancelGoOffline = () => {
+    setShowOfflineConfirm(false);
+  };
+
+  // ✅ Live location updater
+  const startLiveUpdates = useCallback(async () => {
     try {
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       await fetch(`${BACKEND}/api/delivery/update-live-location/`, {
@@ -152,7 +155,7 @@ export default function ProfileWithToggle() {
     }
 
     stopLiveUpdates();
-    intervalRef.current = (setInterval(async () => {
+    intervalRef.current = setInterval(async () => {
       try {
         const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
         await fetch(`${BACKEND}/api/delivery/update-live-location/`, {
@@ -167,15 +170,15 @@ export default function ProfileWithToggle() {
       } catch (err) {
         console.warn("live update failed", err);
       }
-    }, LIVE_UPDATE_INTERVAL_MS) as unknown) as number;
-  }
+    }, LIVE_UPDATE_INTERVAL_MS);
+  }, [user]);
 
-  function stopLiveUpdates() {
+  const stopLiveUpdates = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-  }
+  }, []);
 
   const getToastStyle = () => {
     if (!toast) return {};
@@ -197,7 +200,7 @@ export default function ProfileWithToggle() {
     <View style={styles.container}>
       <View style={styles.profileWrapper}>
         {profileImage && (
-          <View style={[styles.glowWrapper, { shadowColor: glowColor as any }]}>
+          <View style={[styles.glowWrapper, { shadowColor: glowColor }]}>
             <Image source={{ uri: profileImage }} style={styles.profile} />
           </View>
         )}
@@ -205,20 +208,20 @@ export default function ProfileWithToggle() {
       </View>
 
       <TouchableWithoutFeedback onPress={toggleDuty}>
-        <Animated.View style={[styles.switchBackground, { backgroundColor: backgroundColor as any }]}>
+        <Animated.View style={[styles.switchBackground, { backgroundColor }]}>
           <Text style={styles.text}>{toggleText}</Text>
           <Animated.View style={[styles.slider, { transform: [{ translateX }] }]} />
         </Animated.View>
       </TouchableWithoutFeedback>
 
-      {/* Existing toast */}
+      {/* Toast message */}
       {toast && (
         <View style={[styles.toast, getToastStyle()]}>
           <Text style={styles.toastText}>{toast.message}</Text>
         </View>
       )}
 
-      {/* Modal to show backend message */}
+      {/* Info modal */}
       <Modal
         visible={!!modalMessage}
         transparent
@@ -234,10 +237,33 @@ export default function ProfileWithToggle() {
           </View>
         </View>
       </Modal>
+
+      {/* ✅ Confirmation before going offline */}
+      <Modal
+        visible={showOfflineConfirm}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelGoOffline}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>Do you want to go Offline?</Text>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Pressable style={[styles.modalButton, { backgroundColor: "#E53935" }]} onPress={confirmGoOffline}>
+                <Text style={styles.modalButtonText}>Yes</Text>
+              </Pressable>
+              <Pressable style={[styles.modalButton, { backgroundColor: "#999" }]} onPress={cancelGoOffline}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
+// ✅ Styles (unchanged)
 const styles = StyleSheet.create({
   container: {
     width: "100%",
@@ -274,9 +300,32 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     position: "relative",
   },
-  slider: { position: "absolute", width: 14, height: 14, borderRadius: 7, backgroundColor: "#fff", top: 9, elevation: 4 },
-  text: { position: "absolute", width: "100%", textAlign: "center", color: "#fff", fontWeight: "600", fontSize: 11 },
-  toast: { position: "absolute", left: 20, right: 20, bottom: Platform.OS === "ios" ? 80 : 72, padding: 10, borderRadius: 8, alignItems: "center" },
+  slider: {
+    position: "absolute",
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "#fff",
+    top: 9,
+    elevation: 4,
+  },
+  text: {
+    position: "absolute",
+    width: "100%",
+    textAlign: "center",
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 11,
+  },
+  toast: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    bottom: Platform.OS === "ios" ? 80 : 72,
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
   toastText: { color: "#fff", fontSize: 13, textAlign: "center" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" },
   modalContainer: { width: "80%", backgroundColor: "#fff", padding: 20, borderRadius: 12, alignItems: "center" },
