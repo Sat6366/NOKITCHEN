@@ -526,51 +526,6 @@
 {# inside your existing preorder.html - add these parts or replace the relevant sections #}
 
 <!-- near top of the Delivery Form area, add a button -->
-<div class="form-area mt-4">
-  <h5>📦 Delivery Details</h5>
-
-  <!-- Use Current Location Button -->
-  <div style="margin-bottom: 12px;">
-    <button id="use-location-btn" type="button" class="btn-subscription" style="background:#1976d2;">
-      📍 Use Current Location
-    </button>
-    <span id="location-status" style="margin-left:12px; font-weight:600;"></span>
-  </div>
-
-  <!-- Display found address and distance -->
-  <div id="location-info" style="margin-bottom:12px; display:none;">
-    <div id="display-address" style="font-size:0.95rem; color:#333;"></div>
-    <div id="display-distance" style="font-size:0.95rem; color:#666; margin-top:6px;"></div>
-  </div>
-
-  <form method="POST" action="">
-    {% csrf_token %}
-    <!-- Hidden fields (make sure these exist) -->
-    <input type="hidden" name="user_lat" id="user_lat">
-    <input type="hidden" name="user_lon" id="user_lon">
-
-    <!-- Start/End Date -->
-    <div class="form-group form-inline">
-      <div>
-        <label>Start Date</label>
-        <input type="date" name="start_date" class="form-control" required min="{{ current_date|date:'Y-m-d' }}">
-      </div>
-      <div>
-        <label>End Date</label>
-        <input type="date" name="end_date" class="form-control" required min="{{ current_date|date:'Y-m-d' }}">
-      </div>
-    </div>
-
-    <!-- ... rest of your form fields ... -->
-
-    <!-- Buttons -->
-    <div class="submit-buttons">
-      <button type="button" class="btn-back" onclick="history.back()">Back</button>
-      <button type="submit" class="btn-proceed" id="place-order-btn">Proceed</button>
-    </div>
-  </form>
-  ...
-</div>
 
 <script>
 /* ========== Utilities ========== */

@@ -464,10 +464,6 @@ def add_to_cart(request, item_id):
     return redirect('cart')  # make sure 'cart' is the name of your cart view
 
 
-
-
-
-
 @login_required
 def cart(request):
     cart_id = _cart_id(request)
