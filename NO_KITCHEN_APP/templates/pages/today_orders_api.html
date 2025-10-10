@@ -198,16 +198,12 @@
 </style>
 
 
-
- 
-
-  <!-- 🔹 Orders Table -->
-  
-<div class="container">
-  <h2 class="text-center">Today's Orders</h2>
+<!-- 🔹 Orders Table -->
+<div class="container my-4">
+  <h2 class="text-center mb-4">Today's Orders</h2>
 
   <!-- 🔹 Summary Cards -->
-  <div class="summary-section mb-4">
+  <div class="summary-section mb-4 d-flex justify-content-between flex-wrap">
     <div class="summary-card total-orders-card p-3 text-center">
       <h5>Total Orders</h5>
       <h3 id="total-orders">0</h3>
@@ -230,90 +226,235 @@
   <div id="orders-container"></div>
 </div>
 
+<!-- 🔹 Classic CSS Styling -->
+<style>
+  .summary-card {
+    flex: 1 1 22%;
+    margin: 0.5rem;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f0f0f0, #d9d9d9);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .summary-card h5 { font-weight: 600; color: #333; }
+  .summary-card h3 { font-size: 1.8rem; color: #007bff; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+  th, td { padding: 8px 10px; text-align: center; border: 1px solid #ddd; }
+  th { background-color: #f8f9fa; color: #333; font-weight: 600; }
+
+  .status-select {
+    width: 100%;
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    transition: all 0.2s ease;
+  }
+
+  .status-queued { background-color: #fef3c7; }
+  .status-preparing { background-color: #fff3cd; }
+  .status-ready { background-color: #d1e7dd; }
+  .status-dispatched { background-color: #cfe2ff; }
+
+  .assign-partner-popup {
+    position: relative;
+    margin-top: 5px;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .assign-partner-popup select { width: 200px; margin-right: 5px; }
+
+  /* 🔹 Popup message */
+  .popup-msg {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 250px;
+    background: #198754; /* green success */
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    font-weight: 500;
+    z-index: 9999;
+    animation: fadeInOut 3s forwards;
+  }
+
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-20px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   loadOrders();
 
+  function getCSRFToken(){
+    const name='csrftoken';
+    const cookies=document.cookie.split(';');
+    for(let i=0;i<cookies.length;i++){
+      const c=cookies[i].trim();
+      if(c.startsWith(name+'=')) return decodeURIComponent(c.substring(name.length+1));
+    }
+    return '';
+  }
+
+  function showPopup(message,type='success'){
+    const popup=document.createElement('div');
+    popup.className='popup-msg';
+    if(type==='success') popup.style.backgroundColor='#198754';
+    else if(type==='error') popup.style.backgroundColor='#dc3545';
+    else popup.style.backgroundColor='#0d6efd';
+    popup.textContent=message;
+    document.body.appendChild(popup);
+    setTimeout(()=>popup.remove(),3000);
+  }
+
+  function applyStatusClass(selectEl,status){
+    selectEl.className='status-select';
+    selectEl.classList.add(`status-${status}`);
+  }
+
+  function formatTime(timeString) {
+    if (!timeString || timeString === "N/A") return "N/A";
+    const [hour, minute] = timeString.split(":");
+    const h = parseInt(hour, 10);
+    const m = parseInt(minute, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const formattedHour = h % 12 === 0 ? 12 : h % 12;
+    return `${formattedHour}:${m.toString().padStart(2,'0')} ${ampm}`;
+  }
+
+  window.updateStatus = function(selectEl, source, orderId, mealType) {
+    const newStatus = selectEl.value;
+    fetch('/nokitchen/api/update-status/', {
+      method: 'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':getCSRFToken()},
+      body:JSON.stringify({order_id:orderId,source:source,meal_type:mealType,status:newStatus})
+    })
+    .then(res=>res.json())
+    .then(response=>{
+      if(response.success){
+        selectEl.value=newStatus;
+        applyStatusClass(selectEl,newStatus);
+        showPopup(`Status updated to "${newStatus}"`,'info');
+        setTimeout(()=>loadOrders(),200);
+      } else showPopup("Failed to update status",'error');
+    })
+    .catch(err=>{ console.error(err); showPopup("Error occurred while updating status",'error'); });
+  }
+
+  // 🔹 Assign delivery partner using order_code
+  window.showAssignPartners = function(orderCode, btn){
+    fetch('/nokitchen/api/delivery-partners/')
+    .then(res=>res.json())
+    .then(partners=>{
+      if(partners.length===0){ showPopup("No online delivery partners available",'error'); return;}
+      const partnerOptions=partners.map(p=>`<option value="${p.id}">${p.first_name} ${p.last_name}</option>`).join('');
+      const selectHtml=`<select class="form-select form-select-sm me-1">${partnerOptions}</select>
+                        <button class="btn btn-sm btn-success mt-1">Assign</button>`;
+      const container=document.createElement('div');
+      container.innerHTML=selectHtml;
+      container.className='assign-partner-popup p-2 bg-light border';
+      btn.parentNode.appendChild(container);
+
+      const assignBtn=container.querySelector('button');
+      const selectEl=container.querySelector('select');
+
+      assignBtn.addEventListener('click',()=>{
+        const partnerId=parseInt(selectEl.value); // ✅ ensure numeric
+        fetch('/nokitchen/api/assign-order-to-partner/', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'X-CSRFToken': getCSRFToken()},
+          body: JSON.stringify({ order_id: orderCode, partner_id: partnerId })
+        })
+        .then(res=>res.json())
+        .then(resp=>{
+          if(resp.success){
+            showPopup(resp.message,'success');
+            loadOrders();
+            container.remove();
+          } else showPopup(resp.error || "Failed to assign order",'error');
+        })
+        .catch(()=>showPopup("Error occurred while assigning",'error'));
+      });
+
+      // click outside to remove popup
+      document.addEventListener('click', function handleOutsideClick(e){
+        if(!container.contains(e.target) && e.target!==btn){
+          container.remove();
+          document.removeEventListener('click', handleOutsideClick);
+        }
+      });
+    });
+  }
+
   function loadOrders() {
     fetch('/nokitchen/api/today-meals/')
-      .then(response => {
-        if (!response.ok) throw new Error('Network error');
-        return response.json();
-      })
+      .then(response => { if (!response.ok) throw new Error('Network error'); return response.json(); })
       .then(data => {
         const container = document.getElementById('orders-container');
-        container.innerHTML = ''; // Clear previous
-
-        const mealTitles = {
-          breakfast: '🍳 Breakfast',
-          lunch: '🥗 Lunch',
-          dinner: '🍽️ Dinner'
-        };
-
-        function formatTime(timeString) {
-          if (!timeString || timeString === "N/A") return "N/A";
-          const [hour, minute] = timeString.split(":");
-          const h = parseInt(hour, 10);
-          const m = parseInt(minute, 10);
-          const ampm = h >= 12 ? 'PM' : 'AM';
-          const formattedHour = h % 12 === 0 ? 12 : h % 12;
-          return `${formattedHour}:${m.toString().padStart(2, '0')} ${ampm}`;
-        }
+        container.innerHTML = '';
+        const mealTitles = { breakfast: '🍳 Breakfast', lunch: '🥗 Lunch', dinner: '🍽️ Dinner' };
 
         for (const mealType in data) {
           const orders = data[mealType];
           const section = document.createElement('div');
           section.className = 'order-section';
-          const header = `<div class="card-header">${mealTitles[mealType] || mealType}</div>`;
+          const header = `<div class="card-header mb-2">${mealTitles[mealType] || mealType}</div>`;
           let body = '';
 
           if (orders.length > 0) {
-            body += `
-              <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Order ID</th>
-                    <th>Day</th>
-                    <th>Source</th>
-                    <th>Meal Description</th>
-                    <th>Items Count</th>
-                    <th>Delivery Time</th>
-                    <th>Address</th>
-                    <th>Price (₹)</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-            `;
+            body += `<table class="table table-bordered"><thead>
+                      <tr>
+                        <th>User</th>
+                        <th>Order ID</th>
+                        <th>Day</th>
+                        <th>Source</th>
+                        <th>Meal Description</th>
+                        <th>Items Count</th>
+                        <th>Delivery Time</th>
+                        <th>Address</th>
+                        <th>Price (₹)</th>
+                        <th>Status</th>
+                        <th>Assign</th>
+                      </tr>
+                    </thead><tbody>`;
 
             orders.forEach(order => {
               const defaultStatus = order.status || "queued";
-
-              body += `
-                <tr>
-                  <td>${order.user || '-'}</td>
-                  <td>${order.order_id || '-'}</td>
-                  <td>${order.day || '-'}</td>
-                  <td><span class="badge bg-secondary">${order.source || '-'}</span></td>
-                  <td>${order.meal_description || '-'}</td>
-                  <td>${order.items_count ?? '-'}</td>
-                  <td>${formatTime(order.delivery_time)}</td>
-                  <td>${order.address || '-'}</td>
-                  <td>₹${Number(order.price || 0).toFixed(2)}</td>
-                  <td>
-                    <select class="status-select status-${defaultStatus}" onchange="updateStatus(this, '${order.source}', '${order.order_id}', '${mealType}')">
-                      <option value="queued" ${defaultStatus === 'queued' ? 'selected' : ''}>Queued</option>
-                      <option value="preparing" ${defaultStatus === 'preparing' ? 'selected' : ''}>Being Prepared</option>
-                      <option value="ready" ${defaultStatus === 'ready' ? 'selected' : ''}>Ready for Dispatch</option>
-                      <option value="dispatched" ${defaultStatus === 'dispatched' ? 'selected' : ''}>Dispatched</option>
-                    </select>
-                  </td>
-                </tr>
-              `;
+              body += `<tr>
+                        <td>${order.user || '-'}</td>
+                        <td>${order.order_code || order.id}</td>
+                        <td>${order.day || '-'}</td>
+                        <td><span class="badge bg-secondary">${order.source || '-'}</span></td>
+                        <td>${order.meal_description || '-'}</td>
+                        <td>${order.items_count ?? '-'}</td>
+                        <td>${formatTime(order.delivery_time)}</td>
+                        <td>${order.address || '-'}</td>
+                        <td>₹${Number(order.price || 0).toFixed(2)}</td>
+                        <td>
+                          <select class="status-select status-${defaultStatus}" onchange="updateStatus(this, '${order.source}', '${order.id}', '${mealType}')">
+                            <option value="queued" ${defaultStatus==='queued'?'selected':''}>Queued</option>
+                            <option value="preparing" ${defaultStatus==='preparing'?'selected':''}>Being Prepared</option>
+                            <option value="ready" ${defaultStatus==='ready'?'selected':''}>Ready for Dispatch</option>
+                            <option value="dispatched" ${defaultStatus==='dispatched'?'selected':''}>Dispatched</option>
+                          </select>
+                        </td>
+                        <td>
+                          <button class="btn btn-sm btn-primary" onclick="showAssignPartners('${order.order_code}', this)">Assign</button>
+                        </td>
+                      </tr>`;
             });
 
-            body += `</tbody></table>`;
+            body += '</tbody></table>';
           } else {
             body += `<p class="text-muted">No ${mealType} orders found for today.</p>`;
           }
@@ -322,16 +463,16 @@ document.addEventListener('DOMContentLoaded', function () {
           container.appendChild(section);
         }
 
-        // ✅ Dynamically calculate and update summary counts
-        let total = 0, preparing = 0, ready = 0, dispatched = 0;
+        // Update summary
+        let total=0, preparing=0, ready=0, dispatched=0;
         for (const mealType in data) {
           const orders = data[mealType];
           total += orders.length;
           orders.forEach(order => {
             const status = order.status || 'queued';
-            if (status === 'preparing') preparing++;
-            else if (status === 'ready') ready++;
-            else if (status === 'dispatched') dispatched++;
+            if(status==='preparing') preparing++;
+            else if(status==='ready') ready++;
+            else if(status==='dispatched') dispatched++;
           });
         }
         document.getElementById('total-orders').textContent = total;
@@ -340,62 +481,13 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('dispatched-orders').textContent = dispatched;
       })
       .catch(error => {
-        document.getElementById('orders-container').innerHTML = `
-          <div class="alert alert-danger">Failed to load orders. Please try again later.</div>
-        `;
+        document.getElementById('orders-container').innerHTML = `<div class="alert alert-danger">Failed to load orders. Please try again later.</div>`;
         console.error("Error:", error);
       });
   }
 
-  window.updateStatus = function(selectEl, source, orderId, mealType) {
-  const newStatus = selectEl.value;
-
-  fetch('/nokitchen/api/update-status/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': getCSRFToken(),
-    },
-    body: JSON.stringify({
-      order_id: orderId,
-      source: source,
-      meal_type: mealType,
-      status: newStatus,
-    }),
-  })
-  .then(res => res.json())
-  .then(response => {
-    if (response.success) {
-      selectEl.value = newStatus;
-      applyStatusClass(selectEl, newStatus);
-      setTimeout(() => loadOrders(), 200); // ✅ fixed: delayed refresh
-    } else {
-      alert("Failed to update status.");
-    }
-  })
-  .catch(err => {
-    console.error("Error updating status:", err);
-    alert("Error occurred while updating status.");
-  });
-};
-
-  function applyStatusClass(selectEl, status) {
-    selectEl.className = 'status-select'; // Reset
-    selectEl.classList.add(`status-${status}`);
-  }
-
-  function getCSRFToken() {
-    const name = 'csrftoken';
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const c = cookies[i].trim();
-      if (c.startsWith(name + '=')) {
-        return decodeURIComponent(c.substring(name.length + 1));
-      }
-    }
-    return '';
-  }
 });
 </script>
+
 
 {% endblock %}

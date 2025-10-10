@@ -78,6 +78,7 @@ urlpatterns = [
     path('menu/delete/<int:item_id>/', views.delete_menu_item, name='delete_menu_item'),
     path('api/save-weekly-meal/', views.save_weekly_meal, name='save_weekly_meal'),
     path('preorder/', views.preorder, name='preorder'),
+    path('ajax/check-location/', views.ajax_check_location, name='ajax_check_location'),
     path('customize/<int:meal_id>/', views.customize_meal, name='customize_meal'),
     path('my_custom_plans/', views.my_custom_plans, name='my_custom_plans'),
     path('delete-custom-plan/<int:plan_id>/', views.delete_custom_plan, name='delete_custom_plan'),
@@ -126,6 +127,8 @@ urlpatterns = [
 
     path('delete_deliverypartner/<int:partner_id>/', views.delete_deliverypartner, name='delete_deliverypartner'),
     path('delivery-partner/profile/', views.get_logged_in_partner, name='partner-profile'),
-    
-
+    path('api/assign-orders/', views.assign_orders_view, name='assign-orders'),
+    path('api/assigned-orders/', views.assigned_orders_view, name='assigned-orders'),
+    path('api/delivery-partners/', views.online_delivery_partners, name='online_delivery_partners'),
+    path('api/assign-order-to-partner/', views.assign_order_to_partner, name='assign_order_to_partner'),
 ]

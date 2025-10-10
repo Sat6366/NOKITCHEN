@@ -592,6 +592,8 @@ def generate_order_id():
         if not WeeklyMealSelection.objects.filter(custom_order_id=code).exists():
             return code
 
+
+from django.contrib.contenttypes.fields import GenericRelation
 class WeeklyMealSelection(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     
@@ -618,7 +620,7 @@ class WeeklyMealSelection(models.Model):
     from_date = models.DateField(null=True, blank=True)
     to_date = models.DateField(null=True, blank=True)
     total_price = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-
+    
     # ✅ Minimal Addition — Only This Line Added
     custom_order_id = models.CharField(max_length=10, unique=True, null=True, blank=True)
 
@@ -642,6 +644,8 @@ def generate_order_id():
         code = ''.join(random.choices(chars, k=6))
         if not CustomMealPlan.objects.filter(custom_order_id=code).exists():
             return code
+
+
 
 class CustomMealPlan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -801,7 +805,7 @@ def generate_order_id():
         if not FinalMealOrder.objects.filter(order_id=code).exists():
             return code
 
-
+from django.contrib.contenttypes.fields import GenericRelation
 class FinalMealOrder(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meal_orders')
 
@@ -837,6 +841,10 @@ class FinalMealOrder(models.Model):
     # Total amount paid
     total_amount = models.DecimalField(max_digits=8, decimal_places=2)
 
+    assignments = GenericRelation(
+        'OrderAssignment',
+        related_query_name='meal_order'
+    )
     # Auto timestamp for creation
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1066,3 +1074,58 @@ class PreparationStatus(models.Model):
 
     def __str__(self):
         return f"{self.meal_type} | {self.status} | {self.order}"
+
+
+ORDER_STATUS_CHOICES = [
+    ('pending', 'Pending Assignment'),
+    ('assigned', 'Assigned to Partner'),
+    ('picked_up', 'Picked Up'),
+    ('delivered', 'Delivered'),
+    ('failed', 'Failed Delivery'),
+]
+
+
+class OrderAssignment(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    order = GenericForeignKey('content_type', 'object_id')
+
+    order_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
+
+    delivery_partner = models.ForeignKey(
+        DeliveryPartner,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',  # disables reverse relation completely
+    )
+
+    assigned_at = models.DateTimeField(null=True, blank=True)
+    picked_up_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    delivery_address = models.TextField(blank=True, null=True)
+    meal_type = models.CharField(max_length=20, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-assigned_at', '-created_at']
+
+    # ✅ Manual assignment function
+    def assign_partner(self, partner):
+        if not partner.is_online or not partner.is_available:
+            raise ValueError("Delivery partner is not online/available.")
+        self.delivery_partner = partner
+        self.assigned_at = timezone.now()
+        self.status = 'assigned'
+        self.save()
+
+        # mark partner busy
+        partner.is_available = False
+        partner.save()
+
+    def __str__(self):
+        return f"Order {self.order_code or self.id} ({self.status}) assigned to {self.delivery_partner or 'None'}"

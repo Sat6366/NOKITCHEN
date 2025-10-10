@@ -552,23 +552,67 @@ from django.contrib.auth.decorators import login_required
 from decimal import Decimal
 from datetime import datetime
 import razorpay
-
-from .models import (
-    NoKitchenCart, NoKitchenCartItem, CustomMealPlan, DeliveryAddress
-)
-from .views import _cart_id
-
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from decimal import Decimal
 from datetime import datetime
 import razorpay
+import requests
+from math import radians, cos, sin, asin, sqrt
+import json
 
-from .models import NoKitchenCart, NoKitchenCartItem, CustomMealPlan, DeliveryAddress
+from .models import (
+    NoKitchenCart, NoKitchenCartItem, CustomMealPlan, DeliveryAddress, StoreLocation
+)
 from .views import _cart_id
 
+# ========== Haversine formula ==========
+def haversine(lat1, lon1, lat2, lon2):
+    lat1, lon1, lat2, lon2 = map(float, [lat1, lon1, lat2, lon2])
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371
+    return c * r
+
+# ========== AJAX: Check Delivery ==========
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def ajax_check_location(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        lat = data.get("lat")
+        lon = data.get("lon")
+        MAX_DISTANCE_KM = 10
+        stores = StoreLocation.objects.filter(status=True, is_active=True)
+        nearest_store = None
+        min_distance = None
+        for store in stores:
+            distance = haversine(lat, lon, store.latitude, store.longitude)
+            if distance <= MAX_DISTANCE_KM:
+                if min_distance is None or distance < min_distance:
+                    min_distance = distance
+                    nearest_store = store
+        if nearest_store:
+            return JsonResponse({
+                "available": True,
+                "store_name": nearest_store.name,
+                "distance_km": round(min_distance, 2)
+            })
+        return JsonResponse({
+            "available": False,
+            "message": "Out of delivery radius",
+            "distance_km": None
+        })
+    return JsonResponse({"available": False, "message": "Invalid request"})
+
+# ========== Preorder ==========
 @login_required
 def preorder(request):
     user = request.user
@@ -576,31 +620,52 @@ def preorder(request):
     cart = get_object_or_404(NoKitchenCart, cart_id=cart_id)
     cart_items = NoKitchenCartItem.objects.filter(cart=cart, user=user)
 
-    # Grouping items
     breakfast_items = [item for item in cart_items if item.item.meal_type == 'breakfast']
     lunch_items = [item for item in cart_items if item.item.meal_type == 'lunch']
     dinner_items = [item for item in cart_items if item.item.meal_type == 'dinner']
 
-    # Initialize values for GET
     num_days = 1
     start_date = timezone.now().date()
     end_date = timezone.now().date()
     total = Decimal("0.00")
     show_razorpay = False
+    active_stores = []
+    user_city = None
+
+    user_lat = request.GET.get("lat")
+    user_lng = request.GET.get("lng")
+
+    if user_lat and user_lng:
+        try:
+            url = "https://maps.googleapis.com/maps/api/geocode/json"
+            params = {"latlng": f"{user_lat},{user_lng}", "key": settings.GOOGLE_MAPS_API_KEY}
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            if data.get("results"):
+                for comp in data["results"][0]["address_components"]:
+                    if "locality" in comp["types"] or "administrative_area_level_2" in comp["types"]:
+                        user_city = comp["long_name"]
+                        break
+        except Exception as e:
+            print(f"[preorder] Reverse geocode error: {e}")
+
+        MAX_DISTANCE_KM = 10
+        stores = StoreLocation.objects.filter(status=True, is_active=True)
+        for store in stores:
+            distance = haversine(user_lat, user_lng, store.latitude, store.longitude)
+            if distance <= MAX_DISTANCE_KM:
+                store.distance_km = round(distance, 2)
+                active_stores.append(store)
 
     if request.method == 'POST':
-        # Extract date range
-        start_date_str = request.POST.get('start_date')
-        end_date_str = request.POST.get('end_date')
-
         try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            start_date = datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d').date()
+            end_date = datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d').date()
             num_days = max((end_date - start_date).days + 1, 1)
         except Exception:
             num_days = 1
 
-        # Save delivery address
         DeliveryAddress.objects.create(
             user=user,
             flat_number=request.POST.get('flat_number'),
@@ -615,7 +680,6 @@ def preorder(request):
             dinner_address_type=request.POST.get('dinner_address_type'),
         )
 
-        # Save meal plan items
         for item in cart_items:
             CustomMealPlan.objects.create(
                 user=user,
@@ -624,26 +688,18 @@ def preorder(request):
                 end_date=end_date
             )
 
-        # Calculate total
         for item in cart_items:
             total += Decimal(item.item.price) * item.quantity * num_days
 
-        # Razorpay order creation
         if not request.session.get('razorpay_payment_id'):
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
             amount = int(total * 100)
-            razorpay_order = client.order.create({
-                'amount': amount,
-                'currency': 'INR',
-                'payment_capture': '1',
-            })
+            razorpay_order = client.order.create({'amount': amount, 'currency': 'INR', 'payment_capture': '1'})
             request.session['razorpay_payment_id'] = razorpay_order['id']
             request.session['meal_payment_total'] = float(total)
             show_razorpay = True
 
-    # Context for rendering
     context = {
-        'current_date': timezone.now(),
         'breakfast_items': breakfast_items,
         'lunch_items': lunch_items,
         'dinner_items': dinner_items,
@@ -655,9 +711,12 @@ def preorder(request):
         'razorpay_key': settings.RAZORPAY_KEY_ID if show_razorpay else '',
         'order_id': request.session.get('razorpay_payment_id'),
         'amount': int(total * 100) if total > 0 else 0,
+        'active_stores': active_stores,
+        'user_city': user_city,
     }
 
     return render(request, 'pages/preorder.html', context)
+
 
 import json
 from decimal import Decimal
@@ -2692,6 +2751,94 @@ def live_summary(request):
         'dispatched': statuses.filter(status='dispatched').count(),
     }
     return Response(summary)
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import OrderAssignment, DeliveryPartner
+from .utils import assign_pending_orders
+
+@api_view(['POST'])
+def assign_orders_view(request):
+    """
+    Assign all pending orders to online & available delivery partners.
+    """
+    assign_pending_orders()
+    return Response({'success': True, 'message': 'Pending orders assigned to online partners.'})
+
+@api_view(['GET'])
+def assigned_orders_view(request):
+    """
+    List all orders already assigned to delivery partners.
+    """
+    orders = OrderAssignment.objects.filter(status='assigned')
+    data = [
+        {
+            'order_id': order.id,
+            'source': order.order.__class__.__name__,
+            'meal_type': order.meal_type,
+            'delivery_partner': str(order.delivery_partner) if order.delivery_partner else 'Unassigned',
+            'status': order.status,
+            'assigned_at': order.assigned_at,
+        }
+        for order in orders
+    ]
+    return Response(data)
+
+
+# views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import OrderAssignment, DeliveryPartner
+
+@api_view(['GET'])
+def online_delivery_partners(request):
+    partners = DeliveryPartner.objects.filter(is_online=True)
+    data = [{'id': p.id, 'first_name': p.first_name, 'last_name': p.last_name} for p in partners]
+    return Response(data)
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import OrderAssignment, DeliveryPartner
+# views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
+from .models import OrderAssignment, DeliveryPartner
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+from .models import OrderAssignment, DeliveryPartner
+
+@csrf_exempt
+def assign_order_to_partner(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        order_code = data.get('order_id')  # could be string
+        partner_id = data.get('partner_id')  # numeric
+
+        if not order_code or not partner_id:
+            return JsonResponse({'success': False, 'error': 'Missing order or partner ID.'})
+
+        try:
+            order = OrderAssignment.objects.get(order_code=order_code)
+            partner = DeliveryPartner.objects.get(id=int(partner_id), is_online=True, is_available=True)
+
+            order.assign_partner(partner)
+
+            return JsonResponse({'success': True, 'message': f'Order {order_code} assigned to {partner.first_name} {partner.last_name}'})
+        except OrderAssignment.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Order not found.'})
+        except DeliveryPartner.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Partner not available or offline.'})
+        except ValueError as ve:
+            return JsonResponse({'success': False, 'error': str(ve)})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 
 def restaurant_earnings(request):
