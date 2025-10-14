@@ -13,7 +13,7 @@ import {
 import * as Location from "expo-location";
 import { useAuth } from "../context/AuthContext";
 
-const BACKEND = "http://192.168.0.5:8000";
+const BACKEND = "http://192.168.0.7:8000";
 const TOAST_DURATION = 3000;
 const LIVE_UPDATE_INTERVAL_MS = 15000;
 

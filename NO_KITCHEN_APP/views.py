@@ -2811,34 +2811,74 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 from .models import OrderAssignment, DeliveryPartner
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.utils import timezone
+import json
+from .models import OrderAssignment, DeliveryPartner
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from django.http import JsonResponse
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+import json
+from django.contrib.contenttypes.models import ContentType
+from .models import DeliveryPartner, OrderAssignment, FinalMealOrder
 
 @csrf_exempt
 def assign_order_to_partner(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        order_code = data.get('order_id')  # could be string
-        partner_id = data.get('partner_id')  # numeric
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid request method."})
 
-        if not order_code or not partner_id:
-            return JsonResponse({'success': False, 'error': 'Missing order or partner ID.'})
+    data = json.loads(request.body)
+    order_code = data.get("order_id")
+    partner_id = data.get("partner_id")
 
-        try:
-            order = OrderAssignment.objects.get(order_code=order_code)
-            partner = DeliveryPartner.objects.get(id=int(partner_id), is_online=True, is_available=True)
+    if not order_code or not partner_id:
+        return JsonResponse({"success": False, "error": "Missing order or partner ID."})
 
-            order.assign_partner(partner)
+    try:
+        # ✅ Get delivery partner (must be online and available)
+        partner = DeliveryPartner.objects.get(id=int(partner_id), is_online=True, is_available=True)
 
-            return JsonResponse({'success': True, 'message': f'Order {order_code} assigned to {partner.first_name} {partner.last_name}'})
-        except OrderAssignment.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Order not found.'})
-        except DeliveryPartner.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Partner not available or offline.'})
-        except ValueError as ve:
-            return JsonResponse({'success': False, 'error': str(ve)})
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+        # ✅ Get the actual FinalMealOrder object
+        meal_order = FinalMealOrder.objects.get(order_id=order_code)
 
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+        # ✅ Check if OrderAssignment exists, otherwise create
+        content_type = ContentType.objects.get_for_model(FinalMealOrder)
+        order_assignment, created = OrderAssignment.objects.get_or_create(
+            content_type=content_type,
+            object_id=meal_order.id,
+            defaults={
+                "order_code": meal_order.order_id,
+                "delivery_address": f"{meal_order.flat_number}, {meal_order.street}, {meal_order.landmark or ''}".strip(),
+                "meal_type": "lunch"  # change dynamically if needed
+            }
+        )
+
+        # ✅ Assign partner using the model method
+        order_assignment.assign_partner(partner)
+
+        return JsonResponse({
+            "success": True,
+            "message": f"Order {order_code} assigned to {partner.first_name} {partner.last_name}"
+        })
+
+    except FinalMealOrder.DoesNotExist:
+        return JsonResponse({"success": False, "error": f'FinalMealOrder "{order_code}" not found.'})
+    except DeliveryPartner.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Delivery partner is not online/available."})
+    except ValueError as ve:
+        return JsonResponse({"success": False, "error": str(ve)})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
 
 
 def restaurant_earnings(request):

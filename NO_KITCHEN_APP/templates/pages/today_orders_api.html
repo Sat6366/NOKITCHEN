@@ -428,31 +428,40 @@ document.addEventListener('DOMContentLoaded', function () {
                       </tr>
                     </thead><tbody>`;
 
-            orders.forEach(order => {
-              const defaultStatus = order.status || "queued";
-              body += `<tr>
-                        <td>${order.user || '-'}</td>
-                        <td>${order.order_code || order.id}</td>
-                        <td>${order.day || '-'}</td>
-                        <td><span class="badge bg-secondary">${order.source || '-'}</span></td>
-                        <td>${order.meal_description || '-'}</td>
-                        <td>${order.items_count ?? '-'}</td>
-                        <td>${formatTime(order.delivery_time)}</td>
-                        <td>${order.address || '-'}</td>
-                        <td>₹${Number(order.price || 0).toFixed(2)}</td>
-                        <td>
-                          <select class="status-select status-${defaultStatus}" onchange="updateStatus(this, '${order.source}', '${order.id}', '${mealType}')">
-                            <option value="queued" ${defaultStatus==='queued'?'selected':''}>Queued</option>
-                            <option value="preparing" ${defaultStatus==='preparing'?'selected':''}>Being Prepared</option>
-                            <option value="ready" ${defaultStatus==='ready'?'selected':''}>Ready for Dispatch</option>
-                            <option value="dispatched" ${defaultStatus==='dispatched'?'selected':''}>Dispatched</option>
-                          </select>
-                        </td>
-                        <td>
-                          <button class="btn btn-sm btn-primary" onclick="showAssignPartners('${order.order_code}', this)">Assign</button>
-                        </td>
-                      </tr>`;
-            });
+orders.forEach(order => {
+  // 🔹 Determine safe ID
+  const safeOrderId = order.order_id || order.order_code || order.id;
+  if(!safeOrderId){
+    console.warn("Skipping order with missing ID:", order);
+    return; // skip orders without valid ID
+  }
+
+  const defaultStatus = order.status || "queued";
+
+  body += `<tr>
+            <td>${order.user || '-'}</td>
+            <td>${safeOrderId}</td>
+            <td>${order.day || '-'}</td>
+            <td><span class="badge bg-secondary">${order.source || '-'}</span></td>
+            <td>${order.meal_description || '-'}</td>
+            <td>${order.items_count ?? '-'}</td>
+            <td>${formatTime(order.delivery_time)}</td>
+            <td>${order.address || '-'}</td>
+            <td>₹${Number(order.price || 0).toFixed(2)}</td>
+            <td>
+              <select class="status-select status-${defaultStatus}" onchange="updateStatus(this, '${order.source}', '${safeOrderId}', '${mealType}')">
+                <option value="queued" ${defaultStatus==='queued'?'selected':''}>Queued</option>
+                <option value="preparing" ${defaultStatus==='preparing'?'selected':''}>Being Prepared</option>
+                <option value="ready" ${defaultStatus==='ready'?'selected':''}>Ready for Dispatch</option>
+                <option value="dispatched" ${defaultStatus==='dispatched'?'selected':''}>Dispatched</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-primary" onclick="showAssignPartners('${safeOrderId}', this)">Assign</button>
+            </td>
+          </tr>`;
+});
+
 
             body += '</tbody></table>';
           } else {
