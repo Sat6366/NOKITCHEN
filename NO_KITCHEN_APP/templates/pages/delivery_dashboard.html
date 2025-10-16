@@ -511,6 +511,7 @@
 
 <body>
 
+{% load static %}
 
 <div class="sidebar">
   <img src="{{ partner.selfie.url }}" alt="Profile Image" onerror="this.src='https://i.pravatar.cc/100?u={{ partner.mobile }}'" />
@@ -533,131 +534,686 @@
 
 <!-- Main Content -->
 <div class="main-content">
-  
-<!-- Wrap both in a flex container -->
 
-  <!-- Right side: toggle button -->
+  <!-- Delivery Status Toggle -->
   <div class="status-toggle d-flex align-items-center">
     <input type="checkbox" id="toggleStatus" />
     <label for="toggleStatus" id="toggleLabel" class="d-flex align-items-center">
+      <span class="status-dot" id="statusDot"></span>
       <span class="status-text me-2">Offline</span>
-      <span class="slider"></span>
+      <span class="slider" aria-hidden="true"></span>
     </label>
   </div>
+
 </div>
 
-<div id="offlineConfirmModal">
+<!-- Offline Confirmation Modal -->
+<div id="offlineConfirmModal" class="offline-modal" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="modal-content">
     <h3>Are you sure you want to go offline?</h3>
-    <p> You may lose extra bonus opportunities.</p>
+    <p>You may lose extra bonus opportunities.</p>
     <div class="modal-buttons">
-      <button class="btn-confirm">Continue</button>
-      <button class="btn-cancel">Cancel</button>
+      <button class="btn-confirm" id="modalConfirm">Continue</button>
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
     </div>
   </div>
 </div>
 
-</section>
+<!-- Hidden Beep Audio -->
+<audio id="orderBeep" src="{% static 'sounds/beep.mp3' %}" preload="auto"></audio>
 
+<!-- Accepted Orders Container (Centered) -->
+<div id="acceptedOrdersContainer" class="center-container" aria-live="polite">
+  {% for order in assigned_orders %}
+    <div class="accepted-order-card" id="card-{{ order.order_code }}">
+      <div class="card-top">
+        <h5>Order #{{ order.order_code }}</h5>
+        <div class="status-pill" id="pill-{{ order.order_code }}">{{ order.live_status }}</div>
+      </div>
+
+      <div class="card-body-grid">
+        <div>
+          <p><b>Meal Type:</b> {{ order.meal_type }}</p>
+          <p><b>Items:</b> {{ order.items|join:', ' }}</p>
+        </div>
+        <div>
+          <p><b>Address:</b> {{ order.delivery_address }}</p>
+        </div>
+      </div>
+
+      <div class="order-progress" id="progress-{{ order.order_code }}">
+        <div class="order-progress-inner" id="progress-inner-{{ order.order_code }}"></div>
+      </div>
+
+      <div class="card-actions" id="actions-{{ order.order_code }}">
+        <!-- Buttons will be inserted dynamically by JS if needed -->
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Notification container (popups will be appended to body) -->
+<div id="notificationArea" aria-hidden="true"></div>
+
+<!-- === CSS === -->
+<style>
+/* ===== Center Container ===== */
+.center-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px;
+  gap: 12px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== Accepted Order Card ===== */
+.accepted-order-card {
+  background: linear-gradient(180deg,#ffffff,#f6f9ff);
+  border: 1px solid rgba(102,126,234,0.14);
+  border-left: 6px solid #ff9c08ff;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 10px 0;
+  width: 420px;
+  box-shadow: 0 6px 18px rgba(20,20,50,0.06);
+  transition: transform .18s ease, box-shadow .18s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.accepted-order-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(20,20,50,0.09); }
+
+.card-top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
+.accepted-order-card h5 { margin:0; font-size:16px; font-weight:700; color:#0f172a; }
+.card-body-grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px; color:#334155; font-size:14px; }
+
+/* Status pill */
+.status-pill {
+  font-weight:700;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#e6eefc;
+  color:#1e3a8a;
+  font-size:13px;
+  text-transform:capitalize;
+  border:1px solid rgba(102,126,234,0.14);
+}
+
+/* ===== Progress Bar ===== */
+.order-progress { height: 8px; border-radius: 999px; background: #ebeff5; margin-top: 8px; overflow: hidden; }
+.order-progress-inner {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,#667eea,#764ba2);
+  transition: width 0.6s cubic-bezier(.2,.9,.2,1);
+  box-shadow: inset 0 -2px 6px rgba(0,0,0,0.06);
+}
+
+/* ===== Card Actions ===== */
+.card-actions { margin-top:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+/* Styled buttons */
+.btn {
+  padding:8px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:700;
+  box-shadow: 0 6px 14px rgba(103,113,214,0.08);
+}
+.btn-primary { background:#4f46e5; color:#fff; }
+.btn-ghost { background:transparent; color:#334155; border:1px solid #e6e9f8; }
+.btn-danger { background:#ef4444; color:#fff; }
+
+.file-input {
+  display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px;
+  border:1px dashed rgba(243, 228, 15, 0.18); background:rgba(250, 117, 34, 0.03);
+}
+
+/* Image preview */
+.img-preview { max-width:80px; max-height:60px; object-fit:cover; border-radius:6px; border:1px solid #e8eefc; }
+
+/* ===== Notification Popup ===== */
+.order-notification-popup {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  width: 340px;
+  background: linear-gradient(135deg, #f9e505ff 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 10px 32px rgba(46,60,90,0.28);
+  z-index: 9999;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transform-origin: right top;
+  animation: popupIn .22s ease;
+}
+@keyframes popupIn { from { transform: translateY(-10px) scale(.98); opacity:0 } to { transform:none; opacity:1 } }
+.order-notification-popup h5 { font-size:16px; margin:0 0 6px; font-weight:800; }
+.order-notification-popup p { font-size:13px; margin:2px 0; color:rgba(255,255,255,0.95); }
+.order-notification-popup .popup-buttons { display:flex; justify-content:flex-end; gap:8px; margin-top:10px; }
+.order-notification-popup button { padding:8px 10px; font-weight:700; border-radius:8px; border:none; cursor:pointer; transition:0.14s; }
+.order-notification-popup .accept-btn { background:#00c853; color:#072a00; }
+.order-notification-popup .reject-btn { background:#ff5252; color:#400000; }
+
+/* ===== Offline Modal ===== */
+.offline-modal {
+  display:none;
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  justify-content:center; align-items:center;
+  background: rgba(2,6,23,0.6); z-index:10000;
+}
+.offline-modal .modal-content {
+  background:#fff; padding:20px; border-radius:12px; max-width:420px; text-align:center;
+}
+.offline-modal .modal-buttons { display:flex; justify-content:center; gap:15px; margin-top:15px; }
+.btn-confirm { background:#10b981; color:#fff; padding:8px 14px; border-radius:8px; border:none; }
+.btn-cancel { background:#ef4444; color:#fff; padding:8px 14px; border-radius:8px; border:none; }
+
+/* ===== Toast Messages ===== */
+.popup-msg {
+  position: fixed; top:10px; left:50%;
+  transform:translateX(-50%);
+  background:#0b1220; color:#fff; padding:10px 18px;
+  border-radius:10px; opacity:0.95; z-index:9999; font-size:14px;
+}
+
+/* Status toggle */
+.status-toggle { display:flex; gap:12px; align-items:center; padding:12px; }
+.status-text { font-weight:700; color:#0f172a; margin-left:6px; }
+.status-dot { width:12px; height:12px; border-radius:50%; background:#ef4444; display:inline-block; margin-right:6px; transition:all .18s; }
+#toggleStatus { display:none; }
+#toggleLabel { cursor:pointer; user-select:none; display:flex; align-items:center; gap:6px; }
+
+/* Responsive */
+@media (max-width:480px) {
+  .accepted-order-card { width: 92%; padding:14px; }
+  .order-notification-popup { width: 320px; right: 10px; }
+}
+</style>
+
+<!-- === JS === -->
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
+
+  // ===== Elements =====
   const toggleCheckbox = document.getElementById("toggleStatus");
   const toggleLabelText = document.querySelector(".status-text");
+  const statusDot = document.getElementById("statusDot");
   const offlineModal = document.getElementById("offlineConfirmModal");
-  const btnConfirm = offlineModal.querySelector(".btn-confirm");
-  const btnCancel = offlineModal.querySelector(".btn-cancel");
+  const btnConfirm = document.getElementById("modalConfirm");
+  const btnCancel = document.getElementById("modalCancel");
+  const beep = document.getElementById('orderBeep');
+  const notificationArea = document.getElementById('notificationArea');
 
-  // Load saved status from localStorage
+  // ===== Init status from localStorage =====
   const savedStatus = localStorage.getItem("deliveryStatus");
   toggleCheckbox.checked = savedStatus === "online";
-  toggleLabelText.textContent = savedStatus === "online" ? "Online" : "Offline";
+  setOnlineUI(savedStatus === "online");
 
-  toggleCheckbox.addEventListener("change", function () {
+  toggleCheckbox.addEventListener("change", function() {
     if (this.checked) {
-      // Going online (use your existing logic here)
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-          sendLocation(position.coords.latitude, position.coords.longitude);
-        }, function (error) {
-          sendLocation(null, null);
-        }, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
-      } else {
-        sendLocation(null, null);
-      }
+      sendLocationIfOnline();
     } else {
-      // Going offline - show confirmation modal
-      // Temporarily revert toggle to ON until confirmation
-      toggleCheckbox.checked = true;
-
-      offlineModal.style.display = "flex";
-
-      btnConfirm.onclick = function () {
-        // User confirmed going offline
-        offlineModal.style.display = "none";
-        toggleCheckbox.checked = false;
-        toggleLabelText.textContent = "Offline";
-        localStorage.setItem("deliveryStatus", "offline");
-        showToast("You're now offline.", "warning");
-      };
-
-      btnCancel.onclick = function () {
-        // User cancelled - keep toggle ON
-        offlineModal.style.display = "none";
-        toggleCheckbox.checked = true;
-      };
+      confirmOffline();
     }
   });
 
-  function sendLocation(lat, lon) {
+  function setOnlineUI(isOnline) {
+    toggleLabelText.textContent = isOnline ? "Online" : "Offline";
+    statusDot.style.background = isOnline ? "#10b981" : "#ef4444";
+    localStorage.setItem("deliveryStatus", isOnline ? "online" : "offline");
+  }
+
+  function sendLocationIfOnline() {
+    // attempt geolocation; if fail, still try with nulls
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        pos => sendLocation(pos.coords.latitude, pos.coords.longitude),
+        () => sendLocation(null, null),
+        { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+      );
+    } else {
+      sendLocation(null,null);
+    }
+  }
+
+  function confirmOffline() {
+    // Prevent immediate toggle off until user confirms
+    toggleCheckbox.checked = true;
+    offlineModal.style.display = "flex";
+    offlineModal.setAttribute('aria-hidden','false');
+    btnConfirm.onclick = function() {
+      offlineModal.style.display="none";
+      offlineModal.setAttribute('aria-hidden','true');
+      toggleCheckbox.checked=false;
+      setOnlineUI(false);
+      showToast("You're now offline","warning");
+    };
+    btnCancel.onclick = function(){
+      offlineModal.style.display="none";
+      offlineModal.setAttribute('aria-hidden','true');
+      toggleCheckbox.checked=true;
+    };
+  }
+
+  function sendLocation(lat, lon){
+    // Keep it same endpoint; server responds with { allowed, message } already
     fetch("{% url 'check_nearby_store' %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}",
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "X-CSRFToken":"{{ csrf_token }}"
       },
-      body: JSON.stringify({ latitude: lat, longitude: lon })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.allowed) {
-        toggleLabelText.textContent = "Online";
-        localStorage.setItem("deliveryStatus", "online");
-        showToast(data.message, "success");
+      body:JSON.stringify({latitude:lat,longitude:lon})
+    }).then(res=>res.json()).then(data=>{
+      if(data.allowed){
+        setOnlineUI(true);
+        showToast(data.message || "You're online","success");
       } else {
-        toggleCheckbox.checked = false;
-        toggleLabelText.textContent = "Offline";
-        localStorage.setItem("deliveryStatus", "offline");
-        showToast(data.message, "error");
+        toggleCheckbox.checked=false;
+        setOnlineUI(false);
+        showToast(data.message || "You cannot go online here","error");
       }
-    })
-    .catch(() => {
-      toggleCheckbox.checked = false;
-      toggleLabelText.textContent = "Offline";
-      localStorage.setItem("deliveryStatus", "offline");
-      showToast("Error checking location.", "error");
+    }).catch(()=>{ toggleCheckbox.checked=false; setOnlineUI(false); showToast("Error checking location.","error"); });
+  }
+
+  // ===== Partner Notifications & Order Flow =====
+  const partnerId = {{ partner.id }};
+  const handledOrders = new Set(); // keep track locally so popups stop after action
+
+  // When the page loads, mark already shown orders as handled (so no popups for pre-rendered accepted ones)
+  document.querySelectorAll('[id^="card-"]').forEach(card=>{
+    const code = card.id.replace('card-','');
+    const statusEl = document.getElementById('pill-'+code);
+    if(statusEl && statusEl.textContent.trim() !== 'pending') handledOrders.add(code);
+    // initialize progress bar according to status
+    updateProgressBar(code, statusEl ? statusEl.textContent.trim() : '');
+    // add available actions for existing cards
+    setupCardActions(code);
+  });
+
+  // Poll every 5 seconds for new pending orders
+  let pollInterval = setInterval(fetchNotifications, 5000);
+
+  // Only create popups if partner is online
+  function fetchNotifications(){
+    if (localStorage.getItem("deliveryStatus") !== "online") return; // DO NOT show when offline
+
+    fetch(`/nokitchen/api/partner-notifications/${partnerId}/`)
+      .then(res => res.json())
+      .then(data => {
+        if(data.success && data.orders && data.orders.length > 0){
+          data.orders.forEach(order => {
+            if(!handledOrders.has(order.order_code)){
+              showOrderPopup(order);
+            }
+          });
+        }
+      })
+      .catch(err => console.error("Notifications fetch failed", err));
+  }
+
+  function showOrderPopup(order){
+    // produce sound & vibration
+    try { beep.currentTime = 0; beep.play(); } catch(e) {}
+    if (navigator.vibrate) navigator.vibrate([180,80,180]);
+
+    const popup = document.createElement('div');
+    popup.id = 'popup-' + order.order_code;
+    popup.className = 'order-notification-popup';
+    popup.innerHTML = `
+      <h5>New Order Assigned!</h5>
+      <p><b>Order:</b> ${order.order_code}</p>
+      <p><b>Meal:</b> ${order.meal_type}</p>
+      <p><b>Address:</b> ${order.delivery_address}</p>
+      <div class="popup-buttons">
+        <button class="accept-btn btn">Accept</button>
+        <button class="reject-btn btn">Cancel</button>
+      </div>
+    `;
+    notificationArea.appendChild(popup);
+
+    // Accept button -> set to 'accepted' on server immediately so it won't appear in subsequent "pending" queries
+    popup.querySelector('.accept-btn').addEventListener('click', () => {
+      // Immediately stop popup & sound
+      safeRemovePopup(order.order_code);
+      handledOrders.add(order.order_code);
+
+      // send accepted status -> server will mark accepted_at (on backend) and stop returning pending ones
+      updateOrderStatus(order.order_code, 'accepted')
+        .then(() => {
+          // show on dashboard and add action to upload pickup image when appropriate
+          displayOrderInDashboard(order, 'accepted');
+          showPickupUpload(order);
+        })
+        .catch(err => {
+          showToast("Accept failed", "error");
+          console.error(err);
+        });
+    });
+
+    // Reject button -> mark handled locally to avoid repetitive popups
+    popup.querySelector('.reject-btn').addEventListener('click', () => {
+      safeRemovePopup(order.order_code);
+      handledOrders.add(order.order_code);
+      showToast("Order dismissed", "error");
     });
   }
 
-  function showToast(message, type = "success") {
-    const toast = document.createElement("div");
-    toast.classList.add("toast-message");
-
-    if (type === "success") toast.classList.add("toast-success");
-    else if (type === "error") toast.classList.add("toast-error");
-    else toast.classList.add("toast-warning");
-
-    toast.innerHTML = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      setTimeout(() => toast.remove(), 500);
-    }, 4000);
+  function safeRemovePopup(orderCode){
+    const el = document.getElementById('popup-' + orderCode);
+    try { if(el) el.remove(); } catch(e){}
+    try { beep.pause(); beep.currentTime = 0; } catch(e){}
   }
+
+  // ===== Update status helpers (return promise) =====
+  async function updateOrderStatus(orderCode, status) {
+    const formData = new FormData();
+    formData.append('order_id', orderCode);
+    formData.append('status', status);
+
+    const response = await fetch('/nokitchen/api/update-order-delivery-status/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRFToken() },
+      body: formData
+    });
+    const json = await response.json();
+    if(!json.success) throw new Error(json.error || 'Update failed');
+    updateDashboardStatus(orderCode, status);
+    return json;
+  }
+
+  async function updateOrderStatusWithImages(orderCode, status, pickupImg, deliveryImg) {
+    // client-side validation already performed before calling this
+    const formData = new FormData();
+    formData.append('order_id', orderCode);
+    formData.append('status', status);
+    if(pickupImg) formData.append('pickup_image', pickupImg);
+    if(deliveryImg) formData.append('delivery_image', deliveryImg);
+
+    const response = await fetch('/nokitchen/api/update-order-delivery-status/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCSRFToken() },
+      body: formData
+    });
+    const json = await response.json();
+    if(!json.success) throw new Error(json.error || 'Update failed');
+    updateDashboardStatus(orderCode, status);
+    return json;
+  }
+
+  // ===== Dashboard UI update functions =====
+  function displayOrderInDashboard(order, status){
+    const container = document.getElementById('acceptedOrdersContainer');
+    let card = document.getElementById('card-' + order.order_code);
+
+    if(!card){
+      card = document.createElement('div');
+      card.className = 'accepted-order-card';
+      card.id = 'card-' + order.order_code;
+      card.innerHTML = `
+        <div class="card-top">
+          <h5>Order #${order.order_code}</h5>
+          <div class="status-pill" id="pill-${order.order_code}">${status}</div>
+        </div>
+        <div class="card-body-grid">
+          <div>
+            <p><b>Meal Type:</b> ${order.meal_type}</p>
+            <p><b>Items:</b> ${Array.isArray(order.items) ? order.items.join(', ') : order.items}</p>
+          </div>
+          <div>
+            <p><b>Address:</b> ${order.delivery_address}</p>
+          </div>
+        </div>
+        <div class="order-progress" id="progress-${order.order_code}">
+          <div class="order-progress-inner" id="progress-inner-${order.order_code}"></div>
+        </div>
+        <div class="card-actions" id="actions-${order.order_code}"></div>
+      `;
+      container.prepend(card);
+    } else {
+      const pill = document.getElementById('pill-' + order.order_code);
+      if(pill) pill.textContent = status;
+      updateProgressBar(order.order_code, status);
+    }
+
+    setupCardActions(order.order_code);
+  }
+function updateDashboardStatus(orderCode, status){
+    const pill = document.getElementById('pill-' + orderCode);
+    if(pill) pill.textContent = status;
+    updateProgressBar(orderCode, status);
+
+    // If status no longer pending, ensure any popup for it is removed
+    safeRemovePopup(orderCode);
+
+    // If accepted or later, ensure this order isn't shown in notifications again
+    if(status !== 'pending') handledOrders.add(orderCode);
+
+    // ===== REMOVE DELIVERED ORDERS FROM DASHBOARD =====
+    if(status === 'delivered'){
+        const card = document.getElementById('card-' + orderCode);
+        if(card){
+            card.remove();
+        }
+    }
+}
+
+function updateProgressBar(orderCode, status){
+    const inner = document.getElementById('progress-inner-' + orderCode);
+    if(!inner) return;
+    let width = 0;
+    if(status === 'pending') width = 5;
+    else if(status === 'accepted') width = 15;
+    else if(status === 'waiting_pickup') width = 35;
+    else if(status === 'picked_up') width = 60;
+    else if(status === 'reached') width = 85;
+    else if(status === 'delivered') width = 100;
+
+    inner.style.width = width + '%';
+
+    // Optional: remove card after a short delay for better UX
+    if(status === 'delivered'){
+        setTimeout(()=>{
+            const card = document.getElementById('card-' + orderCode);
+            if(card) card.remove();
+        }, 800); // 0.8s delay to let progress bar reach 100%
+    }
+}
+
+// ===== Setup card actions (buttons for pickup/upload/reach/deliver) =====
+  function setupCardActions(orderCode) {
+    const actions = document.getElementById('actions-' + orderCode);
+    if(!actions) return;
+
+    // Clear previous actions
+    actions.innerHTML = '';
+
+    const statusPill = document.getElementById('pill-' + orderCode);
+    const curStatus = statusPill ? statusPill.textContent.trim() : '';
+
+    // If order is accepted or waiting_pickup -> show upload pickup if not yet picked_up
+    if(curStatus === 'accepted' || curStatus === 'waiting_pickup') {
+      // pickup upload input + submit
+      const pickupWrap = document.createElement('label');
+      pickupWrap.className = 'file-input';
+      pickupWrap.innerHTML = `
+        <input type="file" id="pickup-file-${orderCode}" accept="image/*" style="display:none" />
+        <span>Upload Pickup</span>
+        <img id="pickup-preview-${orderCode}" class="img-preview" style="display:none" alt="pickup preview"/>
+      `;
+      actions.appendChild(pickupWrap);
+
+      const pickupInput = pickupWrap.querySelector(`#pickup-file-${orderCode}`);
+      const preview = pickupWrap.querySelector(`#pickup-preview-${orderCode}`);
+
+      pickupInput.addEventListener('change', (e) => {
+        const f = e.target.files[0];
+        if(!validateImageFile(f)) { pickupInput.value = ''; preview.style.display='none'; return; }
+        const reader = new FileReader();
+        reader.onload = () => { preview.src = reader.result; preview.style.display = 'inline-block'; };
+        reader.readAsDataURL(f);
+      });
+
+      const submitBtn = document.createElement('button');
+      submitBtn.className = 'btn btn-primary';
+      submitBtn.textContent = 'Submit Pickup';
+      submitBtn.disabled = true;
+      actions.appendChild(submitBtn);
+
+      pickupInput.addEventListener('change', ()=> submitBtn.disabled = !pickupInput.files.length);
+
+      submitBtn.addEventListener('click', async () => {
+        const file = pickupInput.files[0];
+        if(!file) return alert('Choose an image before submitting.');
+        submitBtn.disabled = true; submitBtn.textContent = 'Uploading...';
+        try {
+          await updateOrderStatusWithImages(orderCode, 'picked_up', file, null);
+          showToast('Pickup recorded', 'success');
+          // show Reached button after success
+          submitBtn.remove();
+          pickupWrap.remove();
+          showReachedButton({ order_code: orderCode });
+          setupCardActions(orderCode);
+        } catch(err) {
+          console.error(err);
+          showToast('Upload failed', 'error');
+          submitBtn.disabled = false; submitBtn.textContent = 'Submit Pickup';
+        }
+      });
+    }
+
+    // If picked_up or reached -> show "Reached Customer" or "Upload Delivered Image"
+    if(curStatus === 'picked_up' ) {
+      showReachedButton({ order_code: orderCode }, actions);
+    }
+
+    if(curStatus === 'reached') {
+      // show delivery upload
+      const deliveryWrap = document.createElement('label');
+      deliveryWrap.className = 'file-input';
+      deliveryWrap.innerHTML = `
+        <input type="file" id="delivery-file-${orderCode}" accept="image/*" style="display:none" />
+        <span>Upload Delivered</span>
+        <img id="delivery-preview-${orderCode}" class="img-preview" style="display:none" alt="delivery preview"/>
+      `;
+      actions.appendChild(deliveryWrap);
+
+      const deliveryInput = deliveryWrap.querySelector(`#delivery-file-${orderCode}`);
+      const deliveryPreview = deliveryWrap.querySelector(`#delivery-preview-${orderCode}`);
+
+      deliveryInput.addEventListener('change', (e) => {
+        const f = e.target.files[0];
+        if(!validateImageFile(f)) { deliveryInput.value = ''; deliveryPreview.style.display='none'; return; }
+        const reader = new FileReader();
+        reader.onload = () => { deliveryPreview.src = reader.result; deliveryPreview.style.display = 'inline-block'; };
+        reader.readAsDataURL(f);
+      });
+
+      const deliverBtn = document.createElement('button');
+      deliverBtn.className = 'btn btn-primary';
+      deliverBtn.textContent = 'Submit Delivery';
+      deliverBtn.disabled = true;
+      actions.appendChild(deliverBtn);
+
+      deliveryInput.addEventListener('change', ()=> deliverBtn.disabled = !deliveryInput.files.length);
+
+      deliverBtn.addEventListener('click', async () => {
+        const f = deliveryInput.files[0];
+        if(!f) return alert('Choose an image before submitting.');
+        deliverBtn.disabled = true; deliverBtn.textContent = 'Uploading...';
+        try {
+          await updateOrderStatusWithImages(orderCode, 'delivered', null, f);
+          showToast('Delivery recorded', 'success');
+          // after delivered you might want to remove card or mark as completed
+          const pill = document.getElementById('pill-' + orderCode);
+          if(pill) pill.textContent = 'delivered';
+          deliverBtn.remove();
+          deliveryWrap.remove();
+          updateProgressBar(orderCode,'delivered');
+        } catch(err) {
+          console.error(err);
+          showToast('Upload failed', 'error');
+          deliverBtn.disabled = false; deliverBtn.textContent = 'Submit Delivery';
+        }
+      });
+    }
+  }
+
+  function showPickupUpload(order){
+    // Ensure card exists
+    displayOrderInDashboard(order, 'waiting_pickup');
+    // Add pickup UI after a short delay
+    setTimeout(()=> {
+      const card = document.getElementById('card-'+order.order_code);
+      if(card) {
+        // If server expects 'waiting_pickup' next, show upload depending on status
+        const pill = document.getElementById('pill-'+order.order_code);
+        if(pill) pill.textContent = 'waiting_pickup';
+        setupCardActions(order.order_code);
+      }
+    }, 500);
+  }
+
+  function showReachedButton(order){
+    const actions = document.getElementById('actions-' + order.order_code);
+    if(!actions) return;
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost';
+    btn.textContent = 'Reached Customer';
+    actions.appendChild(btn);
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = 'Updating...';
+      try {
+        await updateOrderStatus(order.order_code, 'reached');
+        showToast('Marked as reached', 'success');
+        btn.remove();
+        setupCardActions(order.order_code);
+      } catch(err) {
+        console.error(err);
+        showToast('Failed to update', 'error');
+        btn.disabled = false; btn.textContent = 'Reached Customer';
+      }
+    });
+  }
+
+  // ===== Utilities =====
+  function getCSRFToken(){
+    const name='csrftoken';
+    const cookies=document.cookie.split(';');
+    for(let c of cookies){
+      c=c.trim();
+      if(c.startsWith(name+'=')) return decodeURIComponent(c.substring(name.length+1));
+    }
+    return '';
+  }
+
+  function showToast(msg, type="success"){
+    const t = document.createElement("div");
+    t.className = "popup-msg";
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(()=> t.remove(), 3000);
+  }
+
+  function validateImageFile(file){
+    if(!file) return false;
+    const allowed = ['image/jpeg','image/png','image/webp'];
+    if(!allowed.includes(file.type)) {
+      showToast('Only JPG/PNG/WEBP allowed', 'error');
+      return false;
+    }
+    const maxSize = 3 * 1024 * 1024; // 3MB
+    if(file.size > maxSize) {
+      showToast('Image must be < 3MB', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  // kick off initial fetch (if online)
+  if (localStorage.getItem("deliveryStatus") === "online") fetchNotifications();
+
 });
 </script>
 

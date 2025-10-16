@@ -1077,14 +1077,20 @@ class PreparationStatus(models.Model):
         return f"{self.meal_type} | {self.status} | {self.order}"
 
 
+from django.db import models
+from django.utils import timezone
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 ORDER_STATUS_CHOICES = [
     ('pending', 'Pending Assignment'),
     ('assigned', 'Assigned to Partner'),
     ('picked_up', 'Picked Up'),
+    ('on_the_way', 'On The Way'),          # NEW
+    ('reached', 'Reached Customer'),       # NEW
     ('delivered', 'Delivered'),
     ('failed', 'Failed Delivery'),
 ]
-
 
 class OrderAssignment(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -1098,14 +1104,28 @@ class OrderAssignment(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='+',  # disables reverse relation completely
+        related_name='+',
     )
 
     assigned_at = models.DateTimeField(null=True, blank=True)
     picked_up_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
 
+    # Existing order status
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+
+    # NEW: Live status for tracking journey
+    live_status = models.CharField(
+        max_length=20,
+        choices=ORDER_STATUS_CHOICES,
+        default='assigned'
+    )
+
+    # NEW: Image Proof
+    pickup_image = models.ImageField(upload_to='delivery_photos/', null=True, blank=True)
+    delivery_image = models.ImageField(upload_to='delivery_photos/', null=True, blank=True)
+
+    # Address & Extra Details
     delivery_address = models.TextField(blank=True, null=True)
     meal_type = models.CharField(max_length=20, blank=True, null=True)
 
@@ -1115,16 +1135,16 @@ class OrderAssignment(models.Model):
     class Meta:
         ordering = ['-assigned_at', '-created_at']
 
-    # ✅ Manual assignment function
+    # ✅ Manual assignment function (NO CHANGE)
     def assign_partner(self, partner):
         if not partner.is_online or not partner.is_available:
             raise ValueError("Delivery partner is not online/available.")
         self.delivery_partner = partner
         self.assigned_at = timezone.now()
         self.status = 'assigned'
+        self.live_status = 'assigned'
         self.save()
 
-        # mark partner busy
         partner.is_available = False
         partner.save()
 

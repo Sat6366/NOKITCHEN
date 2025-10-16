@@ -2885,6 +2885,71 @@ def restaurant_earnings(request):
     return render(request, 'pages/restaurant_earnings.html')
 
 
+# preparation/views.py
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import OrderAssignment, DeliveryPartner
+from django.utils import timezone
+
+@api_view(['GET'])
+def fetch_partner_notifications(request, partner_id):
+    """
+    Fetch new orders assigned to this delivery partner that are still pending acceptance
+    """
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return Response({"success": False, "error": "Partner not found"})
+
+    orders = OrderAssignment.objects.filter(
+        delivery_partner=partner,
+        status='assigned'
+    )
+
+    data = [
+        {
+            "order_code": order.order_code,
+            "meal_type": order.meal_type,
+            "delivery_address": order.delivery_address,
+            "assigned_at": order.assigned_at.strftime("%H:%M %p"),
+        }
+        for order in orders
+    ]
+
+    return Response({"success": True, "orders": data})
+
+
+@api_view(['POST'])
+def assign_order_action(request):
+    """
+    Accept or Reject an assigned order by delivery partner
+    """
+    data = request.data
+    order_code = data.get('order_code')
+    status = data.get('status')
+
+    try:
+        order_assignment = OrderAssignment.objects.get(order_code=order_code)
+        partner = order_assignment.delivery_partner
+
+        if status == 'picked_up':
+            order_assignment.status = 'picked_up'
+            order_assignment.save()
+            return Response({"success": True, "message": f"Order {order_code} accepted!"})
+        elif status == 'pending':
+            order_assignment.status = 'pending'
+            order_assignment.delivery_partner.is_available = True
+            order_assignment.delivery_partner.save()
+            order_assignment.delivery_partner = None
+            order_assignment.save()
+            return Response({"success": True, "message": f"Order {order_code} rejected!"})
+        else:
+            return Response({"success": False, "error": "Invalid action"})
+
+    except OrderAssignment.DoesNotExist:
+        return Response({"success": False, "error": "Order not found"})
+
 
 
 # views.py
@@ -3193,6 +3258,18 @@ def get_client_ip(request):
     return ip
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from .models import DeliveryPartner, OrderAssignment
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from .models import DeliveryPartner, OrderAssignment
+import time
+
 def delivery_dashboard(request):
     partner_id = request.session.get('delivery_partner_id')
     if not partner_id:
@@ -3213,10 +3290,102 @@ def delivery_dashboard(request):
             'longitude': store.longitude,
         })
 
+    # ✅ Show only non-pending accepted / processing orders
+    assigned_orders = OrderAssignment.objects.filter(
+        delivery_partner=partner
+    ).exclude(live_status='pending')
+
     return render(request, 'pages/delivery_dashboard.html', {
         'partner': partner,
-        'nearby_stores': nearby_stores
+        'nearby_stores': nearby_stores,
+        'assigned_orders': assigned_orders,
     })
+
+
+@csrf_exempt
+def update_order_delivery_status(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid request method."})
+
+    order_id = request.POST.get("order_id")
+    status = request.POST.get("status")
+    pickup_img = request.FILES.get("pickup_image")
+    delivery_img = request.FILES.get("delivery_image")
+
+    try:
+        order = OrderAssignment.objects.get(order_code=order_id)
+
+        if status:
+            order.live_status = status
+
+            # ✅ ACCEPT ORDER
+            if status == 'accepted':
+                order.accepted_at = timezone.now()
+
+            # ✅ WAITING FOR PICKUP (appears after 1 min)
+            elif status == 'waiting_pickup':
+                order.waiting_pickup_at = timezone.now()
+
+            # ✅ PICKED UP (capture image)
+            elif status == 'picked_up':
+                order.picked_up_at = timezone.now()
+                if pickup_img:
+                    order.pickup_image = pickup_img
+
+            # ✅ DELIVERED (final image)
+            elif status == 'delivered':
+                order.delivered_at = timezone.now()
+                if delivery_img:
+                    order.delivery_image = delivery_img
+
+            order.save()
+
+        return JsonResponse({"success": True, "message": f"Order {order_id} status updated."})
+    except OrderAssignment.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Order not found"})
+
+
+def order_details_api(request, order_code):
+    try:
+        order = OrderAssignment.objects.get(order_code=order_code)
+        data = {
+            'order_code': order.order_code,
+            'meal_type': order.meal_type,
+            'items': order.items,
+            'delivery_address': order.delivery_address,
+            'live_status': order.live_status,
+        }
+        return JsonResponse({'success': True, 'order': data})
+    except OrderAssignment.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Order not found'})
+
+
+def partner_notifications(request, partner_id):
+    """
+    Return only new orders that are still pending for this delivery partner.
+    Orders already accepted or in-progress will NOT appear in popups.
+    """
+    try:
+        partner = DeliveryPartner.objects.get(id=partner_id)
+    except DeliveryPartner.DoesNotExist:
+        return JsonResponse({"success": False, "orders": []})
+
+    # Only fetch orders that are still pending
+    orders = OrderAssignment.objects.filter(
+        delivery_partner=partner,
+        live_status='pending'  # Only pending orders trigger popups
+    )
+
+    orders_data = []
+    for order in orders:
+        orders_data.append({
+            "order_code": order.order_code,
+            "meal_type": order.meal_type,
+            "items": order.items,
+            "delivery_address": order.delivery_address,
+        })
+
+    return JsonResponse({"success": True, "orders": orders_data})
 
 
 
@@ -3289,6 +3458,7 @@ def check_nearby_store(request):
     })
 
 
+
 def delivery_myearnings(request):
     partner_id = request.session.get('delivery_partner_id')
     if not partner_id:
@@ -3304,6 +3474,15 @@ def delivery_myearnings(request):
     })
 
 
+
+from django.shortcuts import render, redirect
+from datetime import date, timedelta
+from .models import DeliveryPartner, OrderAssignment
+from django.shortcuts import render, redirect
+from datetime import date, timedelta
+from django.utils import timezone
+from .models import DeliveryPartner, OrderAssignment
+
 def delivery_myorders(request):
     partner_id = request.session.get('delivery_partner_id')
     if not partner_id:
@@ -3314,10 +3493,38 @@ def delivery_myorders(request):
     except DeliveryPartner.DoesNotExist:
         return redirect('delivery_agentstep2')
 
-    return render(request, 'pages/delivery_myorders.html', {
-        'partner': partner
-    })
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
 
+    # ✅ Only delivered/completed orders
+    completed_status = ['delivered']
+
+    # Orders filtered by delivered_at date
+    completed_orders_today = OrderAssignment.objects.filter(
+        delivery_partner=partner,
+        status__in=completed_status,
+        delivered_at__date=today
+    )
+
+    completed_orders_week = OrderAssignment.objects.filter(
+        delivery_partner=partner,
+        status__in=completed_status,
+        delivered_at__date__gte=week_start
+    )
+
+    completed_orders_month = OrderAssignment.objects.filter(
+        delivery_partner=partner,
+        status__in=completed_status,
+        delivered_at__date__gte=month_start
+    )
+
+    return render(request, 'pages/delivery_myorders.html', {
+        'partner': partner,
+        'completed_orders_today': completed_orders_today,
+        'completed_orders_week': completed_orders_week,
+        'completed_orders_month': completed_orders_month,
+    })
 
 
 def delivery_profile(request):

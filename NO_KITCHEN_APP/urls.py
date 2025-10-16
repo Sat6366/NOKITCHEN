@@ -131,4 +131,10 @@ urlpatterns = [
     path('api/assigned-orders/', views.assigned_orders_view, name='assigned-orders'),
     path('api/delivery-partners/', views.online_delivery_partners, name='online_delivery_partners'),
     path('api/assign-order-to-partner/', views.assign_order_to_partner, name='assign_order_to_partner'),
-]
+    path('api/partner-notifications/<int:partner_id>/', views.fetch_partner_notifications, name='partner-notifications'),
+    path('api/assign-order-action/', views.assign_order_action, name='assign-order-action'),
+    path('api/update-order-delivery-status/', views.update_order_delivery_status, name='update_order_delivery_status'),
+    path('api/partner-notifications/<int:partner_id>/', views.partner_notifications, name='partner_notifications'),
+    #path('fetch-new-orders/<int:partner_id>/', views.fetch_new_orders, name='fetch_new_orders'),
+
+]   
