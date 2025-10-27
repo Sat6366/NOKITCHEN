@@ -217,11 +217,10 @@ table {
 </a>
 </div>
 
-<!-- pages/delivery_myorders.html -->
 
 <div class="main-content">
 
-  <!-- Daily Completed Orders -->
+  <!-- ✅ Today's Completed Orders -->
   <div class="mt-5">
     <h4 class="mb-3 text-orange fw-bold">Today's Completed Orders</h4>
     <div class="table-responsive">
@@ -240,10 +239,15 @@ table {
             {% for order in completed_orders_today %}
               <tr>
                 <td>#{{ order.order_code }}</td>
-                <td>{{ order.meal_type }}</td>
+                <td>{{ order.meal_type|default:"-" }}</td>
                 <td>₹{{ order.total_amount|default:"-" }}</td>
-                <td>{{ order.delivery_address }}</td>
-                <td><span class="badge bg-success">Delivered</span></td>
+                <td>{{ order.delivery_address|default:"-" }}</td>
+                <td>
+                  <span class="badge bg-success">Delivered</span>
+                  {% if order.preparation_status %}
+                    <small class="d-block text-muted">Prep: {{ order.preparation_status|title }}</small>
+                  {% endif %}
+                </td>
               </tr>
             {% endfor %}
           {% else %}
@@ -256,12 +260,12 @@ table {
     </div>
   </div>
 
-  <!-- Completed Order History Tabs -->
+  <!-- ✅ Completed Order History Tabs -->
   <div class="mt-5">
     <h4 class="mb-3 text-orange fw-bold">Completed Order History</h4>
     <ul class="nav nav-tabs" id="orderTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="day-tab" data-bs-toggle="tab" data-bs-target="#last-day" type="button" role="tab">Last Day</button>
+        <button class="nav-link active" id="last-day-tab" data-bs-toggle="tab" data-bs-target="#last-day" type="button" role="tab">Last Day</button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="week-tab" data-bs-toggle="tab" data-bs-target="#last-week" type="button" role="tab">Last Week</button>
@@ -273,7 +277,7 @@ table {
 
     <div class="tab-content border border-top-0 p-3 bg-white shadow-sm rounded-bottom" id="orderTabsContent">
 
-      <!-- Last Day -->
+      <!-- ✅ Last Day -->
       <div class="tab-pane fade show active" id="last-day" role="tabpanel">
         <table class="table table-striped">
           <thead>
@@ -286,14 +290,19 @@ table {
             </tr>
           </thead>
           <tbody>
-            {% if completed_orders_today %}
-              {% for order in completed_orders_today %}
+            {% if completed_orders_last_day %}
+              {% for order in completed_orders_last_day %}
                 <tr>
                   <td>#{{ order.order_code }}</td>
-                  <td>{{ order.meal_type }}</td>
+                  <td>{{ order.meal_type|default:"-" }}</td>
                   <td>₹{{ order.total_amount|default:"-" }}</td>
-                  <td>{{ order.delivery_address }}</td>
-                  <td><span class="badge bg-success">Delivered</span></td>
+                  <td>{{ order.delivery_address|default:"-" }}</td>
+                  <td>
+                    <span class="badge bg-success">Delivered</span>
+                    {% if order.preparation_status %}
+                      <small class="d-block text-muted">Prep: {{ order.preparation_status|title }}</small>
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -305,7 +314,7 @@ table {
         </table>
       </div>
 
-      <!-- Last Week -->
+      <!-- ✅ Last Week -->
       <div class="tab-pane fade" id="last-week" role="tabpanel">
         <table class="table table-striped">
           <thead>
@@ -322,10 +331,15 @@ table {
               {% for order in completed_orders_week %}
                 <tr>
                   <td>#{{ order.order_code }}</td>
-                  <td>{{ order.meal_type }}</td>
+                  <td>{{ order.meal_type|default:"-" }}</td>
                   <td>₹{{ order.total_amount|default:"-" }}</td>
-                  <td>{{ order.delivery_address }}</td>
-                  <td><span class="badge bg-success">Delivered</span></td>
+                  <td>{{ order.delivery_address|default:"-" }}</td>
+                  <td>
+                    <span class="badge bg-success">Delivered</span>
+                    {% if order.preparation_status %}
+                      <small class="d-block text-muted">Prep: {{ order.preparation_status|title }}</small>
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
             {% else %}
@@ -337,7 +351,7 @@ table {
         </table>
       </div>
 
-      <!-- Last Month -->
+      <!-- ✅ Last Month -->
       <div class="tab-pane fade" id="last-month" role="tabpanel">
         <table class="table table-striped">
           <thead>
@@ -354,10 +368,15 @@ table {
               {% for order in completed_orders_month %}
                 <tr>
                   <td>#{{ order.order_code }}</td>
-                  <td>{{ order.meal_type }}</td>
+                  <td>{{ order.meal_type|default:"-" }}</td>
                   <td>₹{{ order.total_amount|default:"-" }}</td>
-                  <td>{{ order.delivery_address }}</td>
-                  <td><span class="badge bg-success">Delivered</span></td>
+                  <td>{{ order.delivery_address|default:"-" }}</td>
+                  <td>
+                    <span class="badge bg-success">Delivered</span>
+                    {% if order.preparation_status %}
+                      <small class="d-block text-muted">Prep: {{ order.preparation_status|title }}</small>
+                    {% endif %}
+                  </td>
                 </tr>
               {% endfor %}
             {% else %}

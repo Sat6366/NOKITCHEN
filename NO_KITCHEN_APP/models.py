@@ -1100,7 +1100,7 @@ class OrderAssignment(models.Model):
     order_code = models.CharField(max_length=50, unique=True, blank=True, null=True)
 
     delivery_partner = models.ForeignKey(
-        DeliveryPartner,
+        'DeliveryPartner',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -1134,6 +1134,7 @@ class OrderAssignment(models.Model):
 
     class Meta:
         ordering = ['-assigned_at', '-created_at']
+        db_table = 'NO_KITCHEN_APP_orderassignment'
 
     # ✅ Manual assignment function (NO CHANGE)
     def assign_partner(self, partner):

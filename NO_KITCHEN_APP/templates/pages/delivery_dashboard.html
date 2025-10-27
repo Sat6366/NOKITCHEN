@@ -531,7 +531,6 @@
 </a>
 </div>
 
-
 <!-- Main Content -->
 <div class="main-content">
 
@@ -764,7 +763,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function sendLocationIfOnline() {
-    // attempt geolocation; if fail, still try with nulls
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         pos => sendLocation(pos.coords.latitude, pos.coords.longitude),
@@ -777,7 +775,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function confirmOffline() {
-    // Prevent immediate toggle off until user confirms
     toggleCheckbox.checked = true;
     offlineModal.style.display = "flex";
     offlineModal.setAttribute('aria-hidden','false');
@@ -796,7 +793,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function sendLocation(lat, lon){
-    // Keep it same endpoint; server responds with { allowed, message } already
     fetch("{% url 'check_nearby_store' %}", {
       method:"POST",
       headers:{
@@ -818,26 +814,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // ===== Partner Notifications & Order Flow =====
   const partnerId = {{ partner.id }};
-  const handledOrders = new Set(); // keep track locally so popups stop after action
+  const handledOrders = new Set();
 
-  // When the page loads, mark already shown orders as handled (so no popups for pre-rendered accepted ones)
   document.querySelectorAll('[id^="card-"]').forEach(card=>{
     const code = card.id.replace('card-','');
     const statusEl = document.getElementById('pill-'+code);
     if(statusEl && statusEl.textContent.trim() !== 'pending') handledOrders.add(code);
-    // initialize progress bar according to status
     updateProgressBar(code, statusEl ? statusEl.textContent.trim() : '');
-    // add available actions for existing cards
     setupCardActions(code);
   });
 
-  // Poll every 5 seconds for new pending orders
   let pollInterval = setInterval(fetchNotifications, 5000);
 
-  // Only create popups if partner is online
   function fetchNotifications(){
-    if (localStorage.getItem("deliveryStatus") !== "online") return; // DO NOT show when offline
-
+    if (localStorage.getItem("deliveryStatus") !== "online") return;
     fetch(`/nokitchen/api/partner-notifications/${partnerId}/`)
       .then(res => res.json())
       .then(data => {
@@ -853,7 +843,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function showOrderPopup(order){
-    // produce sound & vibration
     try { beep.currentTime = 0; beep.play(); } catch(e) {}
     if (navigator.vibrate) navigator.vibrate([180,80,180]);
 
@@ -872,26 +861,14 @@ document.addEventListener("DOMContentLoaded", function() {
     `;
     notificationArea.appendChild(popup);
 
-    // Accept button -> set to 'accepted' on server immediately so it won't appear in subsequent "pending" queries
     popup.querySelector('.accept-btn').addEventListener('click', () => {
-      // Immediately stop popup & sound
       safeRemovePopup(order.order_code);
       handledOrders.add(order.order_code);
-
-      // send accepted status -> server will mark accepted_at (on backend) and stop returning pending ones
       updateOrderStatus(order.order_code, 'accepted')
-        .then(() => {
-          // show on dashboard and add action to upload pickup image when appropriate
-          displayOrderInDashboard(order, 'accepted');
-          showPickupUpload(order);
-        })
-        .catch(err => {
-          showToast("Accept failed", "error");
-          console.error(err);
-        });
+        .then(() => { displayOrderInDashboard(order, 'accepted'); showPickupUpload(order); })
+        .catch(err => { showToast("Accept failed", "error"); console.error(err); });
     });
 
-    // Reject button -> mark handled locally to avoid repetitive popups
     popup.querySelector('.reject-btn').addEventListener('click', () => {
       safeRemovePopup(order.order_code);
       handledOrders.add(order.order_code);
@@ -905,7 +882,7 @@ document.addEventListener("DOMContentLoaded", function() {
     try { beep.pause(); beep.currentTime = 0; } catch(e){}
   }
 
-  // ===== Update status helpers (return promise) =====
+  // ===== Update status helpers =====
   async function updateOrderStatus(orderCode, status) {
     const formData = new FormData();
     formData.append('order_id', orderCode);
@@ -923,7 +900,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   async function updateOrderStatusWithImages(orderCode, status, pickupImg, deliveryImg) {
-    // client-side validation already performed before calling this
     const formData = new FormData();
     formData.append('order_id', orderCode);
     formData.append('status', status);
@@ -941,7 +917,6 @@ document.addEventListener("DOMContentLoaded", function() {
     return json;
   }
 
-  // ===== Dashboard UI update functions =====
   function displayOrderInDashboard(order, status){
     const container = document.getElementById('acceptedOrdersContainer');
     let card = document.getElementById('card-' + order.order_code);
@@ -978,27 +953,20 @@ document.addEventListener("DOMContentLoaded", function() {
 
     setupCardActions(order.order_code);
   }
-function updateDashboardStatus(orderCode, status){
+
+  function updateDashboardStatus(orderCode, status){
     const pill = document.getElementById('pill-' + orderCode);
     if(pill) pill.textContent = status;
     updateProgressBar(orderCode, status);
-
-    // If status no longer pending, ensure any popup for it is removed
     safeRemovePopup(orderCode);
-
-    // If accepted or later, ensure this order isn't shown in notifications again
     if(status !== 'pending') handledOrders.add(orderCode);
-
-    // ===== REMOVE DELIVERED ORDERS FROM DASHBOARD =====
     if(status === 'delivered'){
         const card = document.getElementById('card-' + orderCode);
-        if(card){
-            card.remove();
-        }
+        if(card) card.remove();
     }
-}
+  }
 
-function updateProgressBar(orderCode, status){
+  function updateProgressBar(orderCode, status){
     const inner = document.getElementById('progress-inner-' + orderCode);
     if(!inner) return;
     let width = 0;
@@ -1010,30 +978,20 @@ function updateProgressBar(orderCode, status){
     else if(status === 'delivered') width = 100;
 
     inner.style.width = width + '%';
-
-    // Optional: remove card after a short delay for better UX
     if(status === 'delivered'){
-        setTimeout(()=>{
-            const card = document.getElementById('card-' + orderCode);
-            if(card) card.remove();
-        }, 800); // 0.8s delay to let progress bar reach 100%
+        setTimeout(()=>{ const card = document.getElementById('card-' + orderCode); if(card) card.remove(); }, 800);
     }
-}
+  }
 
-// ===== Setup card actions (buttons for pickup/upload/reach/deliver) =====
+  // ===== Setup card actions =====
   function setupCardActions(orderCode) {
     const actions = document.getElementById('actions-' + orderCode);
     if(!actions) return;
-
-    // Clear previous actions
     actions.innerHTML = '';
-
     const statusPill = document.getElementById('pill-' + orderCode);
     const curStatus = statusPill ? statusPill.textContent.trim() : '';
 
-    // If order is accepted or waiting_pickup -> show upload pickup if not yet picked_up
     if(curStatus === 'accepted' || curStatus === 'waiting_pickup') {
-      // pickup upload input + submit
       const pickupWrap = document.createElement('label');
       pickupWrap.className = 'file-input';
       pickupWrap.innerHTML = `
@@ -1069,7 +1027,6 @@ function updateProgressBar(orderCode, status){
         try {
           await updateOrderStatusWithImages(orderCode, 'picked_up', file, null);
           showToast('Pickup recorded', 'success');
-          // show Reached button after success
           submitBtn.remove();
           pickupWrap.remove();
           showReachedButton({ order_code: orderCode });
@@ -1082,13 +1039,9 @@ function updateProgressBar(orderCode, status){
       });
     }
 
-    // If picked_up or reached -> show "Reached Customer" or "Upload Delivered Image"
-    if(curStatus === 'picked_up' ) {
-      showReachedButton({ order_code: orderCode }, actions);
-    }
+    if(curStatus === 'picked_up') showReachedButton({ order_code: orderCode }, actions);
 
     if(curStatus === 'reached') {
-      // show delivery upload
       const deliveryWrap = document.createElement('label');
       deliveryWrap.className = 'file-input';
       deliveryWrap.innerHTML = `
@@ -1124,12 +1077,8 @@ function updateProgressBar(orderCode, status){
         try {
           await updateOrderStatusWithImages(orderCode, 'delivered', null, f);
           showToast('Delivery recorded', 'success');
-          // after delivered you might want to remove card or mark as completed
-          const pill = document.getElementById('pill-' + orderCode);
-          if(pill) pill.textContent = 'delivered';
-          deliverBtn.remove();
-          deliveryWrap.remove();
-          updateProgressBar(orderCode,'delivered');
+          const pill = document.getElementById('pill-' + orderCode); if(pill) pill.textContent = 'delivered';
+          deliverBtn.remove(); deliveryWrap.remove(); updateProgressBar(orderCode,'delivered');
         } catch(err) {
           console.error(err);
           showToast('Upload failed', 'error');
@@ -1140,13 +1089,10 @@ function updateProgressBar(orderCode, status){
   }
 
   function showPickupUpload(order){
-    // Ensure card exists
     displayOrderInDashboard(order, 'waiting_pickup');
-    // Add pickup UI after a short delay
     setTimeout(()=> {
       const card = document.getElementById('card-'+order.order_code);
       if(card) {
-        // If server expects 'waiting_pickup' next, show upload depending on status
         const pill = document.getElementById('pill-'+order.order_code);
         if(pill) pill.textContent = 'waiting_pickup';
         setupCardActions(order.order_code);
@@ -1199,19 +1145,12 @@ function updateProgressBar(orderCode, status){
   function validateImageFile(file){
     if(!file) return false;
     const allowed = ['image/jpeg','image/png','image/webp'];
-    if(!allowed.includes(file.type)) {
-      showToast('Only JPG/PNG/WEBP allowed', 'error');
-      return false;
-    }
-    const maxSize = 3 * 1024 * 1024; // 3MB
-    if(file.size > maxSize) {
-      showToast('Image must be < 3MB', 'error');
-      return false;
-    }
+    if(!allowed.includes(file.type)) { showToast('Only JPG/PNG/WEBP allowed', 'error'); return false; }
+    const maxSize = 3 * 1024 * 1024; 
+    if(file.size > maxSize) { showToast('Image must be < 3MB', 'error'); return false; }
     return true;
   }
 
-  // kick off initial fetch (if online)
   if (localStorage.getItem("deliveryStatus") === "online") fetchNotifications();
 
 });

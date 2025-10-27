@@ -427,16 +427,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         <th>Assign</th>
                       </tr>
                     </thead><tbody>`;
-
 orders.forEach(order => {
-  // 🔹 Determine safe ID
   const safeOrderId = order.order_id || order.order_code || order.id;
-  if(!safeOrderId){
-    console.warn("Skipping order with missing ID:", order);
-    return; // skip orders without valid ID
-  }
-
   const defaultStatus = order.status || "queued";
+
+  const isCompleted = ['delivered', 'dispatched', 'failed'].includes(defaultStatus); // static
 
   body += `<tr>
             <td>${order.user || '-'}</td>
@@ -449,15 +444,22 @@ orders.forEach(order => {
             <td>${order.address || '-'}</td>
             <td>₹${Number(order.price || 0).toFixed(2)}</td>
             <td>
-              <select class="status-select status-${defaultStatus}" onchange="updateStatus(this, '${order.source}', '${safeOrderId}', '${mealType}')">
+              <select class="status-select status-${defaultStatus}" 
+                      onchange="updateStatus(this, '${order.source}', '${safeOrderId}', '${mealType}')" 
+                      ${isCompleted ? 'disabled' : ''}>
                 <option value="queued" ${defaultStatus==='queued'?'selected':''}>Queued</option>
                 <option value="preparing" ${defaultStatus==='preparing'?'selected':''}>Being Prepared</option>
                 <option value="ready" ${defaultStatus==='ready'?'selected':''}>Ready for Dispatch</option>
                 <option value="dispatched" ${defaultStatus==='dispatched'?'selected':''}>Dispatched</option>
+                <option value="delivered" ${defaultStatus==='delivered'?'selected':''}>Delivered</option>
               </select>
             </td>
             <td>
-              <button class="btn btn-sm btn-primary" onclick="showAssignPartners('${safeOrderId}', this)">Assign</button>
+              <button class="btn btn-sm btn-primary" 
+                      onclick="showAssignPartners('${safeOrderId}', this)" 
+                      ${isCompleted ? 'disabled' : ''}>
+                Assign
+              </button>
             </td>
           </tr>`;
 });

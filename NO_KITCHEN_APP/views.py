@@ -2919,11 +2919,10 @@ def fetch_partner_notifications(request, partner_id):
 
     return Response({"success": True, "orders": data})
 
-
 @api_view(['POST'])
 def assign_order_action(request):
     """
-    Accept or Reject an assigned order by delivery partner
+    Accept, Reject, Picked Up, or Delivered an assigned order by delivery partner
     """
     data = request.data
     order_code = data.get('order_code')
@@ -2935,21 +2934,43 @@ def assign_order_action(request):
 
         if status == 'picked_up':
             order_assignment.status = 'picked_up'
+            order_assignment.picked_up_at = timezone.now()
             order_assignment.save()
-            return Response({"success": True, "message": f"Order {order_code} accepted!"})
+            return Response({"success": True, "message": f"Order {order_code} picked up!"})
+
         elif status == 'pending':
+            # Reject order
             order_assignment.status = 'pending'
-            order_assignment.delivery_partner.is_available = True
-            order_assignment.delivery_partner.save()
+            if partner:
+                partner.is_available = True
+                partner.save()
             order_assignment.delivery_partner = None
             order_assignment.save()
             return Response({"success": True, "message": f"Order {order_code} rejected!"})
+
+        elif status == 'delivered':
+            order_assignment.status = 'delivered'
+            order_assignment.delivered_at = timezone.now()
+            order_assignment.save()
+            if partner:
+                partner.is_available = True
+                partner.save()
+            return Response({"success": True, "message": f"Order {order_code} delivered!"})
+
         else:
             return Response({"success": False, "error": "Invalid action"})
 
     except OrderAssignment.DoesNotExist:
         return Response({"success": False, "error": "Order not found"})
 
+def reset_unavailable_partners():
+    # Mark partners available if they have no active assigned orders
+    partners = DeliveryPartner.objects.filter(is_online=True, is_available=False)
+    for partner in partners:
+        active_orders = OrderAssignment.objects.filter(delivery_partner=partner).exclude(status__in=['delivered', 'failed'])
+        if not active_orders.exists():
+            partner.is_available = True
+            partner.save()
 
 
 # views.py
@@ -3301,48 +3322,54 @@ def delivery_dashboard(request):
         'assigned_orders': assigned_orders,
     })
 
+from django.http import JsonResponse
+from django.utils import timezone
+from geopy.geocoders import Nominatim
+from .models import FinalMealOrder
 
-@csrf_exempt
 def update_order_delivery_status(request):
-    if request.method != "POST":
-        return JsonResponse({"success": False, "error": "Invalid request method."})
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        status = request.POST.get('status')
+        pickup_img = request.FILES.get('pickup_image')
+        delivery_img = request.FILES.get('delivery_image')
 
-    order_id = request.POST.get("order_id")
-    status = request.POST.get("status")
-    pickup_img = request.FILES.get("pickup_image")
-    delivery_img = request.FILES.get("delivery_image")
+        try:
+            order = FinalMealOrder.objects.get(id=order_id)
 
-    try:
-        order = OrderAssignment.objects.get(order_code=order_id)
-
-        if status:
-            order.live_status = status
-
-            # ✅ ACCEPT ORDER
-            if status == 'accepted':
-                order.accepted_at = timezone.now()
-
-            # ✅ WAITING FOR PICKUP (appears after 1 min)
-            elif status == 'waiting_pickup':
-                order.waiting_pickup_at = timezone.now()
-
-            # ✅ PICKED UP (capture image)
-            elif status == 'picked_up':
+            # Update pickup
+            if status == 'picked_up':
                 order.picked_up_at = timezone.now()
                 if pickup_img:
                     order.pickup_image = pickup_img
+                order.status = 'picked_up'
+                order.save()
 
-            # ✅ DELIVERED (final image)
+                # Get delivery coordinates
+                geolocator = Nominatim(user_agent="myapp")
+                location = geolocator.geocode(order.delivery_address)
+                lat, lng = (location.latitude, location.longitude) if location else (None, None)
+
+                return JsonResponse({
+                    "success": True,
+                    "message": "Pickup recorded",
+                    "lat": lat,
+                    "lng": lng
+                })
+
+            # Update delivery
             elif status == 'delivered':
                 order.delivered_at = timezone.now()
                 if delivery_img:
                     order.delivery_image = delivery_img
+                order.status = 'delivered'
+                order.save()
+                return JsonResponse({"success": True, "message": "Order delivered"})
 
-            order.save()
+        except FinalMealOrder.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Order not found"})
 
-        return JsonResponse({"success": True, "message": f"Order {order_id} status updated."})
-    except OrderAssignment.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Order not found"})
+    return JsonResponse({"success": False, "error": "Invalid request"})
 
 
 def order_details_api(request, order_code):
@@ -3473,15 +3500,12 @@ def delivery_myearnings(request):
         'partner': partner
     })
 
-
-
 from django.shortcuts import render, redirect
-from datetime import date, timedelta
-from .models import DeliveryPartner, OrderAssignment
-from django.shortcuts import render, redirect
-from datetime import date, timedelta
+from datetime import timedelta
 from django.utils import timezone
+from django.db import models
 from .models import DeliveryPartner, OrderAssignment
+from .models import PreparationStatus
 
 def delivery_myorders(request):
     partner_id = request.session.get('delivery_partner_id')
@@ -3493,38 +3517,51 @@ def delivery_myorders(request):
     except DeliveryPartner.DoesNotExist:
         return redirect('delivery_agentstep2')
 
-    today = date.today()
-    week_start = today - timedelta(days=today.weekday())
-    month_start = today.replace(day=1)
+    # ✅ Define time periods
+    today = timezone.localdate()
+    yesterday = today - timedelta(days=1)
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
 
-    # ✅ Only delivered/completed orders
-    completed_status = ['delivered']
-
-    # Orders filtered by delivered_at date
-    completed_orders_today = OrderAssignment.objects.filter(
-        delivery_partner=partner,
-        status__in=completed_status,
-        delivered_at__date=today
+    # ✅ Fix: include both status and live_status delivered
+    base_filter = OrderAssignment.objects.filter(
+        delivery_partner=partner
+    ).filter(
+        models.Q(status='delivered') | models.Q(live_status='delivered')
     )
 
-    completed_orders_week = OrderAssignment.objects.filter(
-        delivery_partner=partner,
-        status__in=completed_status,
-        delivered_at__date__gte=week_start
-    )
+    # ✅ Use updated_at since delivered_at may be null
+    completed_orders_today = base_filter.filter(updated_at__date=today).order_by('-updated_at')
+    completed_orders_last_day = base_filter.filter(updated_at__date=yesterday).order_by('-updated_at')
+    completed_orders_week = base_filter.filter(
+        updated_at__date__gte=week_ago,
+        updated_at__date__lte=today
+    ).order_by('-updated_at')
+    completed_orders_month = base_filter.filter(
+        updated_at__date__gte=month_ago,
+        updated_at__date__lte=today
+    ).order_by('-updated_at')
 
-    completed_orders_month = OrderAssignment.objects.filter(
-        delivery_partner=partner,
-        status__in=completed_status,
-        delivered_at__date__gte=month_start
-    )
+    # ✅ Add total_amount and preparation_status dynamically
+    for order in base_filter:
+        linked_order = getattr(order, 'order', None)
+        order.total_amount = getattr(linked_order, 'total_amount', None)
 
-    return render(request, 'pages/delivery_myorders.html', {
+        prep = PreparationStatus.objects.filter(
+            content_type=order.content_type,
+            object_id=order.object_id
+        ).last()
+        order.preparation_status = prep.status if prep else None
+
+    context = {
         'partner': partner,
         'completed_orders_today': completed_orders_today,
+        'completed_orders_last_day': completed_orders_last_day,
         'completed_orders_week': completed_orders_week,
         'completed_orders_month': completed_orders_month,
-    })
+    }
+
+    return render(request, 'pages/delivery_myorders.html', context)
 
 
 def delivery_profile(request):
